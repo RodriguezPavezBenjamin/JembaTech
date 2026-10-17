@@ -1,6 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { firstValueFrom } from 'rxjs';
+import { pythonPost } from './observability/observability';
 import { PrismaService } from './prisma.service';
 
 interface EvaluationPayload {
@@ -29,7 +29,7 @@ export class EvaluatorService {
   async evaluate(payload: EvaluationPayload, userId?: string) {
     let evaluation: EvaluationResponse;
     try {
-      const response = await firstValueFrom(this.http.post<EvaluationResponse>(`${process.env.PYTHON_SERVICE_URL ?? 'http://localhost:8000'}/evaluate`, payload, { timeout: 4000 }));
+      const response = await pythonPost<EvaluationResponse>(this.http, `${process.env.PYTHON_SERVICE_URL ?? 'http://localhost:8000'}/evaluate`, payload, { timeout: 4000 });
       evaluation = response.data;
     } catch {
       throw new ServiceUnavailableException('El evaluador no esta disponible. Intenta nuevamente.');

@@ -1,0 +1,10 @@
+name: JembaTech security
+queries:
+  - uses: security-extended
+paths:
+  - backend/src
+  - frontend/src
+  - python-service
+paths-ignore:
+  - python-service/tests
+  - '**/*.spec.ts'

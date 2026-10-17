@@ -30,6 +30,7 @@ model User {
   role         Role     @default(CLIENT)
   createdAt    DateTime @default(now()) @map("created_at")
   quotes       Quote[]
+  sourceRuns   SourceRun[]
 
   @@map("users")
 }
@@ -68,4 +69,58 @@ model Quote {
   @@index([userId, createdAt])
   @@index([status])
   @@map("quotes")
+}
+
+// Piloto privado: referencias externas, separadas del catálogo y las cotizaciones.
+model SourceRun {
+  id            String   @id @default(uuid())
+  source        String   @db.VarChar(40)
+  mode          String   @db.VarChar(40)
+  status        String   @default("RUNNING") @db.VarChar(20)
+  createdById   String?  @map("created_by_id")
+  createdBy     User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  retrievedAt   DateTime @map("retrieved_at")
+  startedAt     DateTime @default(now()) @map("started_at")
+  finishedAt    DateTime? @map("finished_at")
+  metrics       Json?
+  issues        Json?
+  storedCount   Int      @default(0) @map("stored_count")
+  staleSkipped  Int      @default(0) @map("stale_skipped")
+  errorCode     String?  @db.VarChar(80) @map("error_code")
+  sourceRequestUrl String? @db.VarChar(300) @map("source_request_url")
+  retrievalMs   Float? @map("retrieval_ms")
+  durationMs    Int? @map("duration_ms")
+  references    ExternalReference[]
+
+  @@index([source, startedAt])
+  @@map("source_runs")
+}
+
+model ExternalReference {
+  id                String   @id @default(uuid())
+  source            String   @db.VarChar(40)
+  externalId        String   @map("external_id") @db.VarChar(40)
+  category          String   @db.VarChar(20)
+  name              String   @db.VarChar(200)
+  brand             String   @db.VarChar(80)
+  partNumber        String?  @map("part_number") @db.VarChar(120)
+  specs             Json
+  sourceUrl         String   @map("source_url") @db.VarChar(300)
+  retrievedAt       DateTime @map("retrieved_at")
+  sourceUpdatedAt   DateTime? @map("source_updated_at")
+  contentHash       String   @map("content_hash") @db.VarChar(64)
+  accessStatus      String   @map("access_status") @db.VarChar(40)
+  acquisitionMode   String   @map("acquisition_mode") @db.VarChar(40)
+  // Vínculo futuro revisado manualmente con los IDs del catálogo actual.
+  internalCatalogId String?  @map("internal_catalog_id") @db.VarChar(120)
+  lastRunId         String?  @map("last_run_id")
+  lastRun           SourceRun? @relation(fields: [lastRunId], references: [id], onDelete: SetNull)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@unique([source, externalId])
+  @@index([source, category, retrievedAt])
+  @@index([source, brand])
+  @@index([internalCatalogId])
+  @@map("external_references")
 }

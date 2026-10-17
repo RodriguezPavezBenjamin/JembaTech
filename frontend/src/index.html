@@ -2,8 +2,10 @@
 <html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
+<base href="/">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jemba Tech – Armado y Mantención de PC</title>
+<title>JembaTech</title>
+<link rel="icon" type="image/svg+xml" sizes="any" href="/media/brand/jemba-tech-favicon.svg">
 <script>
   // Restaurar el tema antes del primer render evita un destello al navegar.
   try {
@@ -1658,14 +1660,14 @@ if (!mainNav.querySelector('.nav-logo')) {
 // ─── ACCOUNT MENU ───
 const accountWrap = document.createElement('div');
 accountWrap.className = 'nav-account';
-accountWrap.innerHTML = `<button class="nav-account-trigger" id="accountTrigger" type="button"><span class="nav-avatar" id="navAvatar">?</span><span id="accountLabel">INICIAR SESIÓN</span></button><div class="nav-account-menu" id="accountMenu"><button type="button" data-account="profile">PERFIL</button><button type="button" data-account="quotes">MIS COTIZACIONES</button><button type="button" data-account="consultations">CONSULTAS</button><button type="button" data-account="admin" id="adminMenuItem">CLIENTES</button><button type="button" data-account="logout">CERRAR SESIÓN</button></div>`;
+accountWrap.innerHTML = `<button class="nav-account-trigger" id="accountTrigger" type="button"><span class="nav-avatar" id="navAvatar">?</span><span id="accountLabel">INICIAR SESIÓN</span></button><div class="nav-account-menu" id="accountMenu"><button type="button" data-account="profile">PERFIL</button><button type="button" data-account="quotes">MIS COTIZACIONES</button><button type="button" data-account="consultations">CONSULTAS</button><button type="button" data-account="admin" id="adminMenuItem">CLIENTES</button><button type="button" data-account="sources" id="sourcesMenuItem" style="display:none">FUENTES Y CALIDAD</button><button type="button" data-account="logout">CERRAR SESIÓN</button></div>`;
 document.body.appendChild(accountWrap);
 const accountTrigger=document.getElementById('accountTrigger'); const accountMenu=document.getElementById('accountMenu'); const accountLabel=document.getElementById('accountLabel'); const navAvatar=document.getElementById('navAvatar');
 const accountUser=()=>{try{return JSON.parse(localStorage.getItem('jembatech_user')||'null')}catch{return null}};
-const refreshAccount=()=>{const user=accountUser();const adminItem=document.getElementById('adminMenuItem');if(user){accountLabel.textContent=user.name.toUpperCase();navAvatar.textContent=user.role==='ADMIN'?'AD':(user.name||user.email||'?').slice(0,2).toUpperCase();navAvatar.classList.toggle('admin-avatar',user.role==='ADMIN');if(adminItem)adminItem.style.display=user.role==='ADMIN'?'block':'none';}else{accountLabel.textContent='INICIAR SESIÓN';navAvatar.textContent='?';navAvatar.classList.remove('admin-avatar');if(adminItem)adminItem.style.display='none';}};
+const refreshAccount=()=>{const user=accountUser();const adminItem=document.getElementById('adminMenuItem');const sourcesItem=document.getElementById('sourcesMenuItem');if(sourcesItem)sourcesItem.style.display=user?.role==='ADMIN'?'block':'none';if(user){accountLabel.textContent=user.name.toUpperCase();navAvatar.textContent=user.role==='ADMIN'?'AD':(user.name||user.email||'?').slice(0,2).toUpperCase();navAvatar.classList.toggle('admin-avatar',user.role==='ADMIN');if(adminItem)adminItem.style.display=user.role==='ADMIN'?'block':'none';}else{accountLabel.textContent='INICIAR SESIÓN';navAvatar.textContent='?';navAvatar.classList.remove('admin-avatar');if(adminItem)adminItem.style.display='none';}};
 refreshAccount();
 accountTrigger?.addEventListener('click',()=>{const user=accountUser();if(!user){window.location.assign('/login');return;}accountMenu?.classList.toggle('open');});
-accountMenu?.addEventListener('click',(event)=>{const button=event.target.closest('button');if(!button)return;const section=button.dataset.account;accountMenu?.classList.remove('open');if(section==='logout'){localStorage.removeItem('jembatech_access_token');localStorage.removeItem('jembatech_user');window.location.assign('/login');return;}const routes={profile:'/perfil',quotes:'/cotizaciones',consultations:'/consultas',admin:'/admin/cotizaciones-clientes'};window.location.assign(routes[section]||'/perfil');});
+accountMenu?.addEventListener('click',(event)=>{const button=event.target.closest('button');if(!button)return;const section=button.dataset.account;accountMenu?.classList.remove('open');if(section==='logout'){localStorage.removeItem('jembatech_access_token');localStorage.removeItem('jembatech_user');window.location.assign('/login');return;}const routes={profile:'/perfil',quotes:'/cotizaciones',consultations:'/consultas',admin:'/admin/cotizaciones-clientes',sources:'/admin/fuentes'};window.location.assign(routes[section]||'/perfil');});
 window.addEventListener('jembatech-auth-change',refreshAccount);
 
 // ─── SIDEBAR MENU ─── 

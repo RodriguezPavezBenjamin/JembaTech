@@ -1,6 +1,6 @@
 import "zone.js";
 import { TestBed } from "@angular/core/testing";
-import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of, Subject } from "rxjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Catalogo, Producto } from "../../modelos/catalogo";
@@ -71,6 +71,19 @@ describe("Cotizador: selección y recuperación del armado", () => {
     TestBed.resetTestingModule();
     sessionStorage.clear();
     vi.useRealTimers();
+  });
+
+  it('el fondo de circuitos es decorativo y conserva la acción de Personalizado', () => {
+    TestBed.configureTestingModule({ imports: [CotizadorComponent], providers: [provideRouter([])] });
+    const fixture = TestBed.createComponent(CotizadorComponent);
+    fixture.detectChanges();
+    const button = (fixture.nativeElement as HTMLElement).querySelector('.personal-cta') as HTMLButtonElement;
+    expect(button.getAttribute('aria-label')).toBe('Empezar armado personalizado');
+    expect(button.querySelector('.personal-fondo')?.getAttribute('aria-hidden')).toBe('true');
+    expect(button.querySelectorAll('.personal-datos path')).toHaveLength(4);
+    const start = vi.spyOn(fixture.componentInstance, 'empezar').mockImplementation(() => {});
+    button.click();
+    expect(start).toHaveBeenCalledExactlyOnceWith('personalizado');
   });
 
   it('cotizar otro vuelve a los presets y limpia solo el borrador local', () => {

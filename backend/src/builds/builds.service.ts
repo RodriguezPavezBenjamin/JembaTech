@@ -7,7 +7,7 @@ import {
   ServiceUnavailableException,
 } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { firstValueFrom } from "rxjs";
+import { pythonPost } from "../observability/observability";
 import { CatalogService } from "../catalog/catalog.service";
 import { PrismaService } from "../prisma.service";
 import { BuildDraftDto, UpdateBuildDto } from "./build.dto";
@@ -45,12 +45,11 @@ export class BuildsService {
   async preview(draft: BuildDraftDto) {
     const configuration = this.catalog.resolve(draft);
     try {
-      const { data } = await firstValueFrom(
-        this.http.post<BuildAnalysis>(
+      const { data } = await pythonPost<BuildAnalysis>(
+          this.http,
           `${process.env.PYTHON_SERVICE_URL ?? "http://localhost:8000"}/builds/preview`,
           configuration,
           { timeout: 5000 },
-        ),
       );
       if (
         !data ||

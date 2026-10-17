@@ -25,6 +25,7 @@
       (click)="abierto = false"
       >COTIZACIONES DE CLIENTES</a
     >
+    <a *ngIf="autenticacion.user?.role === 'ADMIN'" routerLink="/admin/fuentes" (click)="abierto = false">FUENTES Y CALIDAD</a>
     <button type="button" (click)="salir()">CERRAR SESIÓN</button>
   </div>
 </div>

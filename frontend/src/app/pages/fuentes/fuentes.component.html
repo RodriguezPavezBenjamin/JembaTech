@@ -1,0 +1,80 @@
+<section class="page fuente-page">
+  <div class="fuente-titulo">
+    <div><span class="eyebrow">JEMBATECH · ADMINISTRACIÓN</span><h1>Fuentes y calidad</h1></div>
+  </div>
+  <p class="lead">SoloTodo · piloto privado de fichas técnicas CPU.</p>
+  <p class="aviso-fuente">Sincronización desactivada · solo consultas puntuales de prueba. Las condiciones de reutilización siguen pendientes. Estas referencias no cambian el catálogo, sus precios ni las cotizaciones.</p>
+  @if (error) { <p class="error" role="alert">{{ error }}</p> }
+  @if (mensaje) { <p class="success" role="status">{{ mensaje }}</p> }
+  <div class="metricas-fuente" aria-label="Estado de datos">
+    <div><span>REFERENCIAS</span><strong>{{ resumen?.referenceCount ?? '—' }}</strong></div>
+    <div><span>EJECUCIONES</span><strong>{{ resumen?.runCount ?? '—' }}</strong></div>
+    <div><span>VÁLIDAS · ÚLTIMO LOTE</span><strong>{{ validezUltimoLote }}</strong></div>
+    <div><span>ORIGEN DEL LOTE</span><strong class="texto-metrica">{{ origenLote }}</strong></div>
+  </div>
+
+  <section class="consulta-fuente" aria-labelledby="titulo-consulta">
+    <div><span class="eyebrow">RECUPERACIÓN WEB · CPU</span><h2 id="titulo-consulta">Consultar SoloTodo</h2><p>Una página, hasta 5 fichas. Python consulta y valida; el servidor guarda fecha, origen y resultados. Sin copiar JSON.</p></div>
+    <div class="controles-consulta">
+      <label for="limite-fuente">Fichas por consulta<select id="limite-fuente" [(ngModel)]="limiteConsulta" [disabled]="guardando"><option [ngValue]="1">1 ficha</option><option [ngValue]="3">3 fichas</option><option [ngValue]="5">5 fichas</option></select></label>
+      <label class="confirmacion-consulta"><input type="checkbox" [(ngModel)]="consultaConfirmada" [disabled]="guardando">Confirmo una consulta puntual del piloto, sin actualizar precios ni activar sincronización.</label>
+      <button type="button" [disabled]="!puedeConsultar" (click)="consultarFuente()">{{ guardando ? 'Procesando…' : 'Consultar y guardar' }}</button>
+    </div>
+    @if (resumen && !resumen.manualProbeEnabled) { <p class="nota-fuente">Consulta desactivada por configuración del servidor.</p> }
+    @if (resumen?.probeRunning) { <p role="status">Hay una consulta en proceso. Actualiza la vista para revisar su resultado.</p> }
+    @if (segundosRestantes) { <p aria-live="off">Próxima consulta disponible en {{ segundosRestantes }} s. No se consultará automáticamente.</p> }
+    @if (errorConsulta) { <p class="error" role="alert">{{ errorConsulta }}</p> }
+  </section>
+
+  <details class="muestra-fuente">
+    <summary>Herramienta avanzada: validar muestra JSON <span>Alternativa manual</span></summary>
+    <p>Hasta 5 fichas. El administrador declara su fecha y procedencia; esto no certifica una adquisición automática ni autoriza reutilizar el catálogo.</p>
+    <form (ngSubmit)="preparar()">
+      <label for="json-muestra">JSON de la muestra</label>
+      <textarea id="json-muestra" name="muestra" [(ngModel)]="muestra" rows="6" maxlength="100000" [disabled]="guardando" placeholder='{"retrievedAt":"fecha ISO con zona horaria","records":[...]}'></textarea>
+      @if (errorMuestra) { <p class="error" role="alert">{{ errorMuestra }}</p> }
+      <button type="submit" [disabled]="guardando || !muestra.trim()">{{ guardando ? 'Validando y guardando…' : 'Validar y guardar muestra' }}</button>
+    </form>
+  </details>
+
+  <div class="fuente-seccion">
+    <h2>Referencias técnicas</h2>
+    <form class="buscar-fuente" (ngSubmit)="cargar()"><label class="sr-only" for="buscar-fuente">Buscar por nombre, marca o Part Number</label><input id="buscar-fuente" name="busqueda" [(ngModel)]="busqueda" maxlength="100" placeholder="Nombre, marca o Part Number"><button type="submit" [disabled]="cargando">Buscar</button></form>
+  </div>
+  @if (cargando) { <p role="status">Cargando referencias…</p> }
+  @if (!cargando && !referencias.items.length && !error) { <p class="vacio-fuente">Aún no hay referencias que coincidan. Consulta la fuente o valida una muestra para comenzar; no se generarán productos ficticios.</p> }
+  <div class="referencias-fuente" [attr.aria-busy]="cargando">
+    @for (item of referencias.items; track item.id) {
+      <article class="referencia-fuente">
+        <div class="referencia-cabecera"><span>{{ item.brand }} · CPU {{ item.externalId }}</span><span class="etiqueta-fuente">PILOTO</span></div>
+        <h3>{{ item.name }}</h3>
+        <p class="datos-cpu">{{ item.specs.socket }} · {{ item.specs.cores }} núcleos / {{ item.specs.threads }} hilos</p>
+        <dl>
+          <div><dt>TDP declarado</dt><dd>{{ item.specs.declaredTdpWatts !== null ? item.specs.declaredTdpWatts + ' W' : 'Sin dato' }}</dd></div>
+          <div><dt>Part Number</dt><dd>{{ item.partNumber || 'Sin dato' }}</dd></div>
+          <div><dt>{{ item.acquisitionMode === 'manual-api' ? 'Recuperada por el servidor' : 'Recuperación declarada' }}</dt><dd>{{ item.retrievedAt | date:'dd/MM/yyyy HH:mm' }}</dd></div>
+          <div><dt>Actualización de origen</dt><dd>{{ item.sourceUpdatedAt ? (item.sourceUpdatedAt | date:'dd/MM/yyyy HH:mm') : 'Sin dato' }}</dd></div>
+        </dl>
+        <div class="referencia-pie"><span>Sin precio verificado · sin vínculo al catálogo</span>@if (origenSeguro(item); as url) { <a [href]="url" target="_blank" rel="noopener noreferrer">Ver origen ↗</a> }</div>
+        <details class="hash-fuente"><summary>Trazabilidad</summary><code>{{ item.contentHash }}</code><p>{{ item.acquisitionMode === 'manual-api' ? 'Consulta API puntual, recuperada por el servidor.' : 'Muestra declarada por administrador.' }} Derechos de reutilización pendientes.</p></details>
+      </article>
+    }
+  </div>
+  <nav class="paginacion-fuente" aria-label="Paginación de referencias"><button class="secondary" [disabled]="cargando || referencias.page <= 1" (click)="cargar(referencias.page - 1)">Anterior</button><span>{{ referencias.total }} fichas · página {{ referencias.page }} de {{ paginas }}</span><button class="secondary" [disabled]="cargando || referencias.page >= paginas" (click)="cargar(referencias.page + 1)">Siguiente</button></nav>
+  <p class="nota-fuente">El TDP no es consumo máximo ni recomendación de fuente. Una fecha de actualización no garantiza stock o precio vigente.</p>
+
+  <h2>Últimas ejecuciones</h2>
+  <div class="historial-fuente">
+    @for (run of ejecuciones; track run.id) {
+      <details class="ejecucion-fuente">
+        <summary><span>{{ estado(run.status) }} · {{ run.mode === 'manual-api' ? 'API puntual' : 'Muestra JSON' }} · {{ run.startedAt | date:'dd/MM HH:mm' }}</span><span>{{ run.metrics?.accepted ?? '—' }} válidas / {{ run.metrics?.received ?? '—' }} recibidas</span></summary>
+        <p class="id-ejecucion">ID / correlación: {{ run.id }}</p>
+        @if (run.sourceRequestUrl) { <p class="id-ejecucion">Consulta: {{ run.sourceRequestUrl }}</p> }
+        @if (run.retrievalMs !== null && run.retrievalMs !== undefined) { <p>Recuperación: {{ run.retrievalMs }} ms · total: {{ run.durationMs }} ms</p> }
+        @if (run.metrics; as m) { <p>{{ m.validPercent }}% válidas · {{ m.duplicatePercent }}% duplicadas · {{ m.rejected }} rechazadas · {{ m.missingTdp }} sin TDP · {{ m.processingMs }} ms de procesamiento</p><p>{{ run.storedCount }} guardadas · {{ run.staleSkipped }} omitidas por antigüedad/conflicto.</p> }
+        @if (run.errorCode) { <p class="error">Código: {{ run.errorCode }}. La operación no reemplazó fichas válidas anteriores.</p> }
+        @for (issue of run.issues ?? []; track issue.index) { <p class="incidencia-fuente">Fila {{ issue.index + 1 }} · {{ issue.code }} @if (issue.fields.length) { · {{ issue.fields.join(', ') }} }</p> }
+      </details>
+    } @empty { <p class="nota-fuente">Sin ejecuciones registradas.</p> }
+  </div>
+</section>

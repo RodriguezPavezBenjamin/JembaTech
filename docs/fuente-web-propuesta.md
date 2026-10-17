@@ -1,5 +1,7 @@
 # Fuente web propuesta y uso responsable - EP1
 
+> Nota EP2 (2026-10-17): esta es la propuesta histórica de EP1, no una exigencia de la profesora. SoloTodo pasa a ser el candidato principal por afinidad con componentes de PC. Su acceso técnico público se comprobó; la reutilización recurrente y los límites siguen por confirmar. Ver [investigación, plan y estado actual](entrega-2.md). Mercado Libre queda como alternativa, no como integración elegida ni validada.
+
 ## Decisión
 
 Durante EP1 JembaTech **no consume ni extrae datos automáticamente desde sitios web externos**. La fuente propuesta para una etapa posterior es la [API oficial de Mercado Libre para Chile](https://developers.mercadolibre.cl/), una vez que el titular de JembaTech cree y valide una aplicación en su programa de desarrolladores.

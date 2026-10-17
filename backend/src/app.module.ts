@@ -14,6 +14,9 @@ import { CatalogController } from "./catalog/catalog.controller";
 import { CatalogService } from "./catalog/catalog.service";
 import { BuildsController } from "./builds/builds.controller";
 import { BuildsService } from "./builds/builds.service";
+import { SourcesController } from "./sources/sources.controller";
+import { SourcesService } from "./sources/sources.service";
+import { ObservabilityController } from "./observability/observability.controller";
 
 const jwtSecret = process.env.JWT_SECRET;
 if (!jwtSecret)
@@ -31,6 +34,8 @@ if (!jwtSecret)
     AuthController,
     CatalogController,
     BuildsController,
+    SourcesController,
+    ObservabilityController,
   ],
   providers: [
     EvaluatorService,
@@ -40,6 +45,7 @@ if (!jwtSecret)
     RolesGuard,
     CatalogService,
     BuildsService,
+    SourcesService,
   ],
 })
 export class AppModule {}

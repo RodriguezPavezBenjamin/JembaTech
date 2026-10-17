@@ -1,12 +1,16 @@
-import { ValidationPipe } from '@nestjs/common';
+import { ConsoleLogger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { createRequestMiddleware } from './observability/observability';
+import { SafeExceptionFilter } from './observability/safe-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { logger: new ConsoleLogger({ json: true }) });
+  app.use(createRequestMiddleware());
+  app.useGlobalFilters(new SafeExceptionFilter());
   app.setGlobalPrefix('api');
-  app.enableCors({ origin: true });
+  app.enableCors({ origin: true, exposedHeaders: ['X-Request-Id'] });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const openApiConfig = new DocumentBuilder()

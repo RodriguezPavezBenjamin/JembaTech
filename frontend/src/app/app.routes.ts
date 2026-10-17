@@ -81,6 +81,12 @@ export const routes: Routes = [
     ],
   },
   {
+    path: "admin/fuentes",
+    component: LayoutPrincipalComponent,
+    canActivate: [adminGuard],
+    children: [{ path: "", loadComponent: () => import("./pages/fuentes/fuentes.component").then(m => m.FuentesComponent) }],
+  },
+  {
     path: "admin/cotizaciones",
     redirectTo: "admin/cotizaciones-clientes",
     pathMatch: "full",

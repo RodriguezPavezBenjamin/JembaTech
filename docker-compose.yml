@@ -1,6 +1,6 @@
 services:
   database:
-    image: postgres:16-alpine
+    build: ./infra/database
     environment:
       POSTGRES_DB: jemba_cotiza
       POSTGRES_USER: jemba
@@ -19,14 +19,16 @@ services:
     build: ./python-service
     environment:
       PORT: 8000
+      SOLOTODO_MANUAL_PROBE_ENABLED: ${SOLOTODO_MANUAL_PROBE_ENABLED:-false}
+      SOURCE_INTERNAL_TOKEN: ${SOURCE_INTERNAL_TOKEN:-}
     ports:
-      - '8000:8000'
+      - '127.0.0.1:8000:8000'
 
   migrate:
     build:
       context: ./backend
-      target: build
-    command: ['npx', 'prisma', 'migrate', 'deploy']
+      target: runtime
+    command: ['node', 'node_modules/prisma/build/index.js', 'migrate', 'deploy']
     environment:
       DATABASE_URL: postgresql://jemba:${POSTGRES_PASSWORD:-jemba_dev}@database:5432/jemba_cotiza
     depends_on:
@@ -41,6 +43,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET in .env before starting Docker Compose}
       DATABASE_URL: postgresql://jemba:${POSTGRES_PASSWORD:-jemba_dev}@database:5432/jemba_cotiza
       PYTHON_SERVICE_URL: http://python-service:8000
+      SOLOTODO_MANUAL_PROBE_ENABLED: ${SOLOTODO_MANUAL_PROBE_ENABLED:-false}
+      SOURCE_INTERNAL_TOKEN: ${SOURCE_INTERNAL_TOKEN:-}
     depends_on:
       migrate:
         condition: service_completed_successfully

@@ -1,14 +1,19 @@
-name: CI EP1
+name: CI EP2
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   pull_request:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults: { run: { working-directory: frontend } }
     steps:
       - uses: actions/checkout@v4
@@ -23,9 +28,26 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
-      - run: npm audit --omit=dev --audit-level=critical
+      - run: node --test ../tests/integration/document.test.mjs
+      - run: node --test ../tests/security/*.test.mjs
+      - name: Auditar dependencias de producción
+        run: |
+          mkdir -p ../reports
+          npm audit --omit=dev --audit-level=high --json > ../reports/npm-frontend.json
+      - name: Auditar también herramientas de desarrollo (críticos bloqueantes)
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p ../reports
+          npm audit --audit-level=critical --json > ../reports/npm-full-frontend.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-frontend
+          path: reports/npm-*frontend.json
+          retention-days: 14
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults: { run: { working-directory: backend } }
     steps:
       - uses: actions/checkout@v4
@@ -41,9 +63,24 @@ jobs:
       - run: npx prisma generate
       - run: npm run test
       - run: npm run build
-      - run: npm audit --omit=dev --audit-level=critical
+      - name: Auditar dependencias de producción
+        run: |
+          mkdir -p ../reports
+          npm audit --omit=dev --audit-level=high --json > ../reports/npm-backend.json
+      - name: Auditar también herramientas de desarrollo (críticos bloqueantes)
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p ../reports
+          npm audit --audit-level=critical --json > ../reports/npm-full-backend.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-backend
+          path: reports/npm-*backend.json
+          retention-days: 14
   python:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults: { run: { working-directory: python-service } }
     steps:
       - uses: actions/checkout@v4
@@ -52,17 +89,78 @@ jobs:
       - run: pip install -r requirements.txt -r requirements-dev.txt
       - run: python -m ruff check .
       - run: python -m pytest -q
+      - run: python ../tests/security/test_scan_images.py
+  security-python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults: { run: { working-directory: python-service } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements-security.txt
+      - name: Bandit (código de producción)
+        run: |
+          mkdir -p ../reports
+          python -m bandit -r . -x ./tests -f json -o ../reports/bandit.json
+      - name: Auditar dependencias Python y transitivas
+        if: ${{ !cancelled() }}
+        run: python -m pip_audit --strict -r requirements.txt -f json -o ../reports/pip-audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-python
+          path: |
+            reports/bandit.json
+            reports/pip-audit.json
+          retention-days: 14
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, python]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Preparar análisis estático
+        uses: github/codeql-action/init@f051dc808ef3645eb0d08647ec751634ec2304ac # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          config-file: .github/codeql/codeql-config.yml
+      - name: Analizar y publicar hallazgos
+        uses: github/codeql-action/analyze@f051dc808ef3645eb0d08647ec751634ec2304ac # v4
+        with:
+          category: /language:${{ matrix.language }}
+          output: reports/codeql
+      - name: Bloquear hallazgos altos y críticos
+        run: node scripts/check-codeql.mjs reports/codeql
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: codeql-${{ matrix.language }}
+          path: reports/codeql/*.sarif
+          retention-days: 14
   secrets:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - name: Analizar secretos expuestos
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@6c05c4a00b91aa542267d8e32a8254774799d68d # v3.93.8
         with:
           extra_args: --results=verified,unknown
   terraform:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults: { run: { working-directory: infra } }
     steps:
       - uses: actions/checkout@v4
@@ -74,7 +172,8 @@ jobs:
       - run: terraform plan -input=false -var-file=terraform.tfvars.example
   docker:
     runs-on: ubuntu-latest
-    needs: [frontend, backend, python, secrets, terraform]
+    timeout-minutes: 30
+    needs: [frontend, backend, python, security-python, codeql, secrets, terraform]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -82,10 +181,33 @@ jobs:
       - name: Construir servicios y probar integración NestJS-FastAPI
         shell: bash
         run: |
-          export JWT_SECRET="$(openssl rand -hex 32)"
-          docker compose build
+          JWT_SECRET="$(openssl rand -hex 32)"
+          export JWT_SECRET
+          docker compose build --pull
           docker compose up -d database python-service migrate backend frontend
           node --test tests/integration/builds.test.mjs
+          docker compose exec -T backend node --input-type=module < tests/integration/sources.test.mjs
+          docker compose exec -T backend node --input-type=module < tests/integration/source-recovery.test.mjs
+          node --test tests/integration/observability.test.mjs
+          node scripts/check-health.mjs
+          TEST_DATABASE_IMAGE="$(docker compose images -q database)" node --test tests/integration/database-image.test.mjs
+      - name: Instalar Trivy
+        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
+        with:
+          version: v0.76.0
+          cache: true
+      - name: Auditar las imágenes reales de Compose
+        env:
+          # Solo satisface la interpolación; no modifica contenedores ni se imprime.
+          JWT_SECRET: ci-scan-no-authentication-use
+        run: bash scripts/scan-images.sh
+      - name: Guardar reportes Docker
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-images
+          path: reports/trivy-*.json
+          retention-days: 14
       - name: Detener el ambiente temporal de CI
         if: always()
         run: JWT_SECRET="$(openssl rand -hex 32)" docker compose stop

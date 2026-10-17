@@ -95,16 +95,14 @@ El editor recupera los IDs y cantidades del snapshot, consulta los precios actua
 - `builds.test.mjs` solo consulta y valida; no crea usuarios ni cotizaciones.
 - `edit-builds.test.mjs` se ejecuta dentro del backend local mediante el comando indicado en su cabecera. Comprueba edición autenticada, cantidades persistidas, propiedad, versiones concurrentes, incompatibilidades y copia de una cotización con consulta. Crea dos cuentas QA y sus cotizaciones temporales, y elimina exclusivamente esos registros al finalizar; no modifica cotizaciones reales.
 
-## Siguiente fase de EP2
+## Continuidad de EP2 — estado actual
 
-1. Confirmar fuente web autorizada y acceso efectivo. La propuesta de Mercado Libre requiere token y revisión de permisos; no se implementa una extracción sin acceso confirmado.
-2. Incorporar modelos y fotos reales con origen y condiciones de reutilización.
-3. Extraer, normalizar y deduplicar fichas mediante Python; conservar URL, identificador y fecha de recuperación.
-4. Persistir el catálogo externo en PostgreSQL mediante NestJS, en lugar del catálogo manual en memoria.
-5. Medir calidad de datos, duplicados, cobertura y tiempo de recuperación con un conjunto reproducible.
-6. Añadir seguridad de imágenes/Python, observabilidad y despliegue automático del sistema completo en staging.
-7. Incorporar retroalimentación de EP1, documentar diseño adaptativo y cerrar evidencia/tag de EP2.
+El piloto ahora usa SoloTodo para CPU, con recuperación bajo demanda, preparación Python, persistencia de referencias/corridas y consulta privada en Angular. Es un flujo separado: **no reemplaza el catálogo manual en memoria** ni incorpora automáticamente precios, fotos o recomendaciones externas. Ver [evidencia y límites](entrega-2.md).
+
+Controles de [seguridad](seguridad-ep2.md) y [observabilidad](observabilidad-ep2.md) implementados localmente; falta validación remota final y staging automatizado. El [diseño adaptativo](diseno-adaptativo-ep2.md) ya está especificado, no implementado como motor.
+
+Se aplicó una [evaluación acotada de cinco CPU reales](fuente-web-evaluacion.md) y se actualizó el [tablero local](tablero-ep2.md). Pendientes: derechos de reutilización, cobertura/mapeo revisado, validación remota, alojamiento/despliegue y cierre de evidencia/tag. Ver [cierre EP2](cierre-ep2.md). Mercado Libre sigue como alternativa histórica, no integración en curso.
 
 ## Dependencias
 
-La auditoría de producción detectó una vulnerabilidad crítica en `proxy-addr`; el lockfile se actualizó a una versión compatible corregida. Permanecen avisos de nivel alto/moderado que deben revisarse en el trabajo DevSecOps de EP2. No se aplicaron actualizaciones mayores automáticas de NestJS, Angular o Prisma.
+La corrección inicial de `proxy-addr` y los parches posteriores están registrados en [seguridad EP2](seguridad-ep2.md). Persisten hallazgos de herramientas de desarrollo e imágenes que requieren revisión; no se declara ausencia de vulnerabilidades. Se conservan las versiones mayores de Angular, NestJS y Prisma.

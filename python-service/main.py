@@ -1,9 +1,68 @@
-from fastapi import FastAPI
+import os
+import re
+import secrets
+from datetime import datetime
+from time import perf_counter
+from uuid import UUID
+
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from builds import BuildAnalysis, BuildInput, analyze, recommended_watts
+from observability import HTTPObservability, emit_event
+from probe_solotodo import ProbeError, fetch_cpu_batch
+from solotodo import CpuBatch, CpuBatchResult, normalize_cpu_batch
 
 app = FastAPI(title='JembaTech Evaluator', version='0.1.0')
+app.add_middleware(HTTPObservability)
+
+
+class CpuRecoveryRequest(BaseModel):
+    limit: int = Field(default=1, strict=True, ge=1, le=5)
+    request_id: UUID
+
+
+class CpuRecoveryResult(CpuBatchResult):
+    retrieved_at: datetime
+    request_id: UUID
+    source_request_url: str
+    retrieval_ms: float
+
+
+@app.post('/sources/solotodo/cpu/recover', response_model=CpuRecoveryResult, tags=['sources'])
+def recover_solotodo_cpu(request: CpuRecoveryRequest, x_source_token: str = Header(default='')):
+    """Una consulta pública puntual; sin paginación, imágenes ni sincronización."""
+    token = os.environ.get('SOURCE_INTERNAL_TOKEN', '')
+    if os.environ.get('SOLOTODO_MANUAL_PROBE_ENABLED') != 'true' or not re.fullmatch(r'[a-f0-9]{64}', token):
+        raise HTTPException(status_code=503, detail={'code': 'MANUAL_PROBE_DISABLED'})
+    if not secrets.compare_digest(x_source_token.encode(), token.encode()):
+        raise HTTPException(status_code=401, detail={'code': 'INTERNAL_AUTH_REQUIRED'})
+    start = perf_counter()
+    try:
+        batch = fetch_cpu_batch(request.limit)
+    except ProbeError as error:
+        safe_codes = {'source_unavailable', 'source_rate_limited', 'source_access_denied', 'source_http_error',
+                      'invalid_source_contract', 'unexpected_content_type', 'response_too_large'}
+        code = str(error).upper() if str(error) in safe_codes else 'SOURCE_FAILED'
+        emit_event('source_request', runId=str(request.request_id), source='solotodo', code=code,
+                   durationMs=round((perf_counter() - start) * 1000, 3))
+        raise HTTPException(status_code=502, detail={'code': code}) from error
+    retrieval_ms = round((perf_counter() - start) * 1000, 3)
+    result = normalize_cpu_batch(batch)
+    emit_event('source_request', runId=str(request.request_id), source='solotodo',
+               durationMs=retrieval_ms, received=result.metrics.received, accepted=result.metrics.accepted)
+    return CpuRecoveryResult(
+        **result.model_dump(), retrieved_at=batch.retrieved_at,
+        request_id=request.request_id,
+        source_request_url=f'https://api.solotodo.com/products/?categories=3&page_size={request.limit}',
+        retrieval_ms=retrieval_ms,
+    )
+
+
+@app.post('/sources/solotodo/cpu/normalize', response_model=CpuBatchResult, tags=['sources'])
+def normalize_solotodo_cpu(batch: CpuBatch):
+    """Prepara un lote acotado; no consulta la red ni altera cotizaciones."""
+    return normalize_cpu_batch(batch)
 
 
 @app.post('/builds/preview', response_model=BuildAnalysis)

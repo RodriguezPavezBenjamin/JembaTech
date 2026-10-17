@@ -9,3 +9,4 @@ __pycache__/
 infra/.terraform/
 infra/terraform.tfvars
 infra/generated/
+reports/
