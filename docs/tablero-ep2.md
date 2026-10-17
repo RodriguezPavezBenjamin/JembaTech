@@ -15,7 +15,7 @@ Actualizado: 2026-10-17. Tablero **local Markdown**, aclarado con el usuario; no
 
 ## En validación
 
-- [ ] Usuario: revisar archivos preparados, hacer [commit/push](validacion-commit-ep2.md) y compartir el resultado del run **CI EP2** de ese commit. No usar el verde EP1 como evidencia nueva.
+- [ ] Publicar la corrección y repetir **CI EP2**. El [primer run EP2](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39011432378) falló en CodeQL Python/secretos y omitió Docker; correcciones locales probadas, resultado remoto nuevo pendiente. [Comandos](validacion-commit-ep2.md).
 - [ ] Revisar artifacts/hallazgos y corregir cualquier fallo real antes de marcar validación remota aprobada.
 - [ ] Ensayar la demo sobre la versión final y confirmar fecha/modalidad con la profesora.
 

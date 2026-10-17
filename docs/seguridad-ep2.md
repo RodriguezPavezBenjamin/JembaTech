@@ -11,7 +11,7 @@ Actualizado: 2026-10-17. Implementación local; el resultado de Actions requiere
 | pip-audit 2.10.1 | Runtime Python y transitivas; cualquier vulnerabilidad conocida. `--strict` rechaza errores de recopilación. |
 | npm audit producción | HIGH/CRITICAL bloqueantes en frontend/backend. |
 | npm audit completo | Incluye desarrollo; CRITICAL bloqueantes, HIGH/MODERATE también quedan reportados. |
-| TruffleHog | Control existente de secretos `verified,unknown`, ahora fijado por SHA. |
+| TruffleHog | Versión 3.99.2 y digest de imagen fijados; `verified,unknown`, sin tags de ignore y con fallo ante error de escaneo. Baseline exacta de tres apariciones históricas locales revisadas; cualquier otra coincidencia bloquea. |
 | Trivy 0.76.0 | IDs reales de frontend, backend, Python, migraciones y PostgreSQL. Falla ante error, cualquier CRITICAL (con o sin parche) y HIGH con solución disponible. |
 
 Trivy exporta un JSON **completo**, también con severidades menores y CVE sin parche. El gate CRITICAL no usa `--ignore-unfixed`; esa opción solo se aplica al gate separado de HIGH. Pasar el umbral no significa ausencia de CVE. No se añaden excepciones por CVE para obtener verde.
@@ -20,7 +20,29 @@ Corrección de alineamiento: el bloqueo de CRITICAL sin parche se incorpora ante
 
 Verificación adicional del corte de fuente/cierre: 7 pruebas Node de CodeQL, salud y autorización del script de evaluación aprobadas; 5 pruebas del gate Bash aprobadas, incluida CRITICAL sin parche. Se repitió la prueba de salud con permiso de conexión local tras un bloqueo `EACCES` del sandbox; no fue un fallo de la aplicación. No se presenta esta prueba simulada como un escaneo Trivy nuevo ni como Actions remoto aprobado.
 
-Artifacts conservados 14 días, también ante fallos. Permisos mínimos; solo CodeQL recibe `security-events: write`. Acciones nuevas de seguridad y detector de secretos fijados por SHA; herramientas Python fijadas en `requirements-security.txt`, fuera del runtime. CodeQL completo queda pendiente de GitHub: probar el lector SARIF no equivale a ejecutar el analizador.
+Artifacts de auditorías/SARIF conservados 14 días, también ante fallos. Los resultados crudos de secretos son temporales privados y se eliminan sin publicarlos. Permisos mínimos; solo CodeQL recibe `security-events: write`. Acciones nuevas fijadas por SHA y detector por versión/digest; herramientas Python fijadas fuera del runtime. El nuevo análisis CodeQL sobre la corrección requiere GitHub: reproducir la lectura de un SARIF anterior no equivale a ejecutar el analizador sobre código nuevo.
+
+## Corrección del primer run EP2
+
+El [run 39011432378](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39011432378), commit `a2f0cb09ef3fe2e773be17b643e27e450157513e`, aprobó frontend, backend, Python, auditoría Python, Terraform y CodeQL JavaScript/TypeScript. Fallaron CodeQL Python y secretos; Docker se omitió por dependencia. No se marca esa versión como validada.
+
+- **SARIF:** el reporte real Python define reglas en `tool.extensions`, con `result.rule.index` y `toolComponent.index`. El lector anterior solo buscaba `driver.rules`. Se resuelve el componente explícito (índice/GUID), se comprueban ID/índice y se rechazan contradicciones o referencias ausentes, sin omitir hallazgos.
+- **Alerta Python:** `py/partial-ssrf`, severidad 9.1, en la petición de `probe_solotodo.py`. Se reemplaza la interpolación de entrada por selección de cinco URLs literales autorizadas. Se conservan validación entera 1–5, límites, timeout y rechazo de redirecciones. Sin consultas nuevas a SoloTodo para probarlo y sin suprimir la consulta CodeQL.
+- **Secretos:** detector real reproducido localmente sin red/verificación. Dos hallazgos del rango fallido son la conexión QA fija en `tests/security/compose.test.yml`, líneas 16/19. El historial completo también contiene un ejemplo antiguo en `backend/.env.example`, commit `32e6416…`, línea 2, host Docker interno. Son valores locales de ejemplo, no credenciales de producción. La QA nueva exige contraseña aleatoria y el ejemplo actual ya apunta a localhost.
+- **Baseline histórica:** `.github/security/secret-baseline.json` limita cada excepción a detector, commit completo, archivo, línea y hash SHA-256 del valor normalizado, únicamente con `Verified: false`. No excluye archivos, detectores o commits nuevos; un resultado verificado nunca se acepta por baseline. No se reescribe Git. Ampliar la baseline requiere revisión explícita de cada aparición.
+- **Detector reproducible:** la acción fijada anteriormente usaba una imagen `latest`; el log mostró TruffleHog 3.99.2. El coordinador nuevo fija esa versión y digest, conserva `verified,unknown`, añade `--no-ignore-tag`/`--fail-on-scan-errors` y valida estado 0/183 antes de aplicar el gate. El JSONL crudo no se muestra ni se sube como artifact.
+
+Verificación local de la corrección: 88 pruebas Python, Ruff y Bandit aprobados; 15 pruebas Node de controles aprobadas; 10 pruebas Bash simuladas aprobadas; workflow validado con actionlint. El detector real, sin red/verificación de credenciales, encuentra dos apariciones en el rango fallido y tres en todo el historial; la baseline acepta solo esas apariciones revisadas, sin otros hallazgos. El lector nuevo reconoce los dos SARIF originales: JavaScript sin hallazgos y Python con la alerta 9.1 correctamente bloqueante. **La desaparición de esa alerta en el código corregido y el resultado global necesitan un nuevo run remoto**, no se declaran verdes anticipadamente.
+
+### Contraseña temporal para QA aislada
+
+El override `tests/security/compose.test.yml` ahora falla sin `QA_POSTGRES_PASSWORD`, en lugar de usar un valor fijo. Generar en la sesión PowerShell, sin imprimir ni versionar el resultado:
+
+```powershell
+$env:QA_POSTGRES_PASSWORD = node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))"
+```
+
+Usar un proyecto/volumen QA propio; no aplicar ese override ni cambiar contraseñas de la base de clientes en uso. La configuración con contraseña temporal se validó mediante `docker compose config --quiet`; no se reinició ningún servicio ni se migró la base de datos por esta corrección.
 
 ## Parches aplicados
 

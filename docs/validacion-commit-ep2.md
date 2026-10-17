@@ -1,8 +1,8 @@
 # Commit y validación remota EP2
 
-Preparado: 2026-10-17. **Estos comandos los ejecuta el usuario; no se ha hecho commit, push, release ni despliegue desde esta preparación.**
+Actualizado: 2026-10-17. El commit de avance `a2f0cb0` fue publicado por el usuario. **La corrección siguiente aún no tiene commit/push; estos comandos los ejecuta el usuario.** No se crea release ni despliegue.
 
-El conjunto pendiente incluye fuente CPU, seguridad, observabilidad, documentación/diseño, favicon y ajustes previos del frontend. Se excluye el cambio local de Gradle/Android, que no forma parte de este trabajo. Revisar `git status` y el resumen staged antes de confirmar; si aparecen archivos ajenos, detenerse y seleccionar rutas concretas.
+El conjunto nuevo corrige lectura SARIF, selección de URLs autorizadas, secretos QA/históricos, workflow y pruebas/documentación. Se excluye el cambio local de Gradle/Android. Revisar `git status` y el resumen staged; si aparecen archivos ajenos, detenerse y seleccionar rutas concretas.
 
 Desde PowerShell:
 
@@ -12,7 +12,7 @@ git status --short
 git diff --check
 git add -- . ':(exclude)frontend/android'
 git diff --cached --stat
-git commit -m "feat(ep2): integra fuente web, seguridad y observabilidad"
+git commit -m "fix(ci): corrige CodeQL y detección de secretos de prueba"
 git push origin main
 ```
 

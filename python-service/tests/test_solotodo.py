@@ -149,15 +149,16 @@ class FakeResponse(BytesIO):
         self.headers['Content-Type'] = content_type
 
 
-def test_probe_fetches_only_one_fixed_page_and_never_follows_next():
+@pytest.mark.parametrize('limit', [1, 2, 3, 4, 5])
+def test_probe_fetches_only_one_fixed_page_and_never_follows_next(limit):
     payload = {'results': [cpu()], 'next': 'http://127.0.0.1/private'}
     with patch('probe_solotodo.build_opener') as opener:
         opener.return_value.open.return_value = FakeResponse(json.dumps(payload).encode())
-        result = probe(1)
+        result = probe(limit)
         assert result.metrics.accepted == 1
         opener.return_value.open.assert_called_once()
         request = opener.return_value.open.call_args.args[0]
-        assert request.full_url == 'https://api.solotodo.com/products/?categories=3&page_size=1'
+        assert request.full_url == f'https://api.solotodo.com/products/?categories=3&page_size={limit}'
         assert opener.return_value.open.call_args.kwargs['timeout'] == 10
 
 
@@ -192,7 +193,7 @@ def test_probe_validates_and_bounds_the_response(body, content_type, code):
             probe(1)
 
 
-@pytest.mark.parametrize('limit', [0, 6, True, '1'])
+@pytest.mark.parametrize('limit', [0, 6, True, False, '1', 1.0, None, -1, 'https://localhost', '1&next=http://localhost', '1\r\nHost: localhost'])
 def test_probe_rejects_invalid_limits_before_network(limit):
     with patch('probe_solotodo.build_opener') as opener:
         with pytest.raises(ProbeError, match='invalid_limit'):

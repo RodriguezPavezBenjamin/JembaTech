@@ -13,6 +13,13 @@ from pydantic import ValidationError
 from solotodo import CpuBatch, normalize_cpu_batch
 
 MAX_BYTES = 1_000_000
+CPU_PAGE_URLS = {
+    1: 'https://api.solotodo.com/products/?categories=3&page_size=1',
+    2: 'https://api.solotodo.com/products/?categories=3&page_size=2',
+    3: 'https://api.solotodo.com/products/?categories=3&page_size=3',
+    4: 'https://api.solotodo.com/products/?categories=3&page_size=4',
+    5: 'https://api.solotodo.com/products/?categories=3&page_size=5',
+}
 
 
 class ProbeError(Exception):
@@ -27,8 +34,8 @@ class NoRedirects(HTTPRedirectHandler):
 def fetch_cpu_batch(limit: int):
     if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 5:
         raise ProbeError('invalid_limit')
-    # URL fija: sin URLs arbitrarias, credenciales, paginación o redirecciones.
-    url = f'https://api.solotodo.com/products/?categories=3&page_size={limit}'
+    # Seleccionar una URL literal autorizada; no interpolar entradas en la petición.
+    url = CPU_PAGE_URLS[limit]
     request = Request(url, headers={
         'Accept': 'application/json',
         'User-Agent': 'JembaTech-EP2-probe/0.1 (educational; single-page)',

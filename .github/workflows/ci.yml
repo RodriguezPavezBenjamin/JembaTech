@@ -90,6 +90,7 @@ jobs:
       - run: python -m ruff check .
       - run: python -m pytest -q
       - run: python ../tests/security/test_scan_images.py
+      - run: python ../tests/security/test_scan_secrets.py
   security-python:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -154,10 +155,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
       - name: Analizar secretos expuestos
-        uses: trufflesecurity/trufflehog@6c05c4a00b91aa542267d8e32a8254774799d68d # v3.93.8
-        with:
-          extra_args: --results=verified,unknown
+        env:
+          SECRET_SCAN_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          SECRET_SCAN_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: bash scripts/scan-secrets.sh
   terraform:
     runs-on: ubuntu-latest
     timeout-minutes: 10

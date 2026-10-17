@@ -2,7 +2,7 @@
 services:
   database:
     environment:
-      POSTGRES_PASSWORD: ep2-security-local-only
+      POSTGRES_PASSWORD: ${QA_POSTGRES_PASSWORD:?Define QA_POSTGRES_PASSWORD aleatoria para el ambiente QA aislado}
     ports: !override
       - '127.0.0.1:15432:5432'
   python-service:
@@ -13,10 +13,10 @@ services:
       - '127.0.0.1:18000:8000'
   migrate:
     environment:
-      DATABASE_URL: postgresql://jemba:ep2-security-local-only@database:5432/jemba_cotiza
+      DATABASE_URL: postgresql://jemba:${QA_POSTGRES_PASSWORD:?Define QA_POSTGRES_PASSWORD}@database:5432/jemba_cotiza
   backend:
     environment:
-      DATABASE_URL: postgresql://jemba:ep2-security-local-only@database:5432/jemba_cotiza
+      DATABASE_URL: postgresql://jemba:${QA_POSTGRES_PASSWORD:?Define QA_POSTGRES_PASSWORD}@database:5432/jemba_cotiza
       SOLOTODO_MANUAL_PROBE_ENABLED: 'false'
       SOURCE_INTERNAL_TOKEN: ''
     ports: !override

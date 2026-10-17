@@ -12,7 +12,7 @@ La capacidad inteligente completa, A/B y evaluación final con usuarios no son o
 
 | Bloque | Estado | Evidencia / falta |
 |---|---|---|
-| Base EP1 y mejoras del cotizador | Implementado localmente | Flujo y gestión de cotizaciones implementados. Falta run remoto del commit EP2 definitivo. |
+| Base EP1 y mejoras del cotizador | Implementado; validación remota en corrección | El primer run EP2 aprobó frontend/backend/Python y falló en CodeQL Python/secretos. Correcciones locales probadas; falta repetir Actions con el commit nuevo. |
 | Fuente SoloTodo | Piloto técnico y análisis documentados; reutilización sin confirmar | API pública, revisión de condiciones y cinco CPU reales evaluadas. `fuente-web-evaluacion.md` separa acceso técnico de permiso; no hay sincronización comercial. |
 | Preparación Python | Primera etapa implementada | Normalización CPU, deduplicación, origen/fechas, hash y métricas. No equivale a un catálogo actualizado. |
 | Recuperación automatizada | Implementada en piloto bajo demanda | Botón admin → NestJS → recuperación FastAPI de 1–5 CPU. Una página, sin agenda ni imágenes; cooldown de 60 s y exclusión concurrente. Uso recurrente por confirmar. |
@@ -20,7 +20,7 @@ La capacidad inteligente completa, A/B y evaluación final con usuarios no son o
 | Consulta y visualización externa | Implementado para administrador | `/admin/fuentes`, búsqueda/paginación, fechas, datos técnicos y calidad. No reemplaza el catálogo manual. |
 | Evaluación de datos reales | Evaluación acotada aplicada a cinco CPU | 5/5 válidas, 0 duplicadas, 0/5 Part Numbers y antigüedad de origen 148 días. Persistencia/listado verificados; no representa modelos actuales ni exactitud independiente. Ver `fuente-web-evaluacion.md`. |
 | Diseño adaptativo preliminar | Especificado; motor futuro no implementado | Usuario, contexto, datos, decisión, reglas/orden, salida, control, riesgos y evaluación posterior en `diseno-adaptativo-ep2.md`; no afirma ranking ni IA completa. |
-| Seguridad, observabilidad y staging | Parcial, controles e instrumentación inicial implementados | CodeQL/Bandit, auditorías, Trivy, health, correlación HTTP y métricas admin. Faltan run remoto/triage y staging real; no hay centralización/histórico de métricas. Ver `seguridad-ep2.md` y `observabilidad-ep2.md`. |
+| Seguridad, observabilidad y staging | Controles locales probados; corrección de CI preparada | Lector SARIF, URLs permitidas y secretos QA/históricos corregidos, sin desactivar controles. Falta validar el commit nuevo y staging real; sin histórico centralizado de métricas. Ver `seguridad-ep2.md` y `observabilidad-ep2.md`. |
 | Entrega evaluable | Tablero local actualizado; validación pendiente | `tablero-ep2.md`, arquitectura/ADR, evaluación de fuente y guion. Faltan run remoto final/ensayo, staging y release EP2; permisos del proveedor siguen sin resolución. |
 
 Los cortes conservan evidencia histórica: sus cifras y pendientes corresponden al momento indicado. El estado más reciente se resume arriba y en [tablero local](tablero-ep2.md), [evaluación de fuente](fuente-web-evaluacion.md), [cierre EP2](cierre-ep2.md), [seguridad](seguridad-ep2.md) y [observabilidad](observabilidad-ep2.md).
