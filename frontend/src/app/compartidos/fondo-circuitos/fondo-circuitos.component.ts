@@ -106,7 +106,7 @@ export class FondoCircuitosComponent implements AfterViewInit, OnDestroy {
         tick: 0,
         tickMax: 4 + Math.floor(Math.random() * 6),
         alpha: 0.4 + Math.random() * 0.6,
-        color: Math.random() > 0.4 ? "#00ffe0" : "#ffffff",
+        color: Math.random() > 0.4 ? "#00d9ff" : "#ffffff",
       });
   }
   private dibujar = () => {
@@ -135,12 +135,12 @@ export class FondoCircuitosComponent implements AfterViewInit, OnDestroy {
             ctx.globalAlpha = columna.alpha;
             ctx.fillStyle = "#e0faff";
             ctx.shadowBlur = 12;
-            ctx.shadowColor = "#00ffe0";
+            ctx.shadowColor = "#00d9ff";
           } else if (i < 3) {
             ctx.globalAlpha = columna.alpha * 0.85;
-            ctx.fillStyle = "#b0ffff";
+            ctx.fillStyle = "#b7e8ff";
             ctx.shadowBlur = 4;
-            ctx.shadowColor = "#00ffe0";
+            ctx.shadowColor = "#00d9ff";
           } else {
             ctx.globalAlpha = columna.alpha * proporcion * 0.65;
             ctx.fillStyle = columna.color;

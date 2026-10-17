@@ -36,6 +36,7 @@ model User {
 
 model Quote {
   id                        String   @id @default(uuid())
+  name                      String?  @db.VarChar(80)
   userId                    String?  @map("user_id")
   user                      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   intendedUse               String   @map("intended_use")
@@ -50,12 +51,16 @@ model Quote {
   warnings                  Json
   recommendations           Json
   explanation               String
+  configuration             Json?
+  recommendedPsuWatts        Int?     @map("recommended_psu_watts")
   status                    QuoteStatus @default(DRAFT)
   contactPhone              String?  @map("contact_phone")
   serviceAddress            String?  @map("service_address")
   preferredDate             DateTime? @map("preferred_date")
   customerNote              String?  @map("customer_note")
   adminNote                 String?  @map("admin_note")
+  deletedAt                 DateTime? @map("deleted_at")
+  requestDeletedAt          DateTime? @map("request_deleted_at")
   createdAt                 DateTime @default(now()) @map("created_at")
   updatedAt                 DateTime @default(now()) @updatedAt @map("updated_at")
 

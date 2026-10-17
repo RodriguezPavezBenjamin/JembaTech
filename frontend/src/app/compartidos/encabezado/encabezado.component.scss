@@ -20,20 +20,21 @@
   height: 60px;
   display: block;
   object-fit: cover;
+  filter: var(--brand-tint);
   border-radius: 50%;
 }
 @keyframes marcaFlotante {
   0% {
     transform: scale(1) rotate(0deg) translateY(0);
-    filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.7));
+    filter: drop-shadow(0 0 8px rgba(var(--accent-rgb), 0.7));
   }
   50% {
     transform: scale(1.08) rotate(5deg) translateY(-3px);
-    filter: drop-shadow(0 0 22px rgba(57, 255, 20, 1));
+    filter: drop-shadow(0 0 22px rgba(var(--accent-rgb), 1));
   }
   100% {
     transform: scale(1.04) rotate(-3deg) translateY(1px);
-    filter: drop-shadow(0 0 14px rgba(57, 255, 20, 0.85));
+    filter: drop-shadow(0 0 14px rgba(var(--accent-rgb), 0.85));
   }
 }
 :host-context([data-theme="light"]) .marca:hover {
@@ -42,15 +43,15 @@
 @keyframes marcaFlotanteCeleste {
   0% {
     transform: scale(1) rotate(0deg) translateY(0);
-    filter: drop-shadow(0 0 8px rgba(0, 255, 224, 0.7));
+    filter: drop-shadow(0 0 8px rgba(var(--accent-rgb), 0.7));
   }
   50% {
     transform: scale(1.08) rotate(5deg) translateY(-3px);
-    filter: drop-shadow(0 0 22px rgba(0, 255, 224, 1));
+    filter: drop-shadow(0 0 22px rgba(var(--accent-rgb), 1));
   }
   100% {
     transform: scale(1.04) rotate(-3deg) translateY(1px);
-    filter: drop-shadow(0 0 14px rgba(0, 255, 224, 0.85));
+    filter: drop-shadow(0 0 14px rgba(var(--accent-rgb), 0.85));
   }
 }
 .cuenta {
@@ -71,7 +72,7 @@
   background: var(--card);
   color: var(--accent);
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(57, 255, 20, 0.2);
+  box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.2);
   transition:
     transform 0.25s,
     border-color 0.25s,
@@ -88,14 +89,14 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #0c5b23);
-  color: #001b05;
+  background: linear-gradient(135deg, var(--accent), var(--avatar-end));
+  color: var(--on-accent);
   font: 800 0.55rem "Orbitron";
   line-height: 1;
 }
 .avatar.admin {
-  background: linear-gradient(135deg, #d5ff5a, var(--accent));
-  box-shadow: 0 0 12px rgba(213, 255, 90, 0.45);
+  background: linear-gradient(135deg, var(--avatar-admin), var(--accent));
+  box-shadow: 0 0 12px rgba(var(--avatar-admin-rgb), 0.45);
 }
 .etiqueta {
   position: absolute;
@@ -108,7 +109,7 @@
   padding: 0;
   border: 1px solid transparent;
   border-radius: 6px;
-  background: rgba(3, 16, 8, 0.96);
+  background: rgba(var(--menu-rgb), 0.96);
   color: var(--text);
   font: 600 0.52rem "Orbitron";
   letter-spacing: 1px;
@@ -132,7 +133,7 @@
   padding: 0.5rem;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(3, 16, 8, 0.97);
+  background: rgba(var(--menu-rgb), 0.97);
   box-shadow: var(--glow);
   opacity: 0;
   visibility: hidden;
@@ -159,7 +160,7 @@
 .menu a:hover,
 .menu button:hover {
   color: var(--accent);
-  background: rgba(57, 255, 20, 0.08);
+  background: rgba(var(--accent-rgb), 0.08);
 }
 @media (max-width: 760px) {
   .marca {

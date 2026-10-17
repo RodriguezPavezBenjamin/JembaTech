@@ -1,0 +1,312 @@
+:host {
+  display: block;
+}
+.producto {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  color: var(--text);
+  text-align: left;
+  transition:
+    border-color 0.2s,
+    transform 0.2s,
+    background 0.2s;
+}
+.producto:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+}
+.producto:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.seleccionar-tarjeta {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  padding: 0;
+}
+.seleccionar-tarjeta:focus-visible {
+  outline-offset: -3px;
+}
+.accion-seleccion,
+.cantidad,
+.montaje {
+  position: relative;
+  z-index: 2;
+}
+.pie {
+  flex-wrap: wrap;
+}
+.seleccionado {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.07);
+  box-shadow: inset 0 0 25px rgba(var(--accent-rgb), 0.04);
+}
+.producto:disabled {
+  cursor: not-allowed;
+}
+.incompatible .ilustracion {
+  opacity: 0.38;
+}
+.ilustracion {
+  display: grid;
+  place-items: center;
+  position: relative;
+  height: 100px;
+  flex-shrink: 0;
+  overflow: hidden;
+  width: 100%;
+  background: radial-gradient(
+    ellipse at 50% 70%,
+    rgba(var(--accent-rgb), 0.12),
+    transparent 70%
+  );
+  color: var(--accent);
+}
+svg {
+  width: 115px;
+  height: 85px;
+}
+img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 0.5rem;
+}
+.ampliar-foto {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.4rem;
+  z-index: 2;
+  color: var(--accent);
+  background: var(--bg);
+}
+.elegido {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.contenido {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0.7rem;
+  gap: 0.35rem;
+  width: 100%;
+}
+h4 {
+  font:
+    600 0.65rem "Orbitron",
+    sans-serif;
+  line-height: 1.6;
+  margin: 0;
+}
+p {
+  color: var(--muted);
+  font:
+    0.78rem/1.4 "Exo 2",
+    sans-serif;
+  margin: 0;
+}
+.pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.6rem;
+}
+.pie strong {
+  font:
+    600 0.76rem "Orbitron",
+    sans-serif;
+}
+.pie span,
+.recomendado {
+  font:
+    600 0.49rem/1.5 "Orbitron",
+    sans-serif;
+  color: var(--accent);
+}
+.motivo {
+  font:
+    0.8rem/1.4 "Exo 2",
+    sans-serif;
+  color: #ffcf5c;
+}
+button {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--accent);
+  border-radius: 5px;
+  min-height: 36px;
+  padding: 0.4rem 0.55rem;
+  font:
+    600 0.5rem "Orbitron",
+    sans-serif;
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.cantidad {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.cantidad button {
+  min-width: 36px;
+  font-size: 1rem;
+}
+output {
+  min-width: 16px;
+  text-align: center;
+}
+.subtotal,
+.fuente {
+  color: var(--muted);
+  font:
+    0.65rem/1.5 "Exo 2",
+    sans-serif;
+}
+.fuente {
+  text-decoration: none;
+}
+.visor-foto {
+  position: fixed;
+  inset: 0;
+  width: min(920px, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 1rem;
+  overflow: auto;
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 0 35px rgba(var(--accent-rgb), 0.2);
+}
+.visor-foto::backdrop {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+}
+.visor-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.visor-foto img {
+  position: static;
+  display: block;
+  height: min(65dvh, 650px);
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+}
+.visor-foto p {
+  margin-top: 0.75rem;
+}
+.ficha-hardware .ilustracion {
+  height: 150px;
+}
+.especificaciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem 0.5rem;
+  margin: 0.5rem 0;
+  padding-block: 0.7rem;
+  border-block: 1px solid var(--border);
+}
+.especificaciones div {
+  min-width: 0;
+}
+dt {
+  font:
+    600 0.43rem/1.5 "Orbitron",
+    sans-serif;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+dd {
+  margin: 0;
+  color: var(--text);
+  font:
+    0.78rem/1.45 "Exo 2",
+    sans-serif;
+  overflow-wrap: anywhere;
+}
+.montaje {
+  color: var(--muted);
+  font:
+    0.73rem/1.5 "Exo 2",
+    sans-serif;
+}
+.montaje summary {
+  cursor: pointer;
+}
+.montaje p {
+  margin-top: 0.4rem;
+}
+.integrada {
+  min-height: 190px;
+  border-color: rgba(var(--accent-rgb), 0.6);
+  background: linear-gradient(
+    120deg,
+    rgba(var(--accent-rgb), 0.1),
+    transparent
+  );
+}
+.integrada .contenido {
+  padding: 1.5rem;
+  gap: 0.8rem;
+}
+.integrada h4 {
+  font-size: 1.15rem;
+}
+.integrada p {
+  font-size: 0.9rem;
+}
+.integrada .pie {
+  padding-top: 1.2rem;
+}
+.incluida {
+  min-height: 130px;
+}
+.incluida .contenido {
+  padding: 1.1rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .producto {
+    transition: none;
+  }
+}

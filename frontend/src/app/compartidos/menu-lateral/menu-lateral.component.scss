@@ -75,7 +75,7 @@ span {
     flex-direction: row;
     gap: 0;
     border-top: 1px solid var(--border);
-    background: rgba(0, 10, 4, 0.95);
+    background: rgba(var(--menu-rgb), 0.95);
   }
   .item,
   .item:hover {
@@ -96,7 +96,7 @@ span {
     border-right: 0;
   }
   .item:hover {
-    background: rgba(57, 255, 20, 0.07);
+    background: rgba(var(--accent-rgb), 0.07);
   }
   .item svg {
     width: 19px;

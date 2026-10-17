@@ -8,9 +8,9 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: #25d366;
-  color: #fff;
-  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.5);
+  background: var(--whatsapp-bg);
+  color: var(--whatsapp-icon);
+  box-shadow: 0 4px 20px rgba(var(--whatsapp-rgb), 0.5);
   animation: rebote 2s ease-in-out infinite;
   transition: transform 0.2s;
 }
@@ -20,7 +20,7 @@
 svg {
   width: 32px;
   height: 32px;
-  fill: #fff;
+  fill: var(--whatsapp-icon);
 }
 @keyframes rebote {
   0%,

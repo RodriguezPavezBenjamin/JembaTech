@@ -6,16 +6,32 @@
     continúa por WhatsApp.
   </p>
   <p *ngIf="cargando">Cargando...</p>
-  <p class="empty" *ngIf="!cargando && !cotizaciones.length">
+  <p class="error" role="alert" *ngIf="error">{{ error }} <button class="secondary" (click)="recargar()">REINTENTAR</button></p>
+  <p class="success" role="status" *ngIf="mensaje">{{ mensaje }}</p>
+  <button type="button" class="secondary" *ngIf="!cargando && disponibles.length && !nueva" (click)="abrirSolicitud()">+ CONSULTAR UNA COTIZACIÓN GUARDADA</button>
+  <form class="quote solicitud" *ngIf="nueva" #solicitud="ngForm" (ngSubmit)="enviar()">
+    <h2>NUEVA CONSULTA</h2>
+    <label>Cotización<select name="cotizacion" [(ngModel)]="seleccionId" (ngModelChange)="preparar()" required [disabled]="enviando"><option *ngFor="let quote of disponibles" [value]="quote.id">{{ quote.name || 'Mi cotización' }} · {{ dinero(quote.totalPrice) }}</option></select></label>
+    <div class="profile-grid">
+      <label>Teléfono de contacto<input name="telefono" [(ngModel)]="datos.contactPhone" required minlength="8" maxlength="30" autocomplete="tel" [disabled]="enviando" /></label>
+      <label>Comuna / dirección (opcional)<input name="direccion" [(ngModel)]="datos.serviceAddress" maxlength="240" [disabled]="enviando" /></label>
+    </div>
+    <label>Fecha preferida (opcional, sujeta a confirmación)<input name="fecha" type="datetime-local" [(ngModel)]="datos.preferredDate" [disabled]="enviando" /></label>
+    <label>¿Qué necesitas? (opcional)<textarea name="nota" [(ngModel)]="datos.customerNote" maxlength="600" rows="3" [disabled]="enviando"></textarea></label>
+    <p class="error" role="alert" *ngIf="errorSolicitud">{{ errorSolicitud }}</p>
+    <div class="actions"><button type="submit" [disabled]="solicitud.invalid || enviando">{{ enviando ? 'ENVIANDO…' : 'ENVIAR CONSULTA' }}</button><button type="button" class="secondary" [disabled]="enviando" (click)="nueva = false">CANCELAR</button></div>
+  </form>
+  <p class="empty" *ngIf="!cargando && !error && !cotizaciones.length">
     Todavía no tienes solicitudes de coordinación.
   </p>
   <div class="list">
     <article class="quote" *ngFor="let cotizacion of cotizaciones">
       <header>
         <div>
-          <b>{{ estado(cotizacion.status) }}</b>
+          <b>{{ cotizacion.name || 'Mi cotización' }}</b>
+          <p class="meta">{{ estado(cotizacion) }}</p>
           <p class="meta">
-            Solicitud {{ cotizacion.createdAt | date: "dd/MM/yyyy HH:mm" }}
+            Última actualización {{ cotizacion.updatedAt | date: "dd/MM/yyyy HH:mm" }}
           </p>
         </div>
         <strong>{{ dinero(cotizacion.totalPrice) }}</strong>
@@ -28,12 +44,15 @@
         }}</span
         ><span>{{ cotizacion.serviceAddress || "UBICACIÓN POR DEFINIR" }}</span>
       </div>
+      <div class="nota-cliente" *ngIf="cotizacion.customerNote"><small>TU MENSAJE</small><p>{{ cotizacion.customerNote }}</p></div>
+      <small>RESPUESTA DE JEMBATECH</small>
       <p class="meta">
         {{
           cotizacion.adminNote ||
             "JembaTech todavía no ha agregado observaciones."
         }}
       </p>
+      <app-detalle-armado [configuracion]="cotizacion.configuration" />
       <div class="actions">
         <a
           class="button"
@@ -45,7 +64,11 @@
           rel="noopener"
           >CONTINUAR POR WHATSAPP</a
         >
+        <button type="button" class="danger" [disabled]="eliminando" (click)="pedirEliminar(cotizacion)">ELIMINAR CONSULTA</button>
       </div>
     </article>
   </div>
 </section>
+<app-confirmar-accion titulo="¿Retirar esta consulta?" etiqueta="RETIRAR CONSULTA"
+  [descripcion]="'Se quitará la consulta de «' + (pendiente?.name || 'Mi cotización') + '» y quedará cerrada para el administrador. La cotización y sus piezas se conservarán. Si ya coordinaste por WhatsApp, avisa también al taller.'"
+  [ocupado]="eliminando" [error]="errorEliminar" (confirmar)="eliminar()" />

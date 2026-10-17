@@ -1,0 +1,146 @@
+<article
+  class="producto"
+  [class.seleccionado]="seleccionado"
+  [class.incompatible]="motivo"
+  [class.integrada]="integrada"
+  [class.incluida]="
+    producto.category === 'cooler' && producto.specs['kind'] === 'stock'
+  "
+  [class.ficha-hardware]="
+    ['board', 'case', 'cooler'].includes(producto.category)
+  "
+>
+  <button
+    class="seleccionar-tarjeta"
+    type="button"
+    [disabled]="ocupado || (!!motivo && !activa)"
+    [attr.aria-label]="(activa ? 'Quitar ' : 'Agregar ') + producto.name"
+    [attr.aria-pressed]="activa"
+    (click)="alternar()"
+  ></button>
+  <div
+    class="ilustracion"
+    *ngIf="!integrada && producto.specs['kind'] !== 'stock'"
+  >
+    <ng-container
+      *ngIf="producto.image && !fotoFallida; else dibujo"
+      ><img
+        [src]="producto.image"
+        [alt]="producto.name + ' · foto de referencia'"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+        (error)="fotoFallida = true"
+      /><button
+        type="button"
+        class="ampliar-foto"
+        [attr.aria-label]="'Ampliar foto de ' + producto.name"
+        title="Ampliar foto"
+        (click)="fotoAmpliada.showModal()"
+      >⤢ FOTO</button></ng-container
+    >
+    <ng-template #dibujo
+      ><svg viewBox="0 0 160 120" aria-hidden="true">
+        <use
+          [attr.href]="'/media/components/componentes.svg#' + producto.icon"
+        ></use></svg
+    ></ng-template>
+    <span *ngIf="seleccionado" class="elegido">✓</span>
+  </div>
+  <span *ngIf="integrada && seleccionado" class="elegido">✓</span>
+  <div class="contenido">
+    <span class="recomendado" *ngIf="recomendado && !motivo">{{
+      producto.category === "case"
+        ? "FORMATO ADECUADO"
+        : "POTENCIA Y FORMATO ADECUADOS"
+    }}</span>
+    <h4>{{ integrada ? "Integrada" : producto.name }}</h4>
+    <p>{{ producto.description }}</p>
+    <dl class="especificaciones" *ngIf="caracteristicas().length">
+      <div *ngFor="let dato of caracteristicas()">
+        <dt>{{ dato.label }}</dt>
+        <dd>{{ dato.value }}</dd>
+      </div>
+    </dl>
+    <details class="montaje" *ngIf="producto.specs['mountNote']">
+      <summary>Detalles de montaje</summary>
+      <p>{{ producto.specs["mountNote"] }}</p>
+    </details>
+    <span
+      *ngIf="producto.imageSource"
+      class="fuente"
+      >{{
+        producto.image && !fotoFallida
+          ? producto.imageLabel
+          : "Referencia del fabricante"
+      }}
+      </span
+    >
+    <span class="motivo" *ngIf="motivo">{{ motivo }}</span>
+    <span
+      *ngIf="producto.imageLicense"
+      class="fuente"
+      >Fotografía con licencia · créditos en documentación</span
+    >
+    <div class="pie">
+      <strong>{{
+        producto.price ? dinero(producto.price) : "INCLUIDO"
+      }}</strong>
+      <button
+        type="button"
+        class="accion-seleccion"
+        [disabled]="ocupado || (!!motivo && !activa)"
+        [attr.aria-label]="(activa ? 'Quitar componente ' : 'Agregar componente ') + producto.name"
+        (click)="alternar()"
+      >
+        {{ activa ? '− QUITAR' : '+ AGREGAR' }}
+      </button>
+      <div class="cantidad" *ngIf="multiple && cantidad">
+        <button
+          type="button"
+          [disabled]="ocupado"
+          [attr.aria-label]="'Quitar una unidad de ' + producto.name"
+          (click)="cantidadCambio.emit(cantidad - 1)"
+        >
+          −
+        </button>
+        <output [attr.aria-label]="'Cantidad de ' + producto.name">{{
+          cantidad
+        }}</output>
+        <button
+          type="button"
+          [disabled]="ocupado || !!motivo || cantidad >= maxCantidad"
+          [attr.aria-label]="'Agregar una unidad de ' + producto.name"
+          (click)="cantidadCambio.emit(cantidad + 1)"
+        >
+          +
+        </button>
+      </div>
+    </div>
+    <small class="subtotal" *ngIf="multiple && cantidad"
+      >{{ cantidad }}
+      {{
+        producto.category === "ram" && +producto.specs["modules"] > 1
+          ? cantidad === 1
+            ? "kit"
+            : "kits"
+          : cantidad === 1
+            ? "unidad"
+            : "unidades"
+      }}
+      · {{ dinero(producto.price * cantidad) }}</small
+    >
+  </div>
+</article>
+<dialog
+  #fotoAmpliada
+  class="visor-foto"
+  [attr.aria-label]="'Foto ampliada de ' + producto.name"
+  (click)="$event.target === fotoAmpliada && fotoAmpliada.close()"
+>
+  <div class="visor-cabecera">
+    <h4>{{ producto.name }}</h4>
+    <button type="button" autofocus (click)="fotoAmpliada.close()">✕ CERRAR</button>
+  </div>
+  <img [src]="producto.image" [alt]="producto.name" referrerpolicy="no-referrer" />
+  <p>{{ producto.imageLabel || 'Foto de referencia' }}</p>
+</dialog>

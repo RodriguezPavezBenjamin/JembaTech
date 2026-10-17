@@ -1,0 +1,41 @@
+<dialog #dialogo aria-labelledby="titulo-editor" (cancel)="cancelarEvento($event)" (click)="cerrarFondo($event)">
+  <header class="cabecera"><div><small>EDICIÓN RÁPIDA</small><h2 id="titulo-editor">Cambia las piezas de tu PC</h2></div><button type="button" class="cerrar" autofocus [disabled]="guardando" aria-label="Cerrar edición" (click)="cerrar()">✕</button></header>
+  <p class="aviso" *ngIf="copia">Guardaremos una copia para conservar la cotización y su coordinación anteriores.</p>
+  <p class="meta">Precios actuales del catálogo de referencia. Cancelar conserva tu cotización original.</p>
+  <p *ngIf="cargando" role="status">Cargando componentes…</p>
+  <p class="error" role="alert" *ngIf="error">{{ error }}</p>
+  <button *ngIf="!cargando && !catalogo.length" type="button" (click)="cargar()">REINTENTAR CATÁLOGO</button>
+  <form *ngIf="!cargando && catalogo.length" #formulario="ngForm" (ngSubmit)="guardar()">
+    <fieldset [disabled]="guardando">
+      <div class="preferencias"><label>Nombre de la cotización<input name="nombre" [(ngModel)]="nombre" (ngModelChange)="cambio()" required maxlength="80" /></label><label>Presupuesto (CLP)<input name="presupuesto" type="number" [(ngModel)]="presupuesto" (ngModelChange)="cambio()" required min="1" max="100000000" step="1" /></label></div>
+      <div class="grupo" *ngFor="let grupo of grupos">
+        <div class="titulo-grupo"><h3>{{ grupo.label }}</h3><button *ngIf="grupo.multiple" type="button" class="agregar" [disabled]="!puedeAgregar(grupo.category)" (click)="agregar(grupo.category)">+ AÑADIR</button></div>
+        <p class="sin-extra" *ngIf="!porGrupo(grupo.category).length">{{ grupo.category === 'fan' || grupo.category === 'support' ? 'Sin accesorios de este tipo' : 'Sin componentes seleccionados' }}</p>
+        <div class="fila" *ngFor="let fila of porGrupo(grupo.category)">
+          <div class="miniatura"><img *ngIf="producto(fila.id)?.image && !fallidas.has(fila.id); else sinFoto" [src]="producto(fila.id)?.image" [alt]="producto(fila.id)?.name || grupo.label" loading="lazy" referrerpolicy="no-referrer" (error)="fallidas.add(fila.id)" /><ng-template #sinFoto><span aria-hidden="true">▧</span></ng-template></div>
+          <select [name]="'pieza-' + fila.key" [(ngModel)]="fila.id" (ngModelChange)="cambio()" [attr.aria-label]="grupo.label + ' ' + fila.key" required>
+            <option value="" disabled>Elige un modelo…</option>
+            <option *ngIf="fila.id && !producto(fila.id)" [value]="fila.id" disabled>Modelo anterior no disponible · selecciona otro</option>
+            <option *ngFor="let producto of opciones(grupo.category)" [value]="producto.id" [disabled]="repetido(producto.id, fila.key)">{{ producto.name }} · {{ dinero(producto.price) }}</option>
+          </select>
+          <input *ngIf="grupo.multiple; else unidad" class="cantidad" type="number" [name]="'cantidad-' + fila.key" [(ngModel)]="fila.quantity" (ngModelChange)="cambio()" min="1" [max]="grupo.category === 'support' ? 1 : 8" step="1" required [attr.aria-label]="'Cantidad de ' + (producto(fila.id)?.name || grupo.label)" />
+          <ng-template #unidad><span class="unidad">1 u.</span></ng-template>
+          <strong class="subtotal">{{ dinero((producto(fila.id)?.price || 0) * (fila.quantity || 0)) }}</strong>
+          <button *ngIf="grupo.multiple" type="button" class="quitar" [attr.aria-label]="'Quitar ' + (producto(fila.id)?.name || grupo.label)" (click)="quitar(fila)">✕</button>
+        </div>
+      </div>
+    </fieldset>
+    <div class="revision" aria-live="polite">
+      <p *ngIf="!valido" class="error">Revisa nombre, presupuesto, modelos y cantidades. No repitas un modelo: aumenta su cantidad.</p>
+      <p *ngIf="revisando">Revisando precio y compatibilidad…</p>
+      <p *ngIf="errorRevision" class="error">{{ errorRevision }} <button type="button" (click)="cambio()">REINTENTAR</button></p>
+      <ng-container *ngIf="analisis as resultado">
+        <p *ngIf="resultado.can_save" class="correcto">✓ Armado revisado · {{ resultado.ram_gb }} GB RAM · {{ resultado.storage_gb }} GB · fuente recomendada {{ resultado.recommended_watts }} W</p>
+        <p *ngIf="resultado.missing.length" class="error">Faltan piezas: <span *ngFor="let categoria of resultado.missing; let ultimo = last">{{ etiqueta(categoria) }}{{ ultimo ? '' : ', ' }}</span></p>
+        <ul *ngIf="resultado.issues.length"><li *ngFor="let aviso of resultado.issues" [class.error]="aviso.severity === 'block'">{{ aviso.message }}</li></ul>
+        <details *ngIf="resultado.warnings.length"><summary>Observaciones de la revisión</summary><ul><li *ngFor="let aviso of resultado.warnings">{{ aviso }}</li></ul></details>
+      </ng-container>
+    </div>
+    <footer><div class="total"><small>NUEVO TOTAL ESTIMADO</small><strong>{{ dinero(analisis?.total_price ?? total) }}</strong></div><div class="acciones"><button type="button" class="secondary" [disabled]="guardando" (click)="cerrar()">CANCELAR</button><button type="submit" [disabled]="guardando || revisando || !valido || !analisis?.can_save || formulario.invalid">{{ guardando ? 'GUARDANDO…' : copia ? 'GUARDAR COPIA' : 'GUARDAR CAMBIOS' }}</button></div></footer>
+  </form>
+</dialog>

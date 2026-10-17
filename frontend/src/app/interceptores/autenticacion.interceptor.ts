@@ -4,7 +4,10 @@ import { Router } from "@angular/router";
 import { catchError, throwError } from "rxjs";
 import { AuthService } from "../servicios/autenticacion.service";
 
-const rutasPublicas = ["/api/auth/login", "/api/auth/register", "/api/health"];
+const rutasPublicas = [
+  "/api/auth/login", "/api/auth/register", "/api/health",
+  "/api/catalog", "/api/builds/preview",
+];
 
 export const autenticacionInterceptor: HttpInterceptorFn = (request, next) => {
   const autenticacion = inject(AuthService);

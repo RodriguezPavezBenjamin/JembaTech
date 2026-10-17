@@ -1,71 +1,71 @@
-<section class="page">
-  <small class="eyebrow">ADMINISTRACIÓN</small>
+<section class="page admin-page">
+  <small class="eyebrow">MESA DE TRABAJO</small>
   <h1>COTIZACIONES DE CLIENTES</h1>
-  <p class="lead">
-    Revisa solicitudes, entrega feedback y coordina el servicio sin convertir la
-    plataforma en un chat.
-  </p>
-  <p *ngIf="cargando">Cargando...</p>
-  <p class="empty" *ngIf="!cargando && !cotizaciones.length">
-    No hay cotizaciones registradas.
-  </p>
-  <p class="success" *ngIf="mensaje">{{ mensaje }}</p>
-  <div class="list">
-    <article class="quote" *ngFor="let cotizacion of cotizaciones">
+  <p class="lead">Cada equipo, su cliente y el siguiente paso. Revisa el armado antes de coordinar.</p>
+  <div class="estadisticas">
+    <div><small>GUARDADAS</small><strong>{{ cotizaciones.length }}</strong></div>
+    <div><small>POR REVISAR</small><strong>{{ contar('REQUESTED') + contar('REVIEWING') }}</strong></div>
+    <div><small>AGENDADAS</small><strong>{{ contar('SCHEDULED') }}</strong></div>
+    <div><small>COMPLETADAS</small><strong>{{ contar('COMPLETED') }}</strong></div>
+  </div>
+  <div class="herramientas">
+    <label>BUSCAR CLIENTE / COTIZACIÓN<input type="search" [(ngModel)]="busqueda" (ngModelChange)="aplicarFiltro()" placeholder="Nombre, correo, teléfono o ID…" [disabled]="!!guardandoId || eliminando" /></label>
+    <label>ESTADO<select [(ngModel)]="filtro" (ngModelChange)="aplicarFiltro()" [disabled]="!!guardandoId || eliminando"><option value="">TODOS</option><option *ngFor="let item of estados" [value]="item[0]">{{ item[1] }}</option><option value="RETIRED">CONSULTAS RETIRADAS</option></select></label>
+    <button type="button" class="secondary" [disabled]="cargando || !!guardandoId || eliminando" (click)="recargar()">ACTUALIZAR</button>
+  </div>
+  <p *ngIf="cargando" role="status">Cargando cotizaciones…</p>
+  <p class="error" role="alert" *ngIf="error">{{ error }}</p>
+  <p class="success" role="status" *ngIf="mensaje">{{ mensaje }}</p>
+  <p class="empty" *ngIf="!cargando && !error && !filtradas.length">No hay cotizaciones para estos filtros.</p>
+  <div class="mesa-cotizaciones" *ngIf="!cargando && filtradas.length">
+    <nav class="bandeja" aria-label="Cotizaciones de clientes">
+      <button type="button" class="fila-cotizacion" *ngFor="let quote of filtradas"
+        [class.actual]="quote.id === detalle?.id" [attr.aria-pressed]="quote.id === detalle?.id"
+        [disabled]="!!guardandoId || eliminando" (click)="seleccionar(quote)">
+        <span class="fila-estado">{{ estado(quote) }}</span>
+        <b>{{ quote.name || 'Cotización sin nombre' }}</b>
+        <span>{{ quote.user?.name || 'Cliente sin cuenta' }}</span>
+        <strong>{{ dinero(quote.totalPrice) }}</strong>
+        <small>{{ quote.createdAt | date:'dd/MM/yyyy HH:mm' }} · #{{ quote.id.slice(0, 8) }}</small>
+      </button>
+    </nav>
+    <article class="quote detalle-admin" *ngIf="detalle as quote">
       <header>
-        <div>
-          <b>{{ cotizacion.user?.name || "Cliente sin cuenta" }}</b>
-          <p class="meta">
-            {{ cotizacion.user?.email || "Sin correo" }} ·
-            {{
-              cotizacion.user?.phone ||
-                cotizacion.contactPhone ||
-                "Sin teléfono"
-            }}
-          </p>
-        </div>
-        <strong>{{ dinero(cotizacion.totalPrice) }}</strong>
+        <div><small class="eyebrow">{{ estado(quote) }}</small><h2>{{ quote.name || 'Cotización sin nombre' }}</h2><p class="meta">{{ quote.user?.name || 'Cliente sin cuenta' }} · {{ quote.user?.email || 'Sin correo' }}</p></div>
+        <strong class="total-admin">{{ dinero(quote.totalPrice) }}</strong>
       </header>
-      <div class="tags">
-        <span>{{ cotizacion.level }} · {{ cotizacion.score }}/100</span
-        ><span>{{ cotizacion.ramGb }} GB RAM</span
-        ><span>{{ cotizacion.storageGb }} GB</span
-        ><span>{{ cotizacion.createdAt | date: "dd/MM/yyyy HH:mm" }}</span>
-      </div>
-      <textarea
-        class="admin-note"
-        [(ngModel)]="cotizacion.adminNote"
-        placeholder="Feedback o indicaciones para el cliente"
-      ></textarea>
-      <div class="profile-grid">
-        <select [(ngModel)]="cotizacion.status">
-          <option value="DRAFT">BORRADOR</option>
-          <option value="REQUESTED">SOLICITADA</option>
-          <option value="REVIEWING">EN REVISIÓN</option>
-          <option value="SCHEDULED">AGENDADA</option>
-          <option value="COMPLETED">COMPLETADA</option>
-          <option value="EXPIRED">CERRADA</option></select
-        ><input [(ngModel)]="cotizacion.preferredDate" type="datetime-local" />
-      </div>
-      <div class="actions">
-        <button
-          type="button"
-          [disabled]="guardandoId === cotizacion.id"
-          (click)="guardar(cotizacion)"
-        >
-          {{
-            guardandoId === cotizacion.id
-              ? "GUARDANDO..."
-              : "GUARDAR ACTUALIZACIÓN"
-          }}</button
-        ><a
-          class="button secondary"
-          [href]="whatsapp(cotizacion)"
-          target="_blank"
-          rel="noopener"
-          >CONTACTAR POR WHATSAPP</a
-        >
+      <div class="tags"><span>{{ quote.level }} · {{ quote.score }}/100</span><span>CATÁLOGO {{ quote.configuration?.catalog_version || 'ANTERIOR' }}</span></div>
+      <app-resumen-cotizacion [cotizacion]="quote" [expandido]="true" />
+      <app-detalle-armado [configuracion]="quote.configuration" [expandido]="true" [detallado]="true" />
+      <div class="coordinacion-detalle">
+        <h3>COORDINACIÓN DEL SERVICIO</h3>
+        <dl class="datos-contacto">
+          <div><dt>CONTACTO DE LA CONSULTA</dt><dd>{{ quote.contactPhone || 'No indicado' }}</dd></div>
+          <div><dt>TELÉFONO DEL PERFIL</dt><dd>{{ quote.user?.phone || 'No indicado' }}</dd></div>
+          <div><dt>COMUNA / DIRECCIÓN</dt><dd>{{ quote.serviceAddress || 'Por definir' }}</dd></div>
+          <div><dt>FECHA SOLICITADA / COORDINADA</dt><dd>{{ quote.preferredDate ? (quote.preferredDate | date:'dd/MM/yyyy HH:mm') : 'Por definir' }}</dd></div>
+        </dl>
+        <div class="nota-cliente"><small>MENSAJE DEL CLIENTE</small><p>{{ quote.customerNote || 'El cliente no agregó un mensaje.' }}</p></div>
+        <p class="meta" *ngIf="quote.requestDeletedAt">Consulta retirada el {{ quote.requestDeletedAt | date:'dd/MM/yyyy HH:mm' }}. El armado se conserva; la coordinación queda cerrada.</p>
+        <form *ngIf="!quote.requestDeletedAt" #formulario="ngForm" (ngSubmit)="guardar()">
+          <div class="profile-grid">
+            <label>ESTADO<select name="estado" [(ngModel)]="edicion.status" [disabled]="!!guardandoId"><option *ngFor="let item of estados" [value]="item[0]">{{ item[1] }}</option></select></label>
+            <label>FECHA Y HORA<input name="fecha" [(ngModel)]="edicion.preferredDate" type="datetime-local" [disabled]="!!guardandoId" /></label>
+          </div>
+          <label>RESPUESTA VISIBLE PARA EL CLIENTE<textarea name="respuesta" class="admin-note" [(ngModel)]="edicion.adminNote" maxlength="600" rows="4" placeholder="Indica el siguiente paso, ajustes o fecha acordada…" [disabled]="!!guardandoId"></textarea></label>
+          <button type="submit" [disabled]="!!guardandoId || formulario.invalid">{{ guardandoId ? 'GUARDANDO…' : 'GUARDAR COORDINACIÓN' }}</button>
+        </form>
+        <p class="meta" *ngIf="quote.requestDeletedAt && quote.adminNote">Última respuesta: {{ quote.adminNote }}</p>
+        <div class="actions">
+          <a *ngIf="telefono(quote).length >= 8" class="button secondary" [href]="whatsapp(quote)" target="_blank" rel="noopener noreferrer">CONTACTAR POR WHATSAPP</a>
+          <button type="button" class="danger" *ngIf="quote.status !== 'DRAFT' && !quote.requestDeletedAt" [disabled]="!!guardandoId || eliminando" (click)="pedirEliminar(quote, 'consulta')">RETIRAR CONSULTA</button>
+          <button type="button" class="danger" [disabled]="!!guardandoId || eliminando" (click)="pedirEliminar(quote, 'cotizacion')">ELIMINAR COTIZACIÓN</button>
+        </div>
       </div>
     </article>
   </div>
 </section>
+<app-confirmar-accion [titulo]="accion === 'cotizacion' ? '¿Eliminar la cotización del cliente?' : '¿Retirar esta consulta?'"
+  [descripcion]="accion === 'cotizacion' ? 'Se quitará «' + (pendiente?.name || 'Cotización sin nombre') + '» del panel y del historial del cliente, junto con su consulta. Los datos se conservarán mediante borrado lógico.' : 'La coordinación de «' + (pendiente?.name || 'Cotización sin nombre') + '» quedará cerrada y dejará de aparecer en Mis consultas del cliente. Su cotización se conserva.'"
+  [etiqueta]="accion === 'cotizacion' ? 'ELIMINAR COTIZACIÓN' : 'RETIRAR CONSULTA'"
+  [ocupado]="eliminando" [error]="errorEliminar" (confirmar)="eliminar()" />

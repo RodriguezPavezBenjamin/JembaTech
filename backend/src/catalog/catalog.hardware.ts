@@ -1,0 +1,371 @@
+import { CatalogProduct } from "./catalog.types";
+
+// Fichas oficiales revisadas el 16/10/2026. Precios manuales ilustrativos.
+// Los límites agregados no sustituyen BIOS/QVL ni un montaje físico validado.
+const msi = "https://www.msi.com/Motherboard/";
+const deepcool = "https://www.deepcool.com/products/";
+const dcPhoto = (path: string) =>
+  `https://cdn.deepcool.com/public/ProductFile/DEEPCOOL/${path}/Gallery/800X800/01.jpg?auto=format,compress&q=90`;
+const boards = [
+  {
+    id: "b550m-vdh",
+    model: "B550M PRO-VDH WIFI",
+    slug: "B550M-PRO-VDH-WIFI",
+    socket: "AM4",
+    ram: "DDR4",
+    form: "Micro-ATX",
+    ramSlots: 4,
+    maxRam: 128,
+    sata: 4,
+    cpuEps: 1,
+    wifi: true,
+    wireless: "Wi-Fi AC · Bluetooth 4.2",
+    lan: "1 GbE",
+    chipset: "B550",
+    price: 119990,
+    image:
+      "https://storage-asset.msi.com/global/picture/product/product_10_20200618152228_5eeb1634e9295.webp",
+  },
+  {
+    id: "b550-a-pro",
+    model: "B550-A PRO",
+    slug: "B550-A-PRO",
+    socket: "AM4",
+    ram: "DDR4",
+    form: "ATX",
+    ramSlots: 4,
+    maxRam: 128,
+    sata: 6,
+    cpuEps: 1,
+    wifi: false,
+    wireless: "Sin Wi-Fi",
+    lan: "1 GbE",
+    chipset: "B550",
+    price: 129990,
+    image:
+      "https://storage-asset.msi.com/global/picture/product/product_3_20200525104027_5ecb301b380d4.webp",
+  },
+  {
+    id: "b650-s",
+    model: "PRO B650-S WIFI",
+    slug: "PRO-B650-S-WIFI",
+    socket: "AM5",
+    ram: "DDR5",
+    form: "ATX",
+    ramSlots: 4,
+    maxRam: 256,
+    sata: 4,
+    cpuEps: 2,
+    wifi: true,
+    wireless: "Wi-Fi 6E · Bluetooth 5.3",
+    lan: "2.5 GbE",
+    chipset: "B650",
+    price: 179990,
+    image:
+      "https://storage-asset.msi.com/global/picture/image/feature/mb/B650/PRO-B650-S-WIFI/kv.png",
+  },
+  {
+    id: "b650i-edge",
+    model: "MPG B650I EDGE WIFI",
+    slug: "MPG-B650I-EDGE-WIFI",
+    socket: "AM5",
+    ram: "DDR5",
+    form: "Mini-ITX",
+    ramSlots: 2,
+    maxRam: 128,
+    sata: 4,
+    cpuEps: 1,
+    wifi: true,
+    wireless: "Wi-Fi 6E · Bluetooth 5.3",
+    lan: "2.5 GbE",
+    chipset: "B650",
+    price: 269990,
+    image:
+      "https://storage-asset.msi.com/global/picture/image/feature/mb/B650I/MPG-B650I-EDGE-WIFI/kv.png",
+  },
+  {
+    id: "b760m-a-d4",
+    model: "PRO B760M-A WIFI DDR4",
+    slug: "PRO-B760M-A-WIFI-DDR4",
+    socket: "LGA1700",
+    ram: "DDR4",
+    form: "Micro-ATX",
+    ramSlots: 4,
+    maxRam: 128,
+    sata: 4,
+    cpuEps: 2,
+    wifi: true,
+    wireless: "Wi-Fi 6E · Bluetooth 5.3",
+    lan: "2.5 GbE",
+    chipset: "B760",
+    price: 159990,
+    image:
+      "https://storage-asset.msi.com/global/picture/image/feature/mb/Pro_B760M/PRO_B760M-A-Wifi-ddr4/msi-pro-b760m-a-wifi-ddr4-kv.png",
+  },
+  {
+    id: "b760-p",
+    model: "PRO B760-P WIFI",
+    slug: "PRO-B760-P-WIFI",
+    socket: "LGA1700",
+    ram: "DDR5",
+    form: "ATX",
+    ramSlots: 4,
+    maxRam: 256,
+    sata: 4,
+    cpuEps: 2,
+    wifi: true,
+    wireless: "Wi-Fi 6E · Bluetooth 5.3",
+    lan: "2.5 GbE",
+    chipset: "B760",
+    price: 189990,
+    image:
+      "https://storage-asset.msi.com/global/picture/image/feature/mb/PRO-B760/pro-b760-p-wifi/msi-pro-b760-p-wifi-motherboard.png",
+  },
+];
+
+export const HARDWARE_PRODUCTS: CatalogProduct[] = boards.map((b) => ({
+  id: `board-msi-${b.id}`,
+  category: "board",
+  name: `MSI ${b.model}`,
+  description: `${b.socket} · ${b.ram} · ${b.form}`,
+  price: b.price,
+  icon: "board",
+  image: b.image,
+  imageSource: `${msi}${b.slug}/Specification`,
+  imageLabel: "Foto del modelo · MSI",
+  specs: {
+    brand: "MSI",
+    socket: b.socket,
+    ram: b.ram,
+    form: b.form,
+    chipset: b.chipset,
+    ramSlots: b.ramSlots,
+    maxRam: b.maxRam,
+    m2: 2,
+    sata: b.sata,
+    cpuEps: b.cpuEps,
+    wifi: b.wifi,
+    wireless: b.wireless,
+    lan: b.lan,
+    mountNote:
+      "Confirmar BIOS compatible con el procesador y QVL de memoria. Los puertos compartidos dependen del modo de uso.",
+  },
+}));
+
+for (const c of [
+  {
+    id: "ak400",
+    name: "AK400",
+    kind: "air",
+    height: 155,
+    radiator: 0,
+    fans: 1,
+    heatpipes: 4,
+    power: 2,
+    price: 39990,
+    path: "Cooling/CPUAirCoolers/AK400",
+    source:
+      "Cooling/cpuaircoolers/AK400-Performance-CPU-Cooler/2021/15222.shtml",
+  },
+  {
+    id: "ak620",
+    name: "AK620",
+    kind: "air",
+    height: 160,
+    radiator: 0,
+    fans: 2,
+    heatpipes: 6,
+    power: 3,
+    price: 69990,
+    path: "Cooling/CPUAirCoolers/AK620",
+    source:
+      "Cooling/cpuaircoolers/AK620-High-Performance-CPU-Cooler-1700-AM5/2021/13067.shtml",
+  },
+  {
+    id: "le520",
+    name: "LE520",
+    kind: "aio",
+    height: 52,
+    radiator: 240,
+    fans: 2,
+    heatpipes: 0,
+    power: 13,
+    price: 89990,
+    path: "Cooling/CPULiquidCoolers/LE520",
+    source:
+      "Cooling/cpuliquidcoolers/LE520-240mm-Liquid-CPU-Cooler/2022/16608.shtml",
+  },
+  {
+    id: "le720",
+    name: "LE720",
+    kind: "aio",
+    height: 52,
+    radiator: 360,
+    fans: 3,
+    heatpipes: 0,
+    power: 17,
+    price: 109990,
+    path: "Cooling/CPULiquidCoolers/LE720",
+    source:
+      "Cooling/cpuliquidcoolers/LE720-360mm-Liquid-CPU-Cooler-1851-1700-AM5/2024/16983.shtml",
+  },
+]) {
+  HARDWARE_PRODUCTS.push({
+    id: `cooler-deepcool-${c.id}`,
+    category: "cooler",
+    name: `DeepCool ${c.name}`,
+    description:
+      c.kind === "air"
+        ? "Torre por aire · ventiladores PWM incluidos"
+        : "Líquida AIO · bomba, ventiladores y ARGB incluidos",
+    price: c.price,
+    icon: c.kind === "aio" ? "aio" : "cooler",
+    image: dcPhoto(c.path),
+    imageSource: deepcool + c.source,
+    imageLabel: "Foto del modelo · DeepCool",
+    specs: {
+      brand: "DeepCool",
+      kind: c.kind,
+      heightMm: c.height,
+      radiatorMm: c.radiator,
+      includedFans: c.fans,
+      heatpipes: c.heatpipes,
+      power: c.power,
+      sockets: ["AM4", "AM5", "LGA1700"],
+      mountNote:
+        c.id === "ak620"
+          ? "RAM de hasta 43 mm con ambos ventiladores; elevar el ventilador aumenta la altura total."
+          : "Confirmar kit de montaje, espacio de RAM y ubicación en el gabinete.",
+    },
+  });
+}
+
+HARDWARE_PRODUCTS.push(
+  {
+    id: "case-fractal-pop-mini",
+    category: "case",
+    name: "Fractal Pop Mini Air RGB",
+    description: "Compacto Micro-ATX · malla frontal · vidrio templado",
+    price: 89990,
+    icon: "case",
+    image:
+      "https://assets.fractal-design.com/images/uxzbxy2o/production/6130cec87543702970d51ff2821ac2c328522ee0-2560x2560.jpg?w=600&q=75&auto=format",
+    imageSource:
+      "https://www.fractal-design.com/products/cases/pop-series/pop-mini-air/pop-mini-air-rgb-black-tg-clear-tint/",
+    imageLabel: "Foto del modelo · Fractal Design",
+    specs: {
+      brand: "Fractal Design",
+      forms: ["Mini-ITX", "Micro-ATX"],
+      gpuClearanceMm: 365,
+      coolerClearanceMm: 170,
+      radiators: [120, 240],
+      fan120: 5,
+      fan140: 2,
+      included120: 3,
+      included140: 0,
+      bays25: 2,
+      bays35: 2,
+      psuForms: ["ATX"],
+      psuMaxLengthMm: 150,
+      mountNote:
+        "PSU de hasta 150 mm; USB-C opcional. Bahías dedicadas + combinadas según distribución. Radiadores y ventiladores comparten posiciones.",
+    },
+  },
+  {
+    id: "case-corsair-4000d",
+    category: "case",
+    name: "Corsair 4000D AIRFLOW",
+    description: "ATX · frontal de alto flujo · vidrio templado",
+    price: 109990,
+    icon: "case",
+    image:
+      "https://assets.corsair.com/image/upload/c_pad,q_85,h_1100,w_1100,f_auto/products/Cases/base-4000d-airflow-config/Gallery/4000D_AF_BLACK_01.webp",
+    imageSource:
+      "https://www.corsair.com/us/en/p/pc-cases/cc-9011200-ww/4000d-airflow-tempered-glass-mid-tower-atx-case-black-cc-9011200-ww",
+    imageLabel: "Foto del modelo · Corsair",
+    specs: {
+      brand: "Corsair",
+      forms: ["Mini-ITX", "Micro-ATX", "ATX"],
+      gpuClearanceMm: 360,
+      coolerClearanceMm: 170,
+      radiators: [120, 240, 280, 360],
+      fan120: 6,
+      fan140: 4,
+      included120: 2,
+      included140: 0,
+      bays25: 2,
+      bays35: 2,
+      psuForms: ["ATX"],
+      mountNote:
+        "360 mm en el frontal: reduce espacio GPU y puede exigir mover la jaula HDD. 280 mm arriba depende de la altura RAM. No se certifica montaje simultáneo.",
+    },
+  },
+  {
+    id: "case-fractal-meshify2",
+    category: "case",
+    name: "Fractal Meshify 2",
+    description: "E-ATX hasta 285 mm · configuración de almacenamiento",
+    price: 179990,
+    icon: "case",
+    image:
+      "https://assets.fractal-design.com/images/uxzbxy2o/production/866e70818b5a87b147a2243f9b509a3076eaed7f-2560x2560.jpg?w=600&q=75&auto=format",
+    imageSource:
+      "https://www.fractal-design.com/products/cases/meshify-series/meshify-2/meshify-2-black-light-tg/",
+    imageLabel: "Foto del modelo · Fractal Design",
+    specs: {
+      brand: "Fractal Design",
+      forms: ["Mini-ITX", "Micro-ATX", "ATX", "E-ATX"],
+      gpuClearanceMm: 315,
+      coolerClearanceMm: 185,
+      radiators: [120, 240, 280, 360, 420],
+      fan120: 9,
+      fan140: 9,
+      included120: 0,
+      included140: 3,
+      bays25: 2,
+      bays35: 6,
+      psuForms: ["ATX"],
+      boardMaxWidthMm: 285,
+      mountNote:
+        "Límite GPU 315 mm con distribución de almacenamiento; el modo abierto ofrece más espacio pero cambia las bahías. E-ATX máximo 285 mm; radiadores comparten posiciones.",
+    },
+  },
+  {
+    id: "fan-deepcool-rf120",
+    category: "fan",
+    name: "DeepCool RF120 RGB",
+    description: "Ventilador de gabinete · unidad de 120 mm · PWM",
+    price: 11990,
+    icon: "fan",
+    image: dcPhoto("Cooling/Fans/RF120"),
+    imageSource:
+      "https://global.deepcool.com/products/Cooling/fans/RF120-RGB-PWM-Fan-Single/2021/11406.shtml",
+    imageLabel: "Foto del modelo · DeepCool",
+    specs: {
+      sizeMm: 120,
+      rgb: true,
+      power: 3,
+      connector: "PWM 4-pin · RGB 12 V",
+      mountNote: "RGB 12 V no es ARGB 5 V; confirmar header/controlador.",
+    },
+  },
+  {
+    id: "support-deepcool-gh01",
+    category: "support",
+    name: "DeepCool GH-01",
+    description: "Soporte ajustable anticaída de gráfica · sin iluminación",
+    price: 14990,
+    icon: "support",
+    image: dcPhoto("Accessories/GH_01"),
+    imageSource:
+      deepcool + "Accessories/graphiccardaccessories/2021/13760.shtml",
+    imageLabel: "Foto del modelo · DeepCool",
+    specs: {
+      power: 0,
+      supportRange: "47,2–154 / 161–255 mm",
+      maxLoad: "5 kg",
+      mountNote:
+        "Confirmar altura de apoyo y espacio libre dentro del gabinete.",
+    },
+  },
+);

@@ -4,6 +4,14 @@ import { LayoutPrincipalComponent } from "./compartidos/layout-principal/layout-
 
 export const routes: Routes = [
   {
+    path: "",
+    pathMatch: "full",
+    loadComponent: () =>
+      import("./pages/cotizador/cotizador.component").then(
+        (m) => m.CotizadorComponent,
+      ),
+  },
+  {
     path: "login",
     component: LayoutPrincipalComponent,
     children: [

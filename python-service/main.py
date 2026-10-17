@@ -1,7 +1,14 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
+from builds import BuildAnalysis, BuildInput, analyze, recommended_watts
+
 app = FastAPI(title='JembaTech Evaluator', version='0.1.0')
+
+
+@app.post('/builds/preview', response_model=BuildAnalysis)
+def preview_build(build: BuildInput):
+    return analyze(build)
 
 
 class BuildRequest(BaseModel):
@@ -37,10 +44,10 @@ def evaluate(build: BuildRequest):
         score -= 25
         warnings.append('La configuracion supera el presupuesto definido.')
         recommendations.append('Reduce componentes no esenciales o aumenta el presupuesto.')
-    if build.psu_watts < build.estimated_consumption_watts * 1.25:
+    if build.psu_watts < recommended_watts(build.estimated_consumption_watts):
         score -= 30
         warnings.append('La fuente de poder no deja margen de seguridad suficiente.')
-        recommendations.append('Usa una fuente con al menos 25% de margen sobre el consumo estimado.')
+        recommendations.append('Usa una fuente con 35% de margen, redondeado hacia arriba a 50 W.')
     if build.ram_gb < 16 and build.intended_use.lower() in {'gaming', 'edicion', 'programacion'}:
         score -= 15
         warnings.append('16 GB de RAM es el minimo recomendado para este uso.')

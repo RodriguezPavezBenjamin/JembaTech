@@ -2,6 +2,12 @@
 
 Aplicacion multiplataforma para crear cotizaciones de PC, elegir presets y recibir una evaluacion explicable de compatibilidad, rendimiento esperado y ajuste al presupuesto.
 
+## Avance EP2: nuevo cotizador
+
+El cotizador ahora separa uso/presupuesto, CPU, gráfica, placa, RAM, almacenamiento múltiple, refrigeración/extras, gabinete, fuente y resumen. NestJS resuelve IDs y precios del catálogo; FastAPI revisa las reglas y el consumo; PostgreSQL conserva el detalle de piezas y cantidades de la cotización.
+
+El catálogo de esta fase es manual, con perfiles y precios de referencia. Las imágenes son ilustraciones originales por categoría. La integración con una fuente web real sigue pendiente y no debe confundirse con este catálogo inicial. [Flujo, contratos, pruebas y pendientes EP2](docs/cotizador-ep2.md).
+
 ## Arquitectura EP1
 
 `Ionic + Angular` se comunica solo con `NestJS`. NestJS administra PostgreSQL y consulta internamente el evaluador `FastAPI`.

@@ -1,0 +1,819 @@
+<section id="cotizador" class="cotizador">
+  <div class="contenedor">
+    <header class="cabecera">
+      <span class="eyebrow">TU PRÓXIMO EQUIPO EMPIEZA AQUÍ</span>
+      <h2>ARMA TU PC</h2>
+      <p>Un punto de partida listo o cada pieza elegida por ti.</p>
+    </header>
+    <p class="aviso" *ngIf="borradorRecuperado">
+      Recuperamos tu último armado en este navegador.
+    </p>
+    <div class="estado-error" *ngIf="error" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" (click)="catalogo() ? recalcular() : cargar()">
+        VOLVER A INTENTAR
+      </button>
+    </div>
+    <p class="aviso" *ngIf="cargando" role="status">Preparando el catálogo…</p>
+    <ng-container *ngIf="catalogo()">
+      <nav
+        class="pasos"
+        aria-label="Pasos para armar tu PC"
+        *ngIf="paso() <= 10"
+      >
+        <button
+          *ngFor="let nombre of pasos; let i = index"
+          type="button"
+          [class.activo]="paso() === i + 1"
+          [class.anterior]="maxPaso >= i + 1"
+          [attr.aria-current]="paso() === i + 1 ? 'step' : null"
+          [disabled]="i + 1 > maxPaso || guardando"
+          (click)="ir(i + 1)"
+        >
+          <span>{{ i + 1 }}</span
+          >{{ nombre }}
+        </button>
+      </nav>
+      <div
+        class="distribucion"
+        [class.guardado]="paso() === 11"
+        [class.solo]="paso() >= 10 || (paso() === 1 && inicio === 'presets')"
+      >
+        <main class="panel">
+          <header class="etapa">
+            <small>{{
+              paso() === 11
+                ? "TU COTIZACIÓN"
+                : "PASO " + paso() + " DE 10 · " + pasos[paso() - 1]
+            }}</small>
+            <h3>
+              {{ paso() === 11 ? "GUARDA TU ARMADO" : titulos[paso() - 1] }}
+            </h3>
+          </header>
+          <ng-container *ngIf="paso() === 1">
+            <ng-container *ngIf="inicio === 'presets'">
+              <div class="presets">
+                <article
+                  class="preset"
+                  *ngFor="let preset of presets; let i = index"
+                  [class.previsualizando]="vistaPrevia === preset.id"
+                  (keydown.escape)="vistaPrevia = null"
+                >
+                  <img
+                    class="preset-foto"
+                    [src]="preset.image"
+                    [style.object-position]="preset.imagePosition"
+                    alt=""
+                    loading="lazy"
+                  />
+                  <span class="preset-numero" aria-hidden="true"
+                    >0{{ i + 1 }} / PRESET</span
+                  >
+                  <button
+                    class="preset-elegir"
+                    type="button"
+                    [attr.aria-label]="'Ver armado ' + preset.name"
+                    (click)="usarPreset(preset)"
+                    [disabled]="guardando || precioPreset(preset) === undefined"
+                  >
+                    <span class="preset-titulo">{{ preset.name }}</span>
+                    <span class="preset-tagline">{{ preset.tagline }}</span>
+                    <span class="preset-pie">
+                      <span
+                        ><small>ESTIMADO</small
+                        ><strong>{{
+                          precioPreset(preset) === undefined
+                            ? "No disponible"
+                            : dinero(precioPreset(preset)!)
+                        }}</strong></span
+                      >
+                      <span class="preset-flecha" aria-hidden="true">↗</span>
+                    </span>
+                  </button>
+                  <button
+                    class="preset-ojo"
+                    type="button"
+                    [attr.aria-label]="'Previsualizar ' + preset.name"
+                    [attr.aria-expanded]="vistaPrevia === preset.id"
+                    [attr.aria-controls]="'preview-' + preset.id"
+                    (click)="alternarVistaPrevia(preset.id)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"
+                      />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </button>
+                  <div class="preset-preview" [id]="'preview-' + preset.id">
+                    <small>VISTA PREVIA</small>
+                    <p>{{ preset.description }}</p>
+                    <span>Foto referencial · Piezas editables</span>
+                  </div>
+                </article>
+              </div>
+              <button
+                class="personal-cta"
+                type="button"
+                aria-label="Empezar armado personalizado"
+                (click)="empezar('personalizado')"
+                [disabled]="guardando"
+              >
+                <span class="personal-icono" aria-hidden="true"
+                  ><svg viewBox="0 0 32 32">
+                    <path
+                      d="M6 5v22M16 5v22M26 5v22M3 11h6M13 21h6M23 14h6"
+                    /></svg
+                ></span>
+                <span class="personal-mensaje"
+                  ><small>NO SIGAS UN MOLDE</small><strong>Personalizado</strong
+                  ><span>Tu PC. Tus reglas.</span></span
+                >
+                <span class="personal-accion"
+                  >CREAR MI PC <span aria-hidden="true">↗</span></span
+                >
+              </button>
+              <div class="presets-ayuda">
+                <span>Todo editable · Precios estimados</span
+                ><span
+                  >Vista previa <span aria-hidden="true">↗</span> pasa el cursor
+                  o toca el ojo</span
+                >
+              </div>
+            </ng-container>
+            <ng-container *ngIf="inicio !== 'presets'">
+              <button type="button" class="texto" (click)="inicio = 'presets'">
+                ← VER PRESETS
+              </button>
+              <h4>PERSONALIZADO · TU IDEA</h4>
+              <form
+                [formGroup]="preferencias"
+                class="preferencias"
+                (ngSubmit)="puedeSeguir() && ir(2)"
+              >
+                <label for="presupuesto">¿CUÁNTO QUIERES INVERTIR?</label>
+                <div class="presupuesto-input">
+                  <span>CLP $</span
+                  ><input
+                    id="presupuesto"
+                    formControlName="budget"
+                    type="number"
+                    min="1"
+                    max="100000000"
+                    step="10000"
+                  />
+                </div>
+                <p>
+                  Es tu límite, no el precio del armado. Te avisaremos si lo
+                  superas.
+                </p>
+                <p
+                  class="advertencia"
+                  *ngIf="preferencias.controls.budget.invalid"
+                >
+                  Ingresa un presupuesto entero entre $1 y $100.000.000.
+                </p>
+                <label for="uso">¿PARA QUÉ LO USARÁS?</label>
+                <select id="uso" formControlName="intendedUse">
+                  <option value="oficina">Oficina</option>
+                  <option value="estudio">Estudio</option>
+                  <option value="gaming">Gaming</option>
+                  <option value="programacion">Programación</option>
+                  <option value="edicion">
+                    Edición y creación de contenido
+                  </option>
+                </select>
+              </form>
+            </ng-container>
+          </ng-container>
+          <div
+            class="marcas"
+            *ngIf="paso() === 2"
+            aria-label="Marca de procesador"
+          >
+            <button
+              *ngFor="let brand of ['AMD', 'Intel']"
+              type="button"
+              class="marca-opcion"
+              [attr.aria-pressed]="marcaCpu === brand"
+              [class.activo]="marcaCpu === brand"
+              (click)="marcaCpu = brand; busqueda = ''"
+            >
+              <span class="marca-visual"
+                ><img
+                  [src]="
+                    'media/brand/' + brand.toLowerCase() + '-referencia.png'
+                  "
+                  alt=""
+              /></span>
+              <span>{{ brand }}</span>
+            </button>
+            <button
+              type="button"
+              class="ver-todos"
+              aria-label="Ver todos los procesadores"
+              [attr.aria-pressed]="marcaCpu === 'Todas'"
+              [class.activo]="marcaCpu === 'Todas'"
+              (click)="marcaCpu = 'Todas'"
+            >
+              <span class="icono-catalogo" aria-hidden="true">▦</span>
+              <span class="texto-catalogo">
+                <strong>VER TODOS</strong>
+                <small>Compara procesadores de todas las marcas</small>
+              </span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+          <div
+            class="marcas"
+            *ngIf="paso() === 3"
+            aria-label="Marca de gráfica"
+          >
+            <button
+              *ngFor="let brand of ['NVIDIA', 'AMD']"
+              type="button"
+              class="marca-opcion"
+              [attr.aria-pressed]="marcaGpu === brand"
+              [class.activo]="marcaGpu === brand"
+              (click)="marcaGpu = brand; busqueda = ''"
+            >
+              <span
+                class="marca-visual"
+                [class.marca-nvidia]="brand === 'NVIDIA'"
+                ><img
+                  [src]="
+                    brand === 'NVIDIA'
+                      ? 'media/brand/nvidia.svg'
+                      : 'media/brand/amd-referencia.png'
+                  "
+                  alt=""
+              /></span>
+              <span>{{ brand }}</span>
+            </button>
+            <button
+              type="button"
+              class="integrada"
+              [attr.aria-pressed]="marcaGpu === 'Integrada'"
+              [class.activo]="marcaGpu === 'Integrada'"
+              (click)="marcaGpu = 'Integrada'"
+            >
+              USAR INTEGRADA
+            </button>
+            <button
+              type="button"
+              class="ver-todos"
+              aria-label="Ver todas las gráficas"
+              [attr.aria-pressed]="marcaGpu === 'Todas'"
+              [class.activo]="marcaGpu === 'Todas'"
+              (click)="marcaGpu = 'Todas'"
+            >
+              <span class="icono-catalogo" aria-hidden="true">▦</span>
+              <span class="texto-catalogo">
+                <strong>VER TODAS</strong>
+                <small>Explora todas las opciones de gráfica</small>
+              </span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+          <p
+            class="contexto"
+            *ngIf="(paso() === 2 && !marcaCpu) || (paso() === 3 && !marcaGpu)"
+          >
+            Primero elige una marca o pulsa “Ver todos”.
+          </p>
+          <ng-container *ngIf="categoriaPorPaso[paso()] as categoria">
+            <ng-container
+              *ngIf="(paso() !== 2 || marcaCpu) && (paso() !== 3 || marcaGpu)"
+            >
+              <p
+                class="contexto"
+                *ngIf="paso() === 4 && producto(borrador().cpu) as cpu"
+              >
+                {{ cpu.name }} · {{ cpu.specs["socket"] }}. Confirmar BIOS del
+                modelo final.
+              </p>
+              <p
+                class="contexto"
+                *ngIf="paso() === 5 && producto(borrador().board) as placa"
+              >
+                {{ placa.specs["ram"] }} · {{ placa.specs["ramSlots"] }} ranuras
+                · hasta {{ placa.specs["maxRam"] }} GB. Usa −/+ en cada tarjeta.
+                La cantidad cuenta módulos o kits completos, según la ficha.
+              </p>
+              <p
+                class="contexto"
+                *ngIf="paso() === 6 && producto(borrador().board) as placa"
+              >
+                {{ placa.specs["m2"] }} ranuras M.2 ·
+                {{ placa.specs["sata"] }} puertos SATA. Combina HDD, SATA y
+                NVMe; agrega o quita unidades en cada tarjeta.
+              </p>
+              <p class="contexto" *ngIf="paso() === 7">
+                El cooler incluye sus propios ventiladores. Los extras son
+                opcionales; comprobaremos el espacio con el gabinete.
+              </p>
+              <p
+                class="contexto"
+                *ngIf="paso() === 8 && producto(borrador().board) as placa"
+              >
+                Tu placa: {{ placa.specs["form"] }}. También revisamos gráfica,
+                cooler, radiadores, bahías y ventiladores.
+              </p>
+              <div class="potencia" *ngIf="paso() === 9">
+                <div>
+                  <small>CONSUMO ESTIMADO</small
+                  ><strong
+                    >{{
+                      analisis()?.estimated_consumption_watts ?? "…"
+                    }}
+                    W</strong
+                  >
+                </div>
+                <span>→</span>
+                <div>
+                  <small>FUENTE DESDE</small
+                  ><strong>{{ analisis()?.recommended_watts ?? "…" }} W</strong>
+                </div>
+                <p>
+                  Estimación con 35% de margen. Confirma potencia y conectores
+                  del modelo final.
+                </p>
+              </div>
+              <div
+                class="tipos-disco"
+                *ngIf="paso() === 6"
+                aria-label="Tipo de almacenamiento"
+              >
+                <button
+                  *ngFor="let tipo of ['HDD', 'SATA', 'NVMe']"
+                  type="button"
+                  [class.activo]="tipoDisco === tipo"
+                  [attr.aria-pressed]="tipoDisco === tipo"
+                  (click)="
+                    tipoDisco = tipo; capacidadFiltro = 0; marcaDisco = 'Todas'
+                  "
+                >
+                  <strong>{{ tipo === "HDD" ? "HDD" : "SSD " + tipo }}</strong>
+                </button>
+              </div>
+              <div class="filtros">
+                <label class="buscador"
+                  >BUSCAR<input
+                    [(ngModel)]="busqueda"
+                    placeholder="Modelo, capacidad o característica…"
+                    type="search"
+                /></label>
+                <label *ngIf="paso() === 5"
+                  >MARCA RAM<select [(ngModel)]="marcaRam">
+                    <option>Todas</option>
+                    <option *ngFor="let brand of marcas('ram')">
+                      {{ brand }}
+                    </option>
+                  </select></label
+                >
+                <label *ngIf="paso() === 5"
+                  >CAPACIDAD POR PRODUCTO<select [(ngModel)]="ramCapacidad">
+                    <option [ngValue]="0">Todas</option>
+                    <option *ngFor="let gb of [8, 16, 32, 64]" [ngValue]="gb">
+                      {{ gb }} GB
+                    </option>
+                  </select></label
+                >
+                <label *ngIf="paso() === 5"
+                  >ILUMINACIÓN<select [(ngModel)]="ramRgb">
+                    <option>Todas</option>
+                    <option>RGB</option>
+                    <option>Sin RGB</option>
+                  </select></label
+                >
+                <label *ngIf="paso() === 6"
+                  >MARCA DISCO<select [(ngModel)]="marcaDisco">
+                    <option>Todas</option>
+                    <option *ngFor="let brand of marcas('storage')">
+                      {{ brand }}
+                    </option>
+                  </select></label
+                >
+                <label *ngIf="paso() === 6"
+                  >CAPACIDAD<select [(ngModel)]="capacidadFiltro">
+                    <option [ngValue]="0">Todas</option>
+                    <option
+                      *ngFor="let gb of capacidadesDisco()"
+                      [ngValue]="gb"
+                    >
+                      {{
+                        gb >= 1000 && gb % 1000 === 0
+                          ? gb / 1000 + " TB"
+                          : gb + " GB"
+                      }}
+                    </option>
+                  </select></label
+                >
+                <label *ngIf="paso() === 8"
+                  >FORMATO<select [(ngModel)]="formaFiltro">
+                    <option>Todas</option>
+                    <option>Mini-ITX</option>
+                    <option>Micro-ATX</option>
+                    <option>ATX</option>
+                    <option>E-ATX</option>
+                  </select></label
+                >
+                <label *ngIf="paso() === 9"
+                  >CABLEADO<select [(ngModel)]="modularidad">
+                    <option>Todas</option>
+                    <option>No modular</option>
+                    <option>Semimodular</option>
+                    <option>Modular completa</option>
+                  </select></label
+                >
+                <label *ngIf="paso() === 9"
+                  >POTENCIA<select [(ngModel)]="potenciaFiltro">
+                    <option [ngValue]="0">Todas las adecuadas</option>
+                    <option
+                      *ngFor="
+                        let watts of [450, 550, 650, 750, 850, 1000, 1200]
+                      "
+                      [ngValue]="watts"
+                    >
+                      {{ watts }} W
+                    </option>
+                  </select></label
+                >
+              </div>
+              <label class="mostrar-todos"
+                ><input
+                  type="checkbox"
+                  [(ngModel)]="mostrarIncompatibles"
+                />Mostrar opciones no compatibles</label
+              >
+              <div
+                class="tipos-refrigeracion"
+                *ngIf="paso() === 7"
+                aria-label="Tipo de refrigeración"
+              >
+                <button
+                  type="button"
+                  *ngFor="let tipo of ['Todos', 'air', 'aio']"
+                  [class.activo]="tipoCooler === tipo"
+                  [attr.aria-pressed]="tipoCooler === tipo"
+                  (click)="tipoCooler = tipo"
+                >
+                  {{
+                    tipo === "air"
+                      ? "POR AIRE"
+                      : tipo === "aio"
+                        ? "LÍQUIDA AIO"
+                        : "VER TODAS"
+                  }}
+                </button>
+              </div>
+              <div
+                class="productos"
+                *ngIf="paso() !== 7"
+                [class.fichas-detalladas]="
+                  categoria === 'board' || categoria === 'case'
+                "
+                [class.solo-integrada]="
+                  categoria === 'gpu' && marcaGpu === 'Integrada'
+                "
+              >
+                <app-tarjeta-componente
+                  *ngFor="let producto of productos(categoria)"
+                  [producto]="producto"
+                  [seleccionado]="elegido(producto)"
+                  [motivo]="motivo(producto)"
+                  [multiple]="categoria === 'storage' || categoria === 'ram'"
+                  [cantidad]="cantidadProducto(producto)"
+                  [recomendado]="
+                    (categoria === 'case' || categoria === 'psu') &&
+                    !motivo(producto)
+                  "
+                  [ocupado]="guardando"
+                  (elegir)="elegir($event)"
+                  (quitar)="quitar($event)"
+                  (cantidadCambio)="cambiarCantidad(producto, $event)"
+                />
+              </div>
+              <ng-container *ngIf="paso() === 7">
+                <div
+                  class="cooler-incluido"
+                  *ngIf="refrigeraciones('stock').length"
+                >
+                  <app-tarjeta-componente
+                    *ngFor="let producto of refrigeraciones('stock')"
+                    [producto]="producto"
+                    [seleccionado]="elegido(producto)"
+                    [motivo]="motivo(producto)"
+                    [ocupado]="guardando"
+                    (elegir)="elegir($event)"
+                    (quitar)="quitar($event)"
+                  />
+                </div>
+                <section
+                  class="grupo-refrigeracion"
+                  *ngFor="let grupo of ['air', 'aio']"
+                >
+                  <ng-container *ngIf="refrigeraciones(grupo).length">
+                    <h4 class="subtitulo">
+                      {{
+                        grupo === "air"
+                          ? "REFRIGERACIÓN POR AIRE"
+                          : "REFRIGERACIÓN LÍQUIDA AIO"
+                      }}
+                    </h4>
+                    <div class="productos fichas-detalladas">
+                      <app-tarjeta-componente
+                        *ngFor="let producto of refrigeraciones(grupo)"
+                        [producto]="producto"
+                        [seleccionado]="elegido(producto)"
+                        [motivo]="motivo(producto)"
+                        [ocupado]="guardando"
+                        (elegir)="elegir($event)"
+                        (quitar)="quitar($event)"
+                      />
+                    </div>
+                  </ng-container>
+                </section>
+              </ng-container>
+              <p class="vacio" *ngIf="!productos(categoria).length">
+                No hay opciones con estos filtros. Cambia los filtros o revisa
+                las piezas anteriores.
+              </p>
+              <ng-container *ngIf="paso() === 7">
+                <h4 class="subtitulo accesorios-titulo">
+                  VENTILADORES Y ACCESORIOS · OPCIONAL
+                </h4>
+                <div class="productos">
+                  <app-tarjeta-componente
+                    *ngFor="
+                      let producto of productos('fan').concat(
+                        productos('support')
+                      )
+                    "
+                    [producto]="producto"
+                    [seleccionado]="elegido(producto)"
+                    [multiple]="true"
+                    [cantidad]="cantidadProducto(producto)"
+                    [maxCantidad]="producto.category === 'support' ? 1 : 8"
+                    [ocupado]="guardando"
+                    (elegir)="elegir($event)"
+                    (quitar)="quitar($event)"
+                    (cantidadCambio)="cambiarCantidad(producto, $event)"
+                  />
+                </div>
+              </ng-container>
+            </ng-container>
+          </ng-container>
+          <ng-container *ngIf="paso() === 10">
+            <div class="resumen-totales">
+              <div>
+                <small>TOTAL ESTIMADO</small
+                ><strong>{{ dinero(total()) }}</strong>
+              </div>
+              <div>
+                <small>PRESUPUESTO</small
+                ><strong>{{ dinero(borrador().budget) }}</strong>
+              </div>
+              <div>
+                <small>{{
+                  total() > borrador().budget ? "EXCESO" : "DISPONIBLE"
+                }}</small
+                ><strong>{{
+                  dinero(Math.abs(borrador().budget - total()))
+                }}</strong>
+              </div>
+            </div>
+            <div class="resumen-piezas">
+              <article *ngFor="let producto of selecciones()">
+                <div>
+                  <small>{{ categorias[producto.category] }}</small
+                  ><strong
+                    >{{ producto.quantity }} × {{ producto.name }}</strong
+                  >
+                </div>
+                <b>{{ dinero(producto.price * producto.quantity) }}</b>
+                <button
+                  type="button"
+                  class="texto"
+                  [attr.aria-label]="'Editar ' + categorias[producto.category]"
+                  (click)="editarCategoria(producto.category)"
+                >
+                  EDITAR
+                </button>
+              </article>
+            </div>
+            <details class="revision" *ngIf="analisis() as resultado">
+              <summary>{{ resultado.level }} · VER REVISIÓN</summary>
+              <p>{{ resultado.explanation }}</p>
+              <p *ngFor="let recomendacion of resultado.recommendations">
+                {{ recomendacion }}
+              </p>
+              <p *ngIf="resultado.missing.length">
+                Falta elegir: {{ resultado.missing.join(", ") }}.
+              </p>
+            </details>
+            <button
+              type="button"
+              class="principal guardar"
+              [disabled]="!analisis()?.can_save || revisando || guardando"
+              (click)="abrirGuardado()"
+            >
+              CONTINUAR PARA GUARDAR →
+            </button>
+          </ng-container>
+          <ng-container *ngIf="paso() === 11">
+            <div class="pantalla-guardar">
+              <p class="contexto">
+                {{ selecciones().length }} productos ·
+                {{ dinero(total()) }} estimados. Guardar no envía una consulta
+                ni realiza una compra.
+              </p>
+              <label
+                >NOMBRE DE TU COTIZACIÓN<input
+                  [formControl]="nombreCotizacion"
+                  maxlength="80"
+                  placeholder="Ej.: Mi PC para estudiar"
+                  [readOnly]="!!quoteId || guardando"
+              /></label>
+              <p
+                class="advertencia"
+                *ngIf="nombreCotizacion.touched && nombreCotizacion.invalid"
+              >
+                Escribe un nombre de 1 a 80 caracteres, no solo espacios.
+              </p>
+              <label class="mostrar-todos"
+                ><input
+                  type="checkbox"
+                  [(ngModel)]="consultar"
+                  (ngModelChange)="cambiarConsulta($event)"
+                  [disabled]="guardando || enviando || coordinacionEnviada"
+                />También quiero consultar con JembaTech · opcional</label
+              >
+              <form
+                *ngIf="consultar && !coordinacionEnviada"
+                [formGroup]="coordinacion"
+                class="coordinacion"
+                (ngSubmit)="quoteId ? solicitarCoordinacion() : guardar()"
+              >
+                <p>
+                  La cotización se guarda primero. Después enviamos tu solicitud
+                  para revisar las piezas y coordinar el servicio.
+                </p>
+                <label
+                  >WHATSAPP DE CONTACTO<input
+                    formControlName="contactPhone"
+                    type="tel"
+                    autocomplete="tel"
+                /></label>
+                <p
+                  class="advertencia"
+                  *ngIf="
+                    coordinacion.controls.contactPhone.touched &&
+                    coordinacion.controls.contactPhone.invalid
+                  "
+                >
+                  Indica un teléfono válido de al menos 8 dígitos.
+                </p>
+                <label
+                  >FECHA PREFERIDA · OPCIONAL<input
+                    formControlName="preferredDate"
+                    type="datetime-local"
+                /></label>
+                <label
+                  >COMUNA · OPCIONAL<input
+                    formControlName="serviceAddress"
+                    maxlength="240"
+                /></label>
+                <label
+                  >OBSERVACIONES · OPCIONAL<textarea
+                    formControlName="customerNote"
+                    maxlength="600"
+                  ></textarea>
+                </label>
+                <button
+                  *ngIf="quoteId"
+                  type="submit"
+                  class="principal"
+                  [disabled]="enviando || coordinacion.invalid"
+                >
+                  {{ enviando ? "ENVIANDO…" : "ENVIAR CONSULTA" }}
+                </button>
+              </form>
+              <p class="contexto" *ngIf="!autenticacion.user">
+                Inicia sesión para guardar. Conservaremos el nombre y tus piezas
+                en esta pestaña.
+              </p>
+              <button
+                *ngIf="!quoteId"
+                type="button"
+                class="principal guardar"
+                [disabled]="
+                  nombreCotizacion.invalid ||
+                  !analisis()?.can_save ||
+                  revisando ||
+                  guardando ||
+                  (consultar && coordinacion.invalid)
+                "
+                (click)="guardar()"
+              >
+                {{
+                  guardando
+                    ? "GUARDANDO…"
+                    : !autenticacion.user
+                      ? "INICIAR SESIÓN PARA GUARDAR"
+                      : consultar
+                        ? "GUARDAR Y CONSULTAR"
+                        : "GUARDAR COTIZACIÓN"
+                }}
+              </button>
+              <p class="mensaje" *ngIf="quoteId">
+                ✓ Cotización guardada: {{ nombreCotizacion.value }}
+              </p>
+              <a *ngIf="quoteId" routerLink="/cotizaciones"
+                >VER MIS COTIZACIONES →</a
+              >
+              <button type="button" class="nuevo-armado" [class.principal]="!!quoteId" [disabled]="guardando || enviando" (click)="cotizarOtro()">+ COTIZAR OTRO PC</button>
+              <button
+                type="button"
+                (click)="ir(10)"
+                [disabled]="guardando || enviando"
+              >
+                ← VOLVER AL RESUMEN
+              </button>
+            </div>
+          </ng-container>
+          <div
+            class="problemas"
+            *ngIf="paso() > 1 && analisis() as resultado"
+            aria-live="polite"
+          >
+            <p
+              *ngFor="let problema of resultado.issues"
+              [class.bloqueo]="problema.severity === 'block'"
+            >
+              <strong>{{ categorias[problema.category] }}:</strong>
+              {{ problema.message }}
+            </p>
+          </div>
+          <p class="mensaje" role="status" *ngIf="mensaje">{{ mensaje }}</p>
+          <div
+            class="navegacion"
+            *ngIf="paso() < 11 && !(paso() === 1 && inicio === 'presets')"
+          >
+            <button
+              type="button"
+              *ngIf="paso() > 1"
+              (click)="ir(paso() - 1)"
+              [disabled]="guardando"
+            >
+              ← VOLVER
+            </button>
+            <span class="revisando" role="status" *ngIf="revisando"
+              >Revisando tu armado…</span
+            >
+            <button
+              type="button"
+              class="principal"
+              *ngIf="paso() < 10"
+              [disabled]="!puedeSeguir()"
+              (click)="ir(paso() + 1)"
+            >
+              SIGUIENTE: {{ pasos[paso()] }} →
+            </button>
+          </div>
+        </main>
+        <aside
+          class="tu-armado"
+          aria-label="Resumen de tu armado"
+          *ngIf="paso() < 10 && !(paso() === 1 && inicio === 'presets')"
+        >
+          <small>TU ARMADO EN VIVO</small>
+          <h3>{{ dinero(total()) }}</h3>
+          <p>Presupuesto: {{ dinero(borrador().budget) }}</p>
+          <p [class.advertencia]="total() > borrador().budget">
+            {{ total() > borrador().budget ? "Exceso: " : "Disponible: "
+            }}{{ dinero(Math.abs(borrador().budget - total())) }}
+          </p>
+          <div class="mini-piezas">
+            <div *ngFor="let producto of selecciones()">
+              <span>{{ producto.quantity }} × {{ producto.name }}</span
+              ><strong>{{ dinero(producto.price * producto.quantity) }}</strong>
+            </div>
+          </div>
+          <div class="datos-armado" *ngIf="analisis() as resultado">
+            <span
+              >RAM <b>{{ resultado.ram_gb }} GB</b></span
+            ><span
+              >Discos <b>{{ resultado.storage_gb }} GB</b></span
+            ><span
+              >Consumo
+              <b>{{ resultado.estimated_consumption_watts }} W</b></span
+            ><span
+              >Fuente desde <b>{{ resultado.recommended_watts }} W</b></span
+            >
+          </div>
+        </aside>
+      </div>
+    </ng-container>
+  </div>
+</section>

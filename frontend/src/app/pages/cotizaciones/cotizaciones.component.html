@@ -1,34 +1,44 @@
 <section class="page">
-  <small class="eyebrow">HISTORIAL PERSONAL</small>
-  <h1>MIS COTIZACIONES</h1>
+  <div class="encabezado-historial"><div><small class="eyebrow">HISTORIAL PERSONAL</small><h1>MIS COTIZACIONES</h1></div><a class="button secondary" routerLink="/" [queryParams]="{nuevo: '1'}" fragment="cotizador">+ NUEVA COTIZACIÓN</a></div>
   <p class="lead">
     Tus configuraciones guardadas, evaluaciones y estados de coordinación.
   </p>
   <p *ngIf="cargando">Cargando...</p>
-  <p class="empty" *ngIf="!cargando && !cotizaciones.length">
+  <p class="error" role="alert" *ngIf="error">{{ error }} <button class="secondary" (click)="recargar()">REINTENTAR</button></p>
+  <p class="success" role="status" *ngIf="mensaje">{{ mensaje }}</p>
+  <p class="empty" *ngIf="!cargando && !error && !cotizaciones.length">
     Aún no tienes cotizaciones guardadas.
   </p>
   <div class="list">
-    <article class="quote" *ngFor="let cotizacion of cotizaciones">
+    <article class="quote quote-personal" *ngFor="let cotizacion of cotizaciones">
       <header>
-        <div>
-          <b>{{ cotizacion.level }} · {{ cotizacion.score }}/100</b>
-          <p class="meta">
-            {{ cotizacion.createdAt | date: "dd/MM/yyyy HH:mm" }}
-          </p>
+        <div class="identidad-equipo">
+          <span class="icono-equipo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2" /><path d="M8 6h8M8 9h8" /><circle cx="12" cy="16" r="2.5" /></svg></span>
+          <div>
+            <div class="titulo-equipo"><h2>{{ cotizacion.name || "Mi cotización" }}</h2><span class="estado-equipo">{{ estado(cotizacion) }}</span></div>
+            <p class="meta fecha-equipo">{{ cotizacion.createdAt | date: "dd/MM/yyyy · HH:mm" }}</p>
+          </div>
         </div>
-        <strong>{{ dinero(cotizacion.totalPrice) }}</strong>
+        <button type="button" class="danger borrar-cotizacion" [disabled]="eliminando" [attr.aria-label]="'Eliminar cotización ' + (cotizacion.name || 'Mi cotización')" title="Eliminar cotización" (click)="pedirEliminar(cotizacion)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7" /></svg><span>ELIMINAR</span></button>
       </header>
-      <div class="tags">
-        <span>{{ estado(cotizacion.status) }}</span
-        ><span>{{ cotizacion.ramGb }} GB RAM</span
-        ><span>{{ cotizacion.storageGb }} GB</span
-        ><span>{{ cotizacion.psuWatts }} W</span>
+      <div class="equipo-vista-rapida" aria-label="Resumen del equipo">
+        <span>{{ cotizacion.ramGb }} GB <small>RAM</small></span>
+        <span>{{ cotizacion.storageGb }} GB <small>ALMACENAMIENTO</small></span>
+        <span>{{ cotizacion.score }}/100 <small>EVALUACIÓN</small></span>
       </div>
-      <p class="meta">{{ cotizacion.explanation }}</p>
-      <div class="actions">
-        <a class="button secondary" routerLink="/consultas">VER COORDINACIÓN</a>
+      <div class="informacion-cotizacion">
+        <app-resumen-cotizacion [cotizacion]="cotizacion" [compacto]="true" />
+        <button type="button" class="abrir-componentes" [disabled]="!cotizacion.configuration?.components?.length" [attr.aria-label]="'Ver y editar componentes de ' + (cotizacion.name || 'Mi cotización')" aria-haspopup="dialog" [title]="cotizacion.configuration?.components?.length ? 'Ver y cambiar componentes' : 'Esta cotización antigua no conserva sus componentes'" (click)="editor.abrir(cotizacion)"><span>COMPONENTES DEL EQUIPO</span><span aria-hidden="true">↗</span></button>
+      </div>
+      <div class="actions pie-cotizacion">
+        <a class="button secondary" routerLink="/consultas" [queryParams]="{cotizacion: cotizacion.id}">{{ cotizacion.status === 'DRAFT' || cotizacion.requestDeletedAt ? 'CONSULTAR ESTE EQUIPO ↗' : 'VER CONSULTA ↗' }}</a>
+        <div class="total-cotizacion"><small>TOTAL ESTIMADO</small><strong>{{ dinero(cotizacion.totalPrice) }}</strong></div>
       </div>
     </article>
   </div>
 </section>
+<app-editor-cotizacion #editor (guardado)="edicionGuardada($event)" />
+<app-confirmar-accion
+  titulo="¿Eliminar esta cotización?"
+  [descripcion]="'Se quitará «' + (pendiente?.name || 'Mi cotización') + '» de tu historial y del panel admin, junto con su consulta si existe. Los datos se conservarán mediante borrado lógico.'"
+  [ocupado]="eliminando" [error]="errorEliminar" (confirmar)="eliminar()" />

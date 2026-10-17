@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
+import { Cotizacion, EstadoCotizacion } from '../modelos/cotizacion';
 export type CoordinationRequest = {
   contactPhone?: string;
   serviceAddress?: string;
@@ -8,26 +9,32 @@ export type CoordinationRequest = {
   customerNote?: string;
 };
 export type AdminCoordination = {
-  status: string;
+  status: EstadoCotizacion;
   adminNote?: string;
-  preferredDate?: string;
+  preferredDate?: string | null;
 };
 @Injectable({ providedIn: "root" })
 export class QuoteService {
   constructor(private readonly http: HttpClient) {}
-  list(): Observable<any[]> {
-    return this.http.get<any[]>("/api/quotes");
+  list(scope: 'mine' | 'all' = 'mine'): Observable<Cotizacion[]> {
+    return this.http.get<Cotizacion[]>("/api/quotes", { params: { scope } });
+  }
+  remove(id: string) {
+    return this.http.delete(`/api/quotes/${id}`);
+  }
+  removeRequest(id: string) {
+    return this.http.delete(`/api/quotes/${id}/request`);
   }
   requestCoordination(
     id: string,
     data: CoordinationRequest,
-  ): Observable<unknown> {
-    return this.http.patch(`/api/quotes/${id}/request`, data);
+  ): Observable<Cotizacion> {
+    return this.http.patch<Cotizacion>(`/api/quotes/${id}/request`, data);
   }
   coordinate(
     id: string,
     data: AdminCoordination,
-  ): Observable<unknown> {
-    return this.http.patch(`/api/quotes/${id}/coordination`, data);
+  ): Observable<Cotizacion> {
+    return this.http.patch<Cotizacion>(`/api/quotes/${id}/coordination`, data);
   }
 }
