@@ -68,3 +68,18 @@ proxy aprobada, incluido cambio forzado de IP; `actionlint` y `git diff --check`
 sin errores. Una primera ejecución restringida bloqueó la conexión loopback de
 la prueba de salud; la repetición con permisos de red local aprobó. No se ha
 desplegado el frontend en Railway ni validado todavía el dominio público.
+
+### Corrección de compatibilidad Linux en CI
+
+El [run CI EP2 #10](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39186939884)
+del commit `91c725254bdef8ca02bf932f5554ae68f162f8ee` pasó los ocho jobs previos a
+Docker. Las imágenes y migraciones se completaron, pero la prueba aislada del
+proxy falló al reservar la IP antigua: el Engine Linux exige una red con subred
+configurada explícitamente (`user specified IP address is supported only when
+connecting to networks with user configured subnets`). Docker Desktop había
+aceptado esa reserva en la comprobación local.
+
+La prueba ahora consulta la subred que Docker asignó a su red QA vacía y la recrea
+con `--subnet` antes de conectar contenedores. No fija rangos del usuario, no cambia
+Compose ni Railway y conserva la comprobación de cambio real de IP y recuperación
+de ambos frontends. No se omite la prueba ni se desactiva ningún gate de CI.

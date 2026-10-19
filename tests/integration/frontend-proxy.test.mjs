@@ -37,6 +37,15 @@ test('proxy Docker: valores locales, variables Railway, rutas, logs y renovació
   try {
     docker('network', 'create', network);
     networkCreated = true;
+    // El Engine Linux exige una subred explícita para admitir --ip. Reutilizar
+    // la que Docker acaba de asignar evita fijar una subred que podría colisionar.
+    const ipam = JSON.parse(docker('network', 'inspect', '-f', '{{json .IPAM.Config}}', network));
+    const subnet = ipam.find(config => /^\d+\.\d+\.\d+\.\d+\/\d+$/.test(config.Subnet))?.Subnet;
+    assert.ok(subnet, 'Docker debe asignar una subred IPv4 a la red QA.');
+    docker('network', 'rm', network); // Red QA propia, todavía sin contenedores.
+    networkCreated = false;
+    docker('network', 'create', '--subnet', subnet, network);
+    networkCreated = true;
     startBackend();
     for (const custom of [false, true]) {
       const name = `${prefix}-${custom ? 'railway' : 'local'}`;
