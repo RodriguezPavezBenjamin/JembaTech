@@ -31,6 +31,8 @@ jobs:
       - run: node --test ../tests/integration/document.test.mjs
       - name: Validar configuración Android y política CI (sin compilar APK)
         run: node --test ../tests/integration/android-config.test.mjs ../tests/integration/ci-policy.test.mjs
+      - name: Validar plantilla del proxy frontend
+        run: node --test ../tests/integration/frontend-proxy-config.test.mjs
       - run: node --test ../tests/security/*.test.mjs
       - name: Auditar dependencias de producción
         run: |
@@ -191,6 +193,10 @@ jobs:
           export JWT_SECRET
           docker compose build --pull
           docker compose up -d database python-service migrate backend frontend
+          TEST_FRONTEND_IMAGE="$(docker compose images -q frontend)"
+          export TEST_FRONTEND_IMAGE
+          : "${TEST_FRONTEND_IMAGE:?No se encontró la imagen frontend construida}"
+          node --test tests/integration/frontend-proxy.test.mjs
           node --test tests/integration/builds.test.mjs
           docker compose exec -T backend node --input-type=module < tests/integration/sources.test.mjs
           docker compose exec -T backend node --input-type=module < tests/integration/source-recovery.test.mjs

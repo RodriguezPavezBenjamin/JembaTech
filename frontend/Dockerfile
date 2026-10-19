@@ -7,7 +7,12 @@ RUN npm run build
 
 FROM nginx:1.30-alpine
 RUN apk upgrade --no-cache libexpat libx11
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+ENV BACKEND_HOST=backend \
+    BACKEND_PORT=3000 \
+    PORT=80 \
+    NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1 \
+    NGINX_ENVSUBST_FILTER="^(BACKEND_HOST|BACKEND_PORT|PORT|NGINX_LOCAL_RESOLVERS)$"
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/jemba-cotiza/browser /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
