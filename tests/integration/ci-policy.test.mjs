@@ -19,18 +19,18 @@ test('CI: cada acción migrada queda fijada al SHA oficial revisado para Node 24
   }
 });
 
-test('CI: los ocho jobs fijan Ubuntu 24.04 sin cambiar Node 22 ni Python 3.12 de la app', () => {
+test('CI: los nueve jobs fijan Ubuntu 24.04 sin cambiar Node 22 ni Python 3.12 de la app', () => {
   const runners = [...workflow.matchAll(/^\s+runs-on:\s+([^\r\n]+)/gm)];
-  assert.equal(runners.length, 8);
+  assert.equal(runners.length, 9);
   for (const runner of runners) assert.equal(runner[1].trim(), 'ubuntu-24.04');
   const nodes = [...workflow.matchAll(/node-version:\s*(\d+)/g)];
-  assert.equal(nodes.length, 5);
+  assert.equal(nodes.length, 6);
   for (const node of nodes) assert.equal(node[1], '22');
   assert.equal([...workflow.matchAll(/python-version: "3\.12"/g)].length, 2);
 });
 
 test('CI: se conservan gates, informes y dependencia de Docker sin ocultar fallos', () => {
-  assert.match(workflow, /needs: \[frontend, backend, python, security-python, codeql, secrets, terraform\]/);
+  assert.match(workflow, /needs: \[frontend, backend, python, security-python, codeql, secrets, terraform, railway-native\]/);
   for (const gate of ['npm audit --omit=dev --audit-level=high', 'npm audit --audit-level=critical', 'python -m bandit', 'python -m pip_audit --strict', 'node scripts/check-codeql.mjs', 'bash scripts/scan-secrets.sh', 'bash scripts/scan-images.sh']) {
     assert.ok(workflow.includes(gate), gate);
   }

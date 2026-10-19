@@ -170,6 +170,23 @@ jobs:
           SECRET_SCAN_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
           SECRET_SCAN_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: bash scripts/scan-secrets.sh
+  railway-native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults: { run: { working-directory: infra/railway-native } }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: infra/railway-native/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Validar declaración y guardas sin acceso a cloud
+        run: npm test
+      - run: npm audit --omit=dev --audit-level=high
   terraform:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -192,7 +209,7 @@ jobs:
   docker:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    needs: [frontend, backend, python, security-python, codeql, secrets, terraform]
+    needs: [frontend, backend, python, security-python, codeql, secrets, terraform, railway-native]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0

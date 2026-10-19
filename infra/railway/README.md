@@ -29,8 +29,13 @@ CI y puerto del dominio no están modeladas por este recurso. Actualmente son la
 configuración ya existente descrita en `docs/railway-staging.md`, comprobada por
 CD antes de desplegar. No se agregan archivos `railway.toml/json` de legado:
 Railway anuncia su retirada para 2026-12-01. La reproducción completa de esos
-ajustes aún exige un mecanismo soportado; el plan real sin cambios acredita la
-adopción de los 16 objetos modelados, no la reproducción íntegra de esos ajustes.
+ajustes se complementa con una [declaración Railway IaC de solo lectura](../railway-native/README.md),
+guardas y pruebas en CI. Un plan nativo real confirmó cero cambios para los
+ajustes declarados, sin adquirir propiedad ni competir con Terraform. La política
+CD ahora exige autodeploy desactivado; no reactivar Wait for CI. El plan real de
+Terraform acredita adopción de 16 objetos, no reconstrucción integral. No hay
+`apply` nativo ni traslado de estado; cualquier habilitación futura requiere
+revisar qué herramienta será el único gestor de cada recurso.
 
 ## Preparación, sin mutaciones cloud
 

@@ -20,6 +20,11 @@
 - Revisión pública de solo lectura repetida durante el cierre: portada, versión
   y salud de frontend/backend/Python/base correctos para `c4dd5dd`. No equivale a
   una nueva comprobación del panel administrativo ni a desplegar cambios locales.
+- Corte posterior a la corrección circular: [CI EP2 #17](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39212559189)
+  y [Railway staging #4](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39212869081)
+  aprobaron `5ef1e0716d2223d974cfdd00b8bbd2d86c834907`. Consulta HTTPS posterior:
+  portada/version.json/api/health correctos, frontend/backend/Python con ese mismo
+  SHA y PostgreSQL saludable. No se atribuye ese verde al complemento local posterior.
 
 ## Automatización posterior a CI
 
@@ -145,8 +150,11 @@ imports y el plan real sin cambios sobre las 16 direcciones esperadas. Respaldo
 recuperable y estado EFS preparados. [Resultado y alcance](adopcion-railway-evidencia.md).
 `plan-railway-adoption.mjs` no acepta planes parciales ni escrituras propuestas.
 No hay workflow de apply/destroy ni se envía el estado como artifact. Las opciones
-no soportadas por el proveedor siguen como limitación de reproducibilidad; no
-confundir la adopción real con aprovisionamiento completo desde cero.
+no soportadas por el proveedor quedan declaradas en el [complemento nativo de
+solo lectura](../infra/railway-native/README.md), con plan real sin cambios y
+guardas verificadas. No se habilita apply ni se transfiere propiedad: sigue siendo
+una limitación de reconstrucción integral. No confundir declaración/adopción
+contrastadas con aprovisionamiento completo desde cero.
 
 ## Rollback básico, controlado
 

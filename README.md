@@ -5,12 +5,16 @@ Acceso web opcional con Google: [configuración Firebase, vinculación de cuenta
 Staging web: **https://jembatech.up.railway.app**. El usuario confirmó el acceso
 Google y el flujo cliente–administrador. [Despliegue, salud, rollback y activación
 del workflow](docs/railway-staging.md). CD y salud completa se comprobaron para
-`c4dd5dd`. [Terraform Railway](infra/railway/README.md): 16 objetos existentes
+`5ef1e07` ([CI EP2 #17](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39212559189),
+[Railway staging #4](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39212869081)).
+[Terraform Railway](infra/railway/README.md): 16 objetos existentes
 importados, plan real sin cambios ni diferencias observadas y archivos cifrados,
 según el [resultado del propietario](docs/adopcion-railway-evidencia.md).
-Los ajustes no modelados por el proveedor siguen explícitos; el propietario
-confirmó la revocación del token temporal. Los cambios locales aún requieren
-publicación y su propia CI.
+El [complemento Railway IaC](infra/railway-native/README.md) declara ajustes no
+modelados por el proveedor, con guardas, pruebas y plan real de solo lectura sin
+cambios. No habilita un segundo gestor ni acredita reconstrucción integral.
+El propietario confirmó la revocación del token temporal. Los cambios locales
+del complemento aún requieren publicación y su propia CI/CD.
 
 Aplicación multiplataforma para cotizar PC, elegir presets y recibir una revisión explicable de compatibilidad, capacidades, consumo y precios consultados/estimados. El puntaje orienta sobre reglas de referencia; no mide FPS ni certifica rendimiento o compatibilidad final.
 
@@ -30,7 +34,8 @@ El [diseño adaptativo](docs/diseno-adaptativo-ep2.md) especifica alternativas d
 Staging y CD están comprobados; la adopción de los 16 objetos Terraform tiene
 plan real sin cambios. El usuario confirmó [cinco referencias reales visibles en
 staging](docs/muestra-staging-ep2.md) como muestra declarada, no adquisición nueva.
-Faltan revisión de los límites IaC, publicación/CI del commit final, documentación,
+Los límites IaC y las responsabilidades están [explicitados](infra/railway-native/README.md).
+Faltan publicación/CI del commit final, documentación,
 ensayo y release EP2. Los derechos de
 reutilización y cobertura limitada siguen explícitos. GitHub Pages no sustituye
 los servicios backend/Python/Postgres de Railway.

@@ -13,8 +13,13 @@
   cero cambios y cero diferencias observadas. [Evidencia](adopcion-railway-evidencia.md).
 - [x] Revocación del token temporal Terraform confirmada por el propietario;
   token de CD conservado. Comando de retirada local indicado, sin leer su entorno.
-- [ ] Revisar límites IaC de ajustes no modelados por el proveedor comunitario.
-- [ ] Publicar cambios locales de adopción/documentación y validar su propia CI/CD.
+- [x] Corrección de espera circular: autodeploy Railway desactivado; CI EP2 #17 y
+  Railway staging #4 aprobaron `5ef1e07`; lectura HTTPS confirmó el SHA común y
+  salud de frontend/backend/Python/base. [Resultado](railway-staging.md).
+- [x] Revisar límites IaC: [complemento de solo lectura](../infra/railway-native/README.md)
+  con declaración versionable, guardas, once pruebas locales y plan nativo real
+  sin cambios. Sin apply ni transferencia de propiedad desde Terraform.
+- [ ] Publicar el complemento y validar su propia CI/CD. No implica reconstrucción integral.
 - [ ] Completar evidencia final de fuente/métrica/error y condiciones de uso.
 - [x] Fuentes y calidad en staging: tras el panel inicialmente vacío, el usuario
   cargó la muestra real y confirmó visualmente las cinco fichas, fechas y
