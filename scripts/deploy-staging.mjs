@@ -64,9 +64,9 @@ export async function discover(call) {
   return { environmentId: scope.environmentId, services };
 }
 
-export async function instances(call, inventory) {
-  const variables = { environmentId: inventory.environmentId };
-  const definitions = ['$environmentId: String!'];
+export async function instances(call, inventory, tracked) {
+  const variables = { projectId: PROJECT, environmentId: inventory.environmentId };
+  const definitions = ['$projectId: String!', '$environmentId: String!'];
   const fields = inventory.services.map((service, index) => {
     variables[`service${index}`] = service.id;
     definitions.push(`$service${index}: String!`);
@@ -75,10 +75,22 @@ export async function instances(call, inventory) {
       domains { serviceDomains { domain } customDomains { domain } }
       latestDeployment { id status meta }
       activeDeployments { id status meta }
-    }`;
+    }${service.name === 'Postgres' ? '' : `
+    auto${index}: serviceInstanceAutoDeployStatus(projectId: $projectId, environmentId: $environmentId, serviceId: $service${index}) { enabled }
+    triggers${index}: deploymentTriggers(projectId: $projectId, environmentId: $environmentId, serviceId: $service${index}, first: 10) {
+      edges { node { checkSuites } } pageInfo { hasNextPage }
+    }`}`;
   });
+  if (tracked) {
+    variables.deploymentId = tracked.id;
+    definitions.push('$deploymentId: String!');
+    fields.push('tracked: deployment(id: $deploymentId) { id status meta serviceId environmentId }');
+  }
   const result = await call(`query Instances(${definitions.join(', ')}) { ${fields.join('\n')} }`, variables);
-  return Object.fromEntries(inventory.services.map((service, index) => [service.name, result[`service${index}`]]));
+  return Object.fromEntries(inventory.services.map((service, index) => [service.name, {
+    ...result[`service${index}`], autoDeploy: result[`auto${index}`], triggers: result[`triggers${index}`],
+    ...(tracked?.service === service.name ? { trackedDeployment: result.tracked } : {}),
+  }]));
 }
 
 export function validateSettings(state) {
@@ -91,6 +103,10 @@ export function validateSettings(state) {
       ensure(instance.activeDeployments.some(deploy => deploy.status === 'SUCCESS'), 'DATABASE_NOT_RUNNING');
       continue;
     }
+    // Un solo dueño de CD: no permitir autodeploy sin gate ni esperar este mismo workflow.
+    ensure(instance.autoDeploy?.enabled === false, 'AUTODEPLOY_MUST_BE_DISABLED');
+    ensure(instance.triggers?.pageInfo?.hasNextPage === false && Array.isArray(instance.triggers.edges) &&
+      instance.triggers.edges.every(edge => edge.node?.checkSuites === false), 'RAILWAY_CI_WAIT_MUST_BE_DISABLED');
     ensure(instance.source?.repo === REPOSITORY && instance.rootDirectory === `/${name}`, 'SOURCE_CONFIGURATION_DRIFT');
     ensure(instance.healthcheckPath === (name === 'python-service' ? '/health' : '/api/health'), 'HEALTHCHECK_CONFIGURATION_DRIFT');
     if (name === 'backend') {
@@ -118,7 +134,7 @@ export async function checkPublicHealth(sha, fetcher = fetch) {
 }
 
 export async function deployStaging({ sha, runId, githubToken, railwayToken, fetcher = fetch,
-  pause = () => sleep(30000), report = { status: 'pending', services: [] } }) {
+  pause = () => sleep(30000), progress = () => {}, report = { status: 'pending', services: [] } }) {
   await githubGate({ sha, runId, token: githubToken, fetcher });
   const call = railwayClient(railwayToken, fetcher);
   const inventory = await discover(call);
@@ -128,8 +144,9 @@ export async function deployStaging({ sha, runId, githubToken, railwayToken, fet
   report.ciRun = `https://github.com/${REPOSITORY}/actions/runs/${runId}`;
   let polls = 0;
   for (const service of inventory.services.filter(service => service.name !== 'Postgres')) {
-    // Reutiliza el autodeploy de este mismo SHA, incluso si todavía está construyendo.
+    // Reutiliza un despliegue del mismo SHA sin crear builds duplicados.
     const instance = state[service.name];
+    const previousLatestId = instance.latestDeployment?.id;
     let deployment = [instance.latestDeployment, ...instance.activeDeployments].find(item => item?.meta?.commitHash === sha);
     if (!deployment) {
       await githubGate({ sha, runId, token: githubToken, fetcher });
@@ -144,19 +161,27 @@ export async function deployStaging({ sha, runId, githubToken, railwayToken, fet
     let observed = false;
     for (;;) {
       ensure(++polls <= 45, 'DEPLOYMENT_TIMEOUT');
-      state = await instances(call, inventory);
+      state = await instances(call, inventory, { id: deployment.id, service: service.name });
       const current = state[service.name];
-      const found = [current.latestDeployment, ...current.activeDeployments].find(item => item?.id === deployment.id);
+      // SKIPPED puede desaparecer de latest/active: consultar siempre el ID exacto.
+      const found = current.trackedDeployment;
       if (!found) {
         ensure(!observed, 'DEPLOYMENT_NOT_FOUND_OR_SUPERSEDED');
         await pause();
         continue; // Consistencia eventual después de crear el deployment.
       }
       observed = true;
-      ensure(!current.latestDeployment || current.latestDeployment.meta?.commitHash === sha,
+      ensure(found.id === deployment.id && found.serviceId === service.id && found.environmentId === inventory.environmentId,
+        'DEPLOYMENT_IDENTITY_MISMATCH');
+      ensure(!current.latestDeployment || current.latestDeployment.id === previousLatestId || current.latestDeployment.meta?.commitHash === sha,
         'DEPLOYMENT_NOT_FOUND_OR_SUPERSEDED');
       ensure(found.meta?.commitHash === sha, 'DEPLOYMENT_COMMIT_MISMATCH');
+      const changed = entry.status !== found.status;
       entry.status = found.status;
+      // No copiar meta, motivos del proveedor ni errores privados a logs/artifacts.
+      ensure(/^[A-Z_]{2,32}$/.test(found.status || ''), 'UNKNOWN_DEPLOYMENT_STATUS');
+      if (changed || polls % 10 === 0) progress({ service: service.name, status: found.status, poll: polls });
+      ensure(found.status !== 'WAITING', 'DEPLOYMENT_WAITING_FOR_CI');
       ensure(!terminal.has(found.status), 'DEPLOYMENT_FAILED_OR_NEEDS_APPROVAL');
       if (found.status === 'SUCCESS' && current.activeDeployments.some(item => item.id === found.id && item.status === 'SUCCESS')) break;
       await pause();
@@ -173,7 +198,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const report = { status: 'failed', services: [], checkedAt: new Date().toISOString() };
   try {
     await deployStaging({ sha: process.env.TARGET_SHA, runId: process.env.CI_RUN_ID,
-      githubToken: process.env.GITHUB_TOKEN, railwayToken: process.env.RAILWAY_STAGING_TOKEN, report });
+      githubToken: process.env.GITHUB_TOKEN, railwayToken: process.env.RAILWAY_STAGING_TOKEN, report,
+      progress: event => console.log(JSON.stringify(event)) });
     console.log('Staging verificado: frontend, backend, Python y PostgreSQL; mismo commit aprobado.');
   } catch (error) {
     report.status = 'failed';

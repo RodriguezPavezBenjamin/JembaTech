@@ -7,19 +7,22 @@ import { checkAdoption } from '../../scripts/check-terraform-adoption.mjs';
 import { PROJECT, REPOSITORY, ORIGIN, deployStaging, railwayClient, checkPublicHealth } from '../../scripts/deploy-staging.mjs';
 import { version } from '../../frontend/scripts/write-version.mjs';
 
-function harness({ reuse = false, rounds = 0 } = {}) {
+function harness({ reuse = false, rounds = 0, createdStatus = 'BUILDING', hidden = false } = {}) {
   const sha = randomBytes(20).toString('hex');
   const environmentId = randomUUID();
   const names = ['python-service', 'backend', 'frontend', 'Postgres'];
   const services = names.map(name => ({ name, id: randomUUID() }));
   const token = randomBytes(24).toString('hex');
   const report = { status: 'pending', services: [] };
-  const requested = [], mutations = [], polls = new Map();
+  const requested = [], mutations = [], polls = new Map(), deployments = new Map(), progress = [];
   let waits = 0;
   const state = Object.fromEntries(names.map(name => {
-    const deployment = { id: randomUUID(), status: 'SUCCESS', meta: { commitHash: reuse ? sha : 'b'.repeat(40) } };
+    const deployment = { id: randomUUID(), status: 'SUCCESS', meta: { commitHash: reuse ? sha : 'b'.repeat(40) },
+      serviceId: services.find(service => service.name === name).id, environmentId };
+    deployments.set(deployment.id, deployment);
     return [name, { rootDirectory: `/${name}`, healthcheckPath: name === 'python-service' ? '/health' : '/api/health',
       preDeployCommand: name === 'backend' ? ['node node_modules/prisma/build/index.js migrate deploy'] : null,
+      autoDeploy: { enabled: false }, triggers: { edges: [], pageInfo: { hasNextPage: false } },
       source: { repo: REPOSITORY }, domains: { serviceDomains: name === 'frontend' ? [{ domain: new URL(ORIGIN).hostname }] : [], customDomains: [] },
       latestDeployment: deployment, activeDeployments: [deployment] }];
   }));
@@ -54,24 +57,30 @@ function harness({ reuse = false, rounds = 0 } = {}) {
       assert.equal(body.variables.environmentId, environmentId);
       const service = services.find(service => service.id === body.variables.serviceId);
       assert.notEqual(service.name, 'Postgres');
-      const deployment = { id: randomUUID(), status: 'BUILDING', meta: { commitHash: sha } };
-      state[service.name].latestDeployment = deployment;
-      polls.set(service.name, rounds);
+      const deployment = { id: randomUUID(), status: createdStatus, meta: { commitHash: sha }, serviceId: service.id, environmentId };
+      deployments.set(deployment.id, deployment);
+      if (!hidden) state[service.name].latestDeployment = deployment;
+      if (createdStatus === 'BUILDING') polls.set(service.name, { remaining: rounds, deployment });
       return json({ data: { serviceInstanceDeployV2: deployment.id } });
     }
     assert.match(body.query, /query Instances/);
-    for (const [name, remaining] of polls) {
+    for (const [name, pending] of polls) {
+      const { remaining, deployment } = pending;
       if (remaining <= 0) {
-        state[name].latestDeployment.status = 'SUCCESS';
-        state[name].activeDeployments = [state[name].latestDeployment];
-      } else polls.set(name, remaining - 1);
+        deployment.status = 'SUCCESS';
+        state[name].activeDeployments = [deployment];
+      } else pending.remaining--;
     }
-    return json({ data: Object.fromEntries(names.map((name, index) => [`service${index}`, state[name]])) });
+    return json({ data: {
+      ...Object.fromEntries(names.flatMap((name, index) => [[`service${index}`, state[name]],
+        [`auto${index}`, state[name].autoDeploy], [`triggers${index}`, state[name].triggers]])),
+      ...(body.variables.deploymentId ? { tracked: deployments.get(body.variables.deploymentId) } : {}),
+    } });
   };
   const execute = () => deployStaging({ sha, runId: '123', githubToken: token, railwayToken: token, fetcher,
-    pause: async () => { waits++; }, report });
+    pause: async () => { waits++; }, progress: event => progress.push(event), report });
   return { sha, scope, inventory, services, state, run, health, report, token, requested, mutations, execute, fetcher,
-    get waits() { return waits; } };
+    deployments, progress, get waits() { return waits; } };
 }
 
 test('CD: despliega solo los tres servicios de código con SHA exacto; prueba stack completo', async () => {
@@ -85,10 +94,64 @@ test('CD: despliega solo los tres servicios de código con SHA exacto; prueba st
   assert.ok(!JSON.stringify(report).includes('DATABASE_URL'));
 });
 
-test('CD: reutiliza el autodeploy del mismo commit sin duplicar builds', async () => {
+test('CD: reutiliza un despliegue del mismo commit sin duplicar builds', async () => {
   const qa = harness({ reuse: true });
   assert.equal((await qa.execute()).status, 'success');
   assert.equal(qa.mutations.length, 0);
+});
+
+test('CD: autodeploy activado bloquea antes de cualquier mutación', async () => {
+  const qa = harness(); qa.state.frontend.autoDeploy.enabled = true;
+  await assert.rejects(qa.execute, /AUTODEPLOY_MUST_BE_DISABLED/);
+  assert.equal(qa.mutations.length, 0);
+});
+
+for (const triggers of [undefined, { edges: [], pageInfo: { hasNextPage: true } },
+  { edges: [{ node: { checkSuites: true } }], pageInfo: { hasNextPage: false } }]) {
+  test(`CD: espera de CI o política incompleta no permite desplegar: ${JSON.stringify(triggers)}`, async () => {
+    const qa = harness(); qa.state.frontend.triggers = triggers;
+    await assert.rejects(qa.execute, /RAILWAY_CI_WAIT_MUST_BE_DISABLED/);
+    assert.equal(qa.mutations.length, 0);
+  });
+}
+
+test('CD: WAITING detecta el ciclo CI inmediatamente, sin esperar 21 minutos', async () => {
+  const qa = harness({ createdStatus: 'WAITING' });
+  await assert.rejects(qa.execute, /DEPLOYMENT_WAITING_FOR_CI/);
+  assert.equal(qa.waits, 0);
+  assert.equal(qa.mutations.length, 1);
+  assert.equal(qa.report.services[0].status, 'WAITING');
+});
+
+test('CD: SKIPPED fuera de latest/active se encuentra por ID y falla sin reintentar', async () => {
+  const qa = harness({ createdStatus: 'SKIPPED', hidden: true });
+  await assert.rejects(qa.execute, /DEPLOYMENT_FAILED_OR_NEEDS_APPROVAL/);
+  assert.equal(qa.waits, 0);
+  assert.equal(qa.mutations.length, 1);
+  assert.equal(qa.report.services[0].status, 'SKIPPED');
+});
+
+test('CD: deployment nuevo no exige que latest deje de apuntar inmediatamente al anterior', async () => {
+  const qa = harness({ hidden: true, rounds: 1 });
+  assert.equal((await qa.execute()).status, 'success');
+  assert.equal(qa.mutations.length, 3);
+});
+
+for (const field of ['serviceId', 'environmentId', 'id']) {
+  test(`CD: consulta por ID rechaza identidad ajena: ${field}`, async () => {
+    const qa = harness({ reuse: true });
+    const deployment = qa.state['python-service'].latestDeployment;
+    qa.deployments.set(deployment.id, { ...deployment, [field]: randomUUID() });
+    await assert.rejects(qa.execute, /DEPLOYMENT_IDENTITY_MISMATCH/);
+    assert.equal(qa.mutations.length, 0);
+  });
+}
+
+test('CD: progreso solo registra servicio, estado y contador, sin metadatos ni secretos', async () => {
+  const qa = harness({ rounds: 11 }); await qa.execute();
+  assert.ok(qa.progress.some(event => event.poll === 10));
+  assert.ok(qa.progress.every(event => Object.keys(event).sort().join(',') === 'poll,service,status'));
+  assert.ok(!JSON.stringify(qa.progress).includes(qa.token));
 });
 
 for (const change of [{ conclusion: 'failure' }, { event: 'pull_request' }, { head_branch: 'another' },

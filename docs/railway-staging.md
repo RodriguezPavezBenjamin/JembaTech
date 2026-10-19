@@ -30,19 +30,29 @@ la última versión potencialmente no validada de main. El script vuelve a consu
 la API GitHub para comprobar workflow, repo, evento, branch, conclusión, SHA y
 que siga siendo la punta de main antes de hacer un despliegue.
 
-Esto evita esperar el deploy dentro del mismo CI al que Railway está esperando.
-Los workflows se mantienen separados y los gates existentes no se relajan.
+El único responsable del despliegue es **Railway staging**, después de aprobar
+CI EP2. En Railway se desactiva **autodeploy** en los tres servicios de código:
+no deben quedar triggers con **Wait for CI** activo. Separar los workflows no
+es suficiente por sí solo: Railway espera todos los workflows del commit,
+incluido el que está esperando al despliegue. No se desactiva ninguna prueba
+ni gate de seguridad de CI. PostgreSQL queda fuera de esta modificación.
 
 `scripts/deploy-staging.mjs`:
 
 1. Valida el token de proyecto: solo proyecto conocido y entorno staging.
 2. Descubre por nombre los servicios sin pedir ni registrar valores de variables.
 3. Comprueba roots, repo, healthchecks, comando de migración y dominios HTTP.
-4. Reutiliza los autodeploys del mismo SHA. Si falta uno, usa la mutación oficial
+   Exige autodeploy desactivado y ausencia de espera de CI en los triggers;
+   una política ausente o una página de triggers incompleta bloquea sin desplegar.
+4. Reutiliza los despliegues del mismo SHA. Si falta uno, usa la mutación oficial
    `serviceInstanceDeployV2` con commitSha explícito, en orden Python/backend/frontend.
    **Nunca despliega Postgres**, reinicia servicios por error ni cambia variables.
-5. Espera SUCCESS activo del deployment exacto. Fallos, aprobación pendiente,
-   sustitución por otro commit o rate limit hacen fallar la verificación.
+5. Consulta el deployment por **ID**, no solo latest/active (los SKIPPED pueden
+   desaparecer de esas listas), y exige SUCCESS activo. WAITING se detiene de
+   inmediato con DEPLOYMENT_WAITING_FOR_CI, sin agotar 21 minutos. Fallos,
+   aprobación pendiente, identidad de servicio/entorno incorrecta, sustitución
+   por otro commit o rate limit hacen fallar la verificación. Los logs muestran
+   servicio/estado al cambiar y cada diez consultas, sin metadatos privados.
 6. Comprueba portada, `/version.json` y `/api/health` por HTTPS, sin autenticación,
    con timeouts, sin seguir redirecciones ni enviar el token Railway a la web.
 7. Publica artifact sanitizado `staging-evidence`: SHA, run CI, IDs/estado y salud.
@@ -62,9 +72,15 @@ reintentar, sin repetir mutaciones de resultado incierto. No es monitoreo recurr
 3. Guardar el token como **Environment Secret `RAILWAY_STAGING_TOKEN`**. No es una
    variable del servicio backend ni un secreto Firebase. No pegarlo en el chat,
    tfvars, workflow, terminal compartida o commit. No usar un token de cuenta amplio.
-4. Revisar que las fuentes de los tres servicios siguen conectadas al repo/rama
-   main y que Wait for CI está activado. Se reutiliza el autodeploy existente para
-   evitar builds duplicados; no es necesario desconectar nada.
+4. Conservar el repo, la rama main y los roots de los tres servicios, pero
+   desactivar **autodeploy** en Railway → Service Settings → Source → Disable.
+   No desconectar el repositorio. Hacerlo **antes** de desactivar Wait for CI,
+   para no permitir un push sin gate. La API oficial
+   `serviceInstanceAutoDeployUpdate(enabled: false)` elimina los triggers
+   actuales; comprobar el resultado antes de continuar. Si quedara un trigger,
+   su checkSuites debe ser false y el autodeploy debe seguir desactivado.
+   GitHub Actions conserva la aprobación obligatoria de CI EP2 y despliega
+   únicamente su SHA. No cambiar PostgreSQL ni secretos.
 5. Confirmar los healthchecks de la tabla. Si CD denuncia deriva, detenerse y
    contrastar los valores: no desactivar la validación para conseguir verde.
 6. Publicar este cambio. Esperar CI y después **Railway staging**. El primer run
@@ -72,6 +88,21 @@ reintentar, sin repetir mutaciones de resultado incierto. No es monitoreo recurr
    antiguo no se acepta aunque devuelva 200.
 7. Conservar el artifact y comprobar el flujo humano en esa versión. Solo entonces
    registrar SHA desplegado y crear la release EP2 por decisión del propietario.
+
+### Incidencia y corrección de la espera circular (2026-10-19)
+
+[Railway staging #3, intento 1](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39209394333/attempts/1)
+falló con DEPLOYMENT_TIMEOUT para `7af91a1`, pese a que CI EP2 #16 aprobó ese SHA.
+El artifact sanitizado registra Python/backend SUCCESS y frontend WAITING.
+Tras fallar el workflow, el frontend quedó SKIPPED con motivo del proveedor
+«CI check suite failed» y continuó sirviendo `c4dd5dd`. No fue una caída de la
+base de datos ni un fallo de compilación demostrado.
+
+Se desactivó autodeploy únicamente en frontend/backend/python-service. La lectura
+posterior confirmó enabled=false y cero triggers en los tres, manteniendo fuentes
+y roots. No se escribieron variables ni datos, ni se lanzó un build durante ese
+ajuste. La recuperación cloud y la validación del código local son comprobaciones
+separadas: no dar por aprobado un commit futuro con el resultado de este SHA.
 
 ## Configuración existente que debe conservarse
 
