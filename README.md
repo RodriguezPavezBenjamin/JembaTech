@@ -1,5 +1,7 @@
 # JembaTech
 
+Acceso web opcional con Google: [configuración Firebase, vinculación de cuentas y límites](docs/firebase-auth.md).
+
 Aplicación multiplataforma para cotizar PC, elegir presets y recibir una revisión explicable de compatibilidad, capacidades, consumo y precios consultados/estimados. El puntaje orienta sobre reglas de referencia; no mide FPS ni certifica rendimiento o compatibilidad final.
 
 ## Avance EP2: nuevo cotizador

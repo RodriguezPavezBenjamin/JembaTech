@@ -21,7 +21,7 @@ describe('AuthService', () => {
     },
   };
   const jwt = { signAsync: jest.fn().mockResolvedValue('token-de-prueba') };
-  const service = new AuthService(prisma as never, jwt as never);
+  const service = new AuthService(prisma as never, jwt as never, {} as never);
 
   beforeEach(() => jest.clearAllMocks());
 

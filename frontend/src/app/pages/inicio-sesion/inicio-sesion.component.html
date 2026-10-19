@@ -5,6 +5,11 @@
     Guarda tus armados y coordina el servicio directamente con JembaTech.
   </p>
   <div class="card">
+    <button *ngIf="googleDisponible" type="button" class="secondary" [disabled]="cargando" (click)="ingresarGoogle()">
+      CONTINUAR CON GOOGLE
+    </button>
+    <p *ngIf="googleDisponible">O usa tu cuenta de correo y contraseña de JembaTech.</p>
+    <p *ngIf="googleNativoPendiente">El acceso con Google del APK está pendiente de configuración nativa. Puedes usarlo desde la web.</p>
     <form [formGroup]="formulario" (ngSubmit)="enviar()" novalidate>
       <input
         *ngIf="modo === 'registro'"
@@ -33,7 +38,7 @@
         }}
       </button>
     </form>
-    <p class="error" *ngIf="error">{{ error }}</p>
+    <p class="error" *ngIf="error" role="alert">{{ error }}</p>
     <button
       class="switch secondary"
       type="button"

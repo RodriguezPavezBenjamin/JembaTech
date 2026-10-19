@@ -61,6 +61,9 @@ describe("Fichas de hardware", () => {
   });
   it('distingue precio consultado de estimado y sus detalles no seleccionan la tarjeta', () => {
     TestBed.resetTestingModule();
+    // La oferta de esta fixture vence el 19/10; fijar solo el reloj consultado,
+    // sin deshabilitar la caducidad ni depender de la fecha real de CI.
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-10-18T12:00:00Z'));
     try {
       TestBed.configureTestingModule({ imports: [TarjetaComponenteComponent] });
       const fixture = TestBed.createComponent(TarjetaComponenteComponent);
@@ -73,7 +76,7 @@ describe("Fichas de hardware", () => {
       const add = vi.spyOn(card.elegir, 'emit');
       (fixture.nativeElement.querySelector('.precio-origen summary') as HTMLElement).click();
       expect(add).not.toHaveBeenCalled();
-    } finally { TestBed.resetTestingModule(); }
+    } finally { clock.mockRestore(); TestBed.resetTestingModule(); }
   });
   it("alterna agregar y quitar una selección única", () => {
     const card = new TarjetaComponenteComponent();

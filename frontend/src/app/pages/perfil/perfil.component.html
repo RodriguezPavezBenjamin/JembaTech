@@ -17,10 +17,12 @@
         />
       </div>
       <input
+        *ngIf="autenticacion.user?.authProvider !== 'GOOGLE'"
         formControlName="contrasenaActual"
         type="password"
         placeholder="Contraseña actual (obligatoria)"
       /><input
+        *ngIf="autenticacion.user?.authProvider !== 'GOOGLE'"
         formControlName="contrasenaNueva"
         type="password"
         placeholder="Nueva contraseña (opcional)"
@@ -28,6 +30,10 @@
         {{ cargando ? "GUARDANDO..." : "GUARDAR CAMBIOS" }}
       </button>
     </form>
+    <button *ngIf="googleDisponible && autenticacion.user?.authProvider !== 'GOOGLE'" type="button" class="secondary" [disabled]="cargando" (click)="vincularGoogle()">
+      VINCULAR ESTA CUENTA CON GOOGLE
+    </button>
+    <p *ngIf="autenticacion.user?.authProvider === 'GOOGLE'">Tu acceso se gestiona con Google. No necesitas una contraseña de JembaTech para guardar tu perfil.</p>
     <p class="error" *ngIf="error">{{ error }}</p>
     <p class="success" *ngIf="mensaje">{{ mensaje }}</p>
     <div class="actions">

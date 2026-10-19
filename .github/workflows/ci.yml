@@ -33,6 +33,8 @@ jobs:
         run: node --test ../tests/integration/android-config.test.mjs ../tests/integration/ci-policy.test.mjs
       - name: Validar plantilla del proxy frontend
         run: node --test ../tests/integration/frontend-proxy-config.test.mjs
+      - name: Validar compatibilidad de dependencias Firebase
+        run: node --test ../tests/integration/firebase-config.test.mjs
       - run: node --test ../tests/security/*.test.mjs
       - name: Auditar dependencias de producción
         run: |
@@ -197,6 +199,10 @@ jobs:
           export TEST_FRONTEND_IMAGE
           : "${TEST_FRONTEND_IMAGE:?No se encontró la imagen frontend construida}"
           node --test tests/integration/frontend-proxy.test.mjs
+          TEST_BACKEND_IMAGE="$(docker compose images -q backend)"
+          export TEST_BACKEND_IMAGE
+          : "${TEST_BACKEND_IMAGE:?No se encontró la imagen backend construida}"
+          node --test tests/integration/firebase-sdk.test.mjs
           node --test tests/integration/builds.test.mjs
           docker compose exec -T backend node --input-type=module < tests/integration/sources.test.mjs
           docker compose exec -T backend node --input-type=module < tests/integration/source-recovery.test.mjs

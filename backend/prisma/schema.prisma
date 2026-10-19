@@ -25,7 +25,8 @@ model User {
   id           String   @id @default(uuid())
   name         String
   email        String   @unique
-  passwordHash String   @map("password_hash")
+  passwordHash String?  @map("password_hash")
+  firebaseUid  String?  @unique @map("firebase_uid") @db.VarChar(128)
   phone        String?
   role         Role     @default(CLIENT)
   createdAt    DateTime @default(now()) @map("created_at")

@@ -3,6 +3,7 @@ import { HttpModule } from "@nestjs/axios";
 import { JwtModule } from "@nestjs/jwt";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
+import { FirebaseAuthService } from "./firebase-auth.service";
 import { HealthController } from "./health.controller";
 import { EvaluationsController } from "./evaluations.controller";
 import { QuotesController } from "./quotes.controller";
@@ -43,6 +44,7 @@ if (!jwtSecret)
     EvaluatorService,
     PrismaService,
     AuthService,
+    FirebaseAuthService,
     JwtAuthGuard,
     RolesGuard,
     CatalogService,

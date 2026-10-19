@@ -1,8 +1,9 @@
 import { CommonModule } from "@angular/common";
-import { Component, inject } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { AuthService } from "../../servicios/autenticacion.service";
+import { googleErrorMessage } from '../../servicios/google-auth.service';
 @Component({
   selector: "app-inicio-sesion",
   standalone: true,
@@ -10,7 +11,7 @@ import { AuthService } from "../../servicios/autenticacion.service";
   templateUrl: "./inicio-sesion.component.html",
   styleUrl: "../../estilos/paginas.scss",
 })
-export class InicioSesionComponent {
+export class InicioSesionComponent implements OnInit {
   private readonly autenticacion = inject(AuthService);
   private readonly router = inject(Router);
   private readonly ruta = inject(ActivatedRoute);
@@ -25,6 +26,30 @@ export class InicioSesionComponent {
   });
   cargando = false;
   error = "";
+  googleDisponible = false;
+  readonly googleNativoPendiente = this.autenticacion.google.nativePlatform;
+
+  ngOnInit() {
+    void this.autenticacion.google.prepare().then(available => { this.googleDisponible = available; });
+  }
+
+  ingresarGoogle() {
+    if (this.cargando) return;
+    this.cargando = true;
+    this.error = '';
+    this.autenticacion.loginGoogle().subscribe({
+      next: session => {
+        this.cargando = false;
+        window.dispatchEvent(new CustomEvent('jembatech-auth-change', { detail: session.user }));
+        const destino = this.ruta.snapshot.queryParamMap.get('returnUrl');
+        void this.router.navigateByUrl(destino && destino.startsWith('/') && !destino.startsWith('//') ? destino : '/perfil');
+      },
+      error: error => {
+        this.cargando = false;
+        this.error = error?.error?.message || googleErrorMessage(error);
+      },
+    });
+  }
 
   enviar() {
     if (this.formulario.invalid) {
@@ -56,7 +81,7 @@ export class InicioSesionComponent {
         );
         const destino = this.ruta.snapshot.queryParamMap.get("returnUrl");
         this.router.navigateByUrl(
-          destino && destino.startsWith("/") ? destino : "/perfil",
+          destino && destino.startsWith("/") && !destino.startsWith('//') ? destino : "/perfil",
         );
       },
       error: (error) => {

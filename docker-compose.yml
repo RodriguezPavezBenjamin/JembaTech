@@ -43,6 +43,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET in .env before starting Docker Compose}
       DATABASE_URL: postgresql://jemba:${POSTGRES_PASSWORD:-jemba_dev}@database:5432/jemba_cotiza
       PYTHON_SERVICE_URL: http://python-service:8000
+      FIREBASE_AUTH_ENABLED: ${FIREBASE_AUTH_ENABLED:-false}
+      FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-}
+      FIREBASE_WEB_API_KEY: ${FIREBASE_WEB_API_KEY:-}
+      FIREBASE_WEB_APP_ID: ${FIREBASE_WEB_APP_ID:-}
       SOLOTODO_MANUAL_PROBE_ENABLED: ${SOLOTODO_MANUAL_PROBE_ENABLED:-false}
       SOURCE_INTERNAL_TOKEN: ${SOURCE_INTERNAL_TOKEN:-}
     depends_on:

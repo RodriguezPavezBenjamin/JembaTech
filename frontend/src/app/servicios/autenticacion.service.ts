@@ -1,26 +1,43 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Observable, tap } from "rxjs";
+import { Observable, from, switchMap, tap } from "rxjs";
+import { GoogleAuthService } from './google-auth.service';
 export type AppUser = {
   id: string;
   name: string;
   email: string;
   phone: string | null;
   role: "CLIENT" | "ADMIN";
+  authProvider?: 'LOCAL' | 'GOOGLE';
 };
 export type ProfileUpdate = {
   name: string;
   phone: string;
-  currentPassword: string;
+  currentPassword?: string;
   newPassword?: string;
 };
 type Session = { accessToken: string; user: AppUser };
+type ProfileSession = { accessToken?: string; user: AppUser };
 @Injectable({ providedIn: "root" })
 export class AuthService {
   private readonly tokenKey = "jembatech_access_token";
   private readonly userKey = "jembatech_user";
   user?: AppUser = this.readUser();
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient, readonly google: GoogleAuthService) {}
+
+  loginGoogle(currentPassword?: string): Observable<Session> {
+    return from(this.google.popupToken()).pipe(
+      switchMap(idToken => this.http.post<Session>(currentPassword ? '/api/auth/google/link' : '/api/auth/google',
+        { idToken, ...(currentPassword ? { currentPassword } : {}) })),
+      tap(session => this.save(session)),
+    );
+  }
+
+  async googleToken(): Promise<string> {
+    const token = await this.google.token();
+    localStorage.setItem(this.tokenKey, token);
+    return token;
+  }
   register(data: {
     name: string;
     email: string;
@@ -36,21 +53,22 @@ export class AuthService {
       .post<Session>("/api/auth/login", data)
       .pipe(tap((s) => this.save(s)));
   }
-  updateProfile(data: ProfileUpdate): Observable<Session> {
+  updateProfile(data: ProfileUpdate): Observable<ProfileSession> {
     return this.http
-      .patch<Session>("/api/auth/me", data)
+      .patch<ProfileSession>("/api/auth/me", data)
       .pipe(tap((s) => this.save(s)));
   }
   token() {
     return localStorage.getItem(this.tokenKey) ?? "";
   }
   logout() {
+    void this.google.logout().catch(() => undefined);
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
     this.user = undefined;
   }
-  private save(session: Session) {
-    localStorage.setItem(this.tokenKey, session.accessToken);
+  private save(session: ProfileSession) {
+    if (session.accessToken) localStorage.setItem(this.tokenKey, session.accessToken);
     localStorage.setItem(this.userKey, JSON.stringify(session.user));
     this.user = session.user;
   }
