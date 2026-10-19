@@ -2,7 +2,8 @@
 
 Estado EP2, 2026-10-19: Railway ya está funcionando. El esquema siguiente conserva
 la ejecución local EP1; no describe el despliegue cloud actual. Ver [Railway staging](railway-staging.md)
-para salud/versiones, CD preparado pendiente de activar y adopción Terraform aún pendiente.
+para salud/versiones y CD ya comprobados. La adopción de 16 objetos Terraform tiene
+[plan real sin cambios](adopcion-railway-evidencia.md), con límites explícitos.
 
 EP1 se ejecuta de forma reproducible con Docker Compose. La infraestructura Terraform incluida en `infra/` documenta el contrato inicial de staging; la selección de proveedor cloud se resolverá en la siguiente etapa.
 

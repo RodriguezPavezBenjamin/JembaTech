@@ -31,7 +31,11 @@ Esto concentra autenticación, roles, contratos, resolución del catálogo y per
 - El piloto externo no cambia piezas, precios o cotizaciones. Solo CPU, máximo 5 por consulta manual, espera global de 60 s, sin cron ni imágenes. Reutilización/republicación pendientes; no hay stock/precios vigentes.
 - Ante fallos se registra código seguro y se conserva el último dato válido. Una muestra JSON no sobrescribe una referencia adquirida por API. Los eventos no registran cuerpos, claves o cuentas.
 - `internalCatalogId` es una posibilidad de vínculo futuro, no una aprobación implementada. El ranking contextual solo está especificado en el [diseño adaptativo](diseno-adaptativo-ep2.md).
-- CI amplía controles/pruebas; Terraform sigue siendo un contrato local. **No hay staging cloud ni despliegue automático verificado.** Métricas sin histórico centralizado y vulnerabilidades pendientes se detallan por separado.
+- Actualización 2026-10-19: Railway staging y CD de `c4dd5dd` tienen salud completa
+  comprobada. Terraform adoptó 16 objetos con plan real sin cambios ni diferencias
+  observadas; [evidencia y límites](adopcion-railway-evidencia.md). El manifiesto
+  EP1 raíz sigue siendo histórico. Métricas sin histórico centralizado y riesgos
+  de seguridad se detallan por separado.
 - Instagram y fuentes alternativas no forman parte de este piloto. Figurar en una propuesta no activa una integración.
 
 [Contexto](diagrama-contexto.md), [contenedores](diagrama-contenedores.md), [componentes](diagrama-componentes.md), [modelo de datos](modelo-datos-inicial.md), [ADR-001](adr/001-arquitectura-centralizada.md), [ADR-002](adr/002-referencias-y-adaptacion.md), [seguridad](seguridad-ep2.md), [observabilidad](observabilidad-ep2.md) y [evidencia EP2](entrega-2.md).

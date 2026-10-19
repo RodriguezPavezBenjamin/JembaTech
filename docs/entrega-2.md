@@ -1,8 +1,14 @@
 # EP2: plan de trabajo y evidencia
 
 Estado vigente, 2026-10-19: Railway ya sirve la web y el usuario confirmó Google y
-el recorrido cliente/admin. La automatización pos-CI y módulo Terraform real están
-preparados localmente, sin activación ni importación aún. Ver [estado de cierre](cierre-ep2.md)
+el recorrido cliente/admin. CD y salud completa de `c4dd5dd` están comprobados;
+Terraform adoptó 16 objetos con plan real sin cambios y estado cifrado, según
+[evidencia](adopcion-railway-evidencia.md). Token temporal revocado por el propietario.
+El panel de fuentes ya muestra cinco fichas reales según las capturas del usuario,
+[trasladadas como muestra declarada](muestra-staging-ep2.md), no adquisición nueva.
+Pendiente la publicación/CI del commit final; no repetir adquisiciones ni imports
+para generar evidencia.
+Ver [estado de cierre](cierre-ep2.md)
 y [pasos de Railway](railway-staging.md). El semáforo y cortes del 18/10 siguientes
 son históricos; no significan que haya que volver a crear staging.
 
@@ -20,7 +26,7 @@ Demostrar fuente web real → recuperación → preparación en Python/FastAPI �
 
 La capacidad inteligente completa, A/B y evaluación final con usuarios no son obligatorias todavía. Sí lo es su diseño preliminar. SoloTodo y el alcance inicial CPU son decisiones de JembaTech, no proveedores exigidos por la profesora.
 
-## Semáforo actual
+## Semáforo histórico del 18/10 (estado vigente arriba)
 
 | Bloque | Estado | Evidencia / falta |
 |---|---|---|

@@ -4,22 +4,53 @@
 
 Staging Railway existe en https://jembatech.up.railway.app. El usuario confirmó
 Google, rol ADMIN y solicitud/respuesta vista por CLIENT; CI #13 verde para
-1a1279b según su captura. No repetir la selección/creación de alojamiento.
+1a1279b según su captura. Posteriormente CD y salud completa de `c4dd5dd` quedaron
+aprobados según el artifact aportado; Terraform adoptó 16 objetos con plan real
+sin cambios ni diferencias observadas. [Evidencia](adopcion-railway-evidencia.md).
+No repetir la selección/creación de alojamiento ni las importaciones.
+
+El usuario confirmó además las [cinco referencias reales en Angular de staging](muestra-staging-ep2.md),
+trasladadas desde la corrida local como muestra declarada, sin nueva adquisición
+API. Sus fechas, procedencia, antigüedad y limitaciones permanecen visibles.
+
+El propietario confirmó la revocación del token temporal; se conserva el de CD.
+Revisión contra la pauta original (pp. 17–18 y 35–40) repetida en este corte.
+[Mapa de evidencia y límites](revision-pauta-ep2.md).
 
 Pendientes reales, en orden:
 
-1. Activar y probar [CD posterior a CI y salud/versiones](railway-staging.md):
-   código preparado localmente, aún sin Secret ni ejecución cloud.
-2. [Adoptar recursos con Terraform](../infra/railway/README.md): módulo real
-   validado sin red con mocks; no importado ni aplicado. Resolver estado seguro,
-   backup y ajustes que el proveedor comunitario no modela.
-3. Cerrar evidencia fuente → Python → NestJS → PostgreSQL → Angular con métrica
-   y error controlado, manteniendo límites/derechos y flag público desactivado.
-4. Conservar artifacts, completar documentación/datos reales, enlaces y ensayo.
-5. Tag/release EP2 solo del SHA final validado/desplegado; conservar EP1.
+1. Revisar la cobertura IaC: los 16 objetos modelados están adoptados, pero los
+   ajustes no soportados por el proveedor requieren mecanismo de reproducción
+   o una limitación expresamente evaluada contra la pauta.
+2. Preparar la presentación de la métrica histórica y el error controlado de QA,
+   distinguiéndolos de la muestra ya visualizada en staging; mantener límites,
+   derechos y flag público desactivado. No repetir la extracción ni la carga.
+3. Publicar los cambios locales y validar su propia CI/CD; conservar artifacts,
+   completar documentación/datos reales, enlaces y ensayo.
+4. Tag/release EP2 solo del SHA final validado/desplegado; conservar EP1.
 
 La recuperación/vinculación más ágil de cuentas se pospone por decisión del
 usuario. No se cambian roles ni se fusionan cuentas para cerrar infraestructura.
+
+### Validación local antes de publicar este corte
+
+- 89 pruebas Node de seguridad, CD, inventario, imports, plan y política CI:
+  aprobadas. Las pruebas de salud usan localhost; se ejecutaron con el acceso
+  necesario después de los bloqueos del aislamiento de cortes anteriores.
+- `terraform fmt -check -recursive infra/railway`: aprobado con Terraform 1.16.4.
+- actionlint 1.7.7: ambos workflows aprobados, sin ShellCheck/Pyflakes adicionales.
+- TruffleHog 3.99.2 fijado por digest, sin red/verificación, sobre copia de los
+  23 archivos modificados/nuevos: diez alertas RailwayApp, todas comparadas en
+  memoria y coincidentes exactamente con los IDs públicos de proyecto, entorno
+  o servicios ya confirmados; cero alertas de otros valores. No se imprimió Raw.
+  No se cambió la baseline, no se excluyeron detectores/archivos ni se relajó CI.
+  Esto no sustituye el escaneo Git remoto con verificación ni acredita ausencia
+  general de secretos en el historial.
+- `git diff --check`: aprobado. Muestra, registros y copia de QA siguen en
+  `reports/`, ignorados; estado/planes cifrados no están en el repositorio.
+
+No se hizo commit/push/tag. El siguiente commit todavía debe aprobar su CI/CD
+real; el resultado de `c4dd5dd` no se transfiere a estos cambios locales.
 
 ## Registro histórico anterior
 

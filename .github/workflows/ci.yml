@@ -36,7 +36,7 @@ jobs:
       - name: Validar compatibilidad de dependencias Firebase
         run: node --test ../tests/integration/firebase-config.test.mjs
       - name: Probar automatización staging sin acceso a cloud
-        run: node --test ../tests/integration/staging.test.mjs
+        run: node --test ../tests/integration/staging.test.mjs ../tests/integration/railway-adoption.test.mjs ../tests/integration/railway-project-import.test.mjs ../tests/integration/railway-resources-import.test.mjs ../tests/integration/railway-adoption-plan.test.mjs
       - run: node --test ../tests/security/*.test.mjs
       - name: Auditar dependencias de producción
         run: |

@@ -2,6 +2,11 @@
 
 Este diagrama explica los bloques ejecutables de JembaTech y cómo se comunican. El navegador nunca accede directamente a PostgreSQL ni a FastAPI.
 
+El esquema conserva puertos/versión PostgreSQL del entorno local. Para Railway
+staging (PostgreSQL 18), HTTPS, red privada y CD comprobados, ver el
+[despliegue vigente](railway-staging.md). No representa una segunda exposición
+pública de Python o la base.
+
 ```mermaid
 flowchart LR
   CLIENTE[Cliente o administrador\nNavegador]
@@ -33,5 +38,5 @@ flowchart LR
 - FastAPI no guarda datos ni entrega JWT. La recuperación exige una clave interna distinta al JWT; nunca recibe el token del usuario.
 - SoloTodo se consulta por acción administrativa, una página fija y sin datos personales. Abrir el panel lee PostgreSQL, no consulta al proveedor.
 - Las referencias permanecen fuera del catálogo. Condiciones de reutilización/republicación y muestra representativa pendientes.
-- Nginx, NestJS y FastAPI producen eventos de observabilidad; NestJS coordina `X-Request-Id` con Python. No hay colector central ni staging público.
-- Staging deberá usar HTTPS y mantener Python/PostgreSQL en red privada; HTTP y puertos locales no son una configuración cloud.
+- Nginx, NestJS y FastAPI producen eventos de observabilidad; NestJS coordina `X-Request-Id` con Python. No hay colector central; staging público y salud están comprobados según el enlace vigente.
+- Railway usa HTTPS y mantiene Python/PostgreSQL en red privada; HTTP y puertos locales del esquema no son una configuración cloud.

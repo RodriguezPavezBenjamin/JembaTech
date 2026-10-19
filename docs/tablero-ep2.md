@@ -7,9 +7,19 @@
 - [x] CI #13 verde de 1a1279b según captura; repositorio limpio al iniciar este corte.
 - [x] Preparación local de workflow posterior a CI, salud de stack y SHA servido,
   módulo Terraform Railway con protección de recursos y control de adopción.
-- [ ] Configurar Secret staging, publicar y validar la nueva automatización real.
-- [ ] Backup, estado seguro, importación y plan cloud sin cambios de Terraform.
+- [x] Secret staging y CD activados; artifact real de `c4dd5dd` con salud completa
+  y SHA común de frontend/backend/Python.
+- [x] Backup restaurable, estado cifrado y 16 imports Terraform; plan real con
+  cero cambios y cero diferencias observadas. [Evidencia](adopcion-railway-evidencia.md).
+- [x] Revocación del token temporal Terraform confirmada por el propietario;
+  token de CD conservado. Comando de retirada local indicado, sin leer su entorno.
+- [ ] Revisar límites IaC de ajustes no modelados por el proveedor comunitario.
+- [ ] Publicar cambios locales de adopción/documentación y validar su propia CI/CD.
 - [ ] Completar evidencia final de fuente/métrica/error y condiciones de uso.
+- [x] Fuentes y calidad en staging: tras el panel inicialmente vacío, el usuario
+  cargó la muestra real y confirmó visualmente las cinco fichas, fechas y
+  trazabilidad manual. [Evidencia y límites](muestra-staging-ep2.md). No hubo nueva
+  consulta a SoloTodo ni se activó el piloto externo.
 - [ ] Conservar artifacts, actualizar enlaces/documentación y ensayar demo.
 - [ ] Crear tag/release EP2 del commit final validado. No reemplazar EP1.
 - [ ] Mejora posterior de recuperación/vinculación de cuentas: pospuesta por usuario.

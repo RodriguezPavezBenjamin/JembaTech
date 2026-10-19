@@ -1,0 +1,5 @@
+# Valores confirmados por el propietario el 2026-10-19; no contienen secretos.
+# Copiar a terraform.tfvars solo al preparar la adopción local protegida.
+# Esto NO importa recursos ni autoriza terraform apply.
+postgres_source_image = "ghcr.io/railwayapp-templates/postgres-ssl:18"
+postgres_mount_path   = "/var/lib/postgresql/data"

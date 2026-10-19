@@ -8,10 +8,18 @@
 - El usuario confirmó Google, rol ADMIN y solicitud CLIENT → respuesta ADMIN →
   seguimiento CLIENT. [CI EP2 #13](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39194834022)
   para `1a1279b`: success confirmado también por API GitHub en esta revisión.
-- La nueva automatización y metadatos de salud de este documento están preparados
-  localmente; **no publicados, activados ni probados todavía contra Railway**.
-- No se ha importado Terraform ni se ha ejecutado apply. No se crean recursos,
-  cambian planes de pago ni borran cuentas durante esta preparación.
+- Automatización activada: el artifact `deployment.json` aportado por el usuario
+  registra success el 2026-10-19T04:12:12.757Z para
+  `c4dd5dd767c3a9dfd78c87ff196ab85fca619dba`, con salud frontend/backend/Python/base
+  correcta y el mismo SHA. [CI del commit](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39197974002).
+- [Adopción real Terraform](adopcion-railway-evidencia.md): 16 objetos importados,
+  plan sin cambios ni diferencias observadas y archivos cifrados, confirmado por
+  el propietario. No se ha ejecutado apply, creado duplicados ni cambiado planes
+  de pago. Revocación del token temporal confirmada por el propietario; el token
+  de CD se conserva.
+- Revisión pública de solo lectura repetida durante el cierre: portada, versión
+  y salud de frontend/backend/Python/base correctos para `c4dd5dd`. No equivale a
+  una nueva comprobación del panel administrativo ni a desplegar cambios locales.
 
 ## Automatización posterior a CI
 
@@ -44,7 +52,7 @@ El presupuesto de peticiones API es limitado (máximo 60); espera de 30 segundos
 entre lecturas pendientes. 429 detiene el proceso: revisar Retry-After antes de
 reintentar, sin repetir mutaciones de resultado incierto. No es monitoreo recurrente.
 
-## Activar: un Secret, sin compartir claves en el chat
+## Activación ya realizada: referencia para reproducir, sin compartir claves
 
 1. En Railway → **Project Settings → Tokens**, el propietario crea un token del
    proyecto **JembaTech Staging**, limitado al entorno **staging**.
@@ -101,12 +109,13 @@ El módulo real está en [infra/railway](../infra/railway/README.md). El módulo
 de infra conserva el manifiesto EP1 histórico. CI valida el módulo Railway y
 ejecuta un plan **simulado** sin credenciales; no confundirlo con adopción real.
 
-Faltan credencial autorizada para el proveedor comunitario, IDs/imagen/ruta reales,
-respaldo recuperable, importación y almacenamiento seguro del estado. El control
-`check-terraform-adoption.mjs` rechaza cualquier creación, actualización, reemplazo
-o eliminación en el primer plan. No hay workflow de apply/destroy ni se envía el
-estado como artifact. Las opciones no soportadas por el proveedor quedan como
-limitación explícita, no como Terraform terminado.
+El propietario autorizó una credencial temporal de workspace y confirmó los
+imports y el plan real sin cambios sobre las 16 direcciones esperadas. Respaldo
+recuperable y estado EFS preparados. [Resultado y alcance](adopcion-railway-evidencia.md).
+`plan-railway-adoption.mjs` no acepta planes parciales ni escrituras propuestas.
+No hay workflow de apply/destroy ni se envía el estado como artifact. Las opciones
+no soportadas por el proveedor siguen como limitación de reproducibilidad; no
+confundir la adopción real con aprovisionamiento completo desde cero.
 
 ## Rollback básico, controlado
 
@@ -122,7 +131,7 @@ limitación explícita, no como Terraform terminado.
 5. Repetir salud y el flujo cliente/admin sobre el conjunto restaurado. Registrar
    los SHAs realmente servidos; un rollback no tiene por qué coincidir con main.
 
-## Verificación de la preparación
+## Verificación local histórica de la preparación
 
 Resultados locales de esta preparación, 2026-10-19:
 
@@ -147,9 +156,10 @@ Resultados locales de esta preparación, 2026-10-19:
   informes completos en `reports/security/staging-20261019`, ignorados. No se
   afirma ausencia total de vulnerabilidades ni se repitió aquí CodeQL remoto.
 
-Estos resultados no constituyen una ejecución real de CD en cloud. La CI del
-futuro commit debe aprobar por separado. No ejecutar el script de deploy con un
-token antes de revisar su alcance; falta activar el Secret y publicar el cambio.
+Estos resultados locales históricos no constituían por sí solos una ejecución
+cloud; la ejecución real posterior se registra al inicio de este documento.
+Los cambios locales posteriores de adopción/documentación todavía necesitan su
+propio commit y CI/CD. No atribuirles automáticamente la aprobación de `c4dd5dd`.
 
 Referencias: [API y token por proyecto](https://docs.railway.com/integrations/api),
 [despliegues API](https://docs.railway.com/integrations/api/manage-deployments),

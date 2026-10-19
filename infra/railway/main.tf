@@ -1,5 +1,8 @@
 terraform {
   required_version = ">= 1.7.0"
+  # La adopción real exige configurar path y workspace_dir en almacenamiento
+  # privado durante init; nunca usar el estado predeterminado del repositorio.
+  backend "local" {}
   required_providers {
     railway = {
       source  = "terraform-community-providers/railway"
