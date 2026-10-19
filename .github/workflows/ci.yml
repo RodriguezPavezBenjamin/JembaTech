@@ -35,6 +35,8 @@ jobs:
         run: node --test ../tests/integration/frontend-proxy-config.test.mjs
       - name: Validar compatibilidad de dependencias Firebase
         run: node --test ../tests/integration/firebase-config.test.mjs
+      - name: Probar automatización staging sin acceso a cloud
+        run: node --test ../tests/integration/staging.test.mjs
       - run: node --test ../tests/security/*.test.mjs
       - name: Auditar dependencias de producción
         run: |
@@ -180,6 +182,13 @@ jobs:
       - run: terraform fmt -check
       - run: terraform validate
       - run: terraform plan -input=false -var-file=terraform.tfvars.example
+      - name: Validar módulo Railway real (sin credenciales ni llamadas cloud)
+        working-directory: infra/railway
+        run: |
+          terraform init -backend=false -input=false -lockfile=readonly
+          terraform fmt -check -recursive
+          terraform validate
+          terraform test
   docker:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -193,7 +202,9 @@ jobs:
         run: |
           JWT_SECRET="$(openssl rand -hex 32)"
           export JWT_SECRET
-          docker compose build --pull
+          RAILWAY_GIT_COMMIT_SHA="$GITHUB_SHA"
+          export RAILWAY_GIT_COMMIT_SHA
+          docker compose build --pull --build-arg RAILWAY_GIT_COMMIT_SHA="$GITHUB_SHA"
           docker compose up -d database python-service migrate backend frontend
           TEST_FRONTEND_IMAGE="$(docker compose images -q frontend)"
           export TEST_FRONTEND_IMAGE
@@ -209,7 +220,7 @@ jobs:
           docker compose exec -T -e EP2_ISOLATED_PRICE_QA=true backend node --input-type=module < tests/integration/catalog-prices.test.mjs
           docker compose exec -T -e EP2_ISOLATED_CATALOG_QA=true backend node --input-type=module < tests/integration/catalog-import.test.mjs
           node --test tests/integration/observability.test.mjs
-          node scripts/check-health.mjs
+          EXPECTED_DEPLOY_COMMIT="$GITHUB_SHA" node scripts/check-health.mjs
           TEST_DATABASE_IMAGE="$(docker compose images -q database)" node --test tests/integration/database-image.test.mjs
       - name: Instalar Trivy
         uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1

@@ -1,5 +1,24 @@
 # Tablero de seguimiento EP2
 
+## Corte vigente, 2026-10-19
+
+- [x] Staging Railway con cuatro servicios; URL https://jembatech.up.railway.app.
+- [x] Usuario confirmó Google, ADMIN y coordinación CLIENT → ADMIN → CLIENT.
+- [x] CI #13 verde de 1a1279b según captura; repositorio limpio al iniciar este corte.
+- [x] Preparación local de workflow posterior a CI, salud de stack y SHA servido,
+  módulo Terraform Railway con protección de recursos y control de adopción.
+- [ ] Configurar Secret staging, publicar y validar la nueva automatización real.
+- [ ] Backup, estado seguro, importación y plan cloud sin cambios de Terraform.
+- [ ] Completar evidencia final de fuente/métrica/error y condiciones de uso.
+- [ ] Conservar artifacts, actualizar enlaces/documentación y ensayar demo.
+- [ ] Crear tag/release EP2 del commit final validado. No reemplazar EP1.
+- [ ] Mejora posterior de recuperación/vinculación de cuentas: pospuesta por usuario.
+
+Detalle vigente: [Railway staging](railway-staging.md). Los cortes siguientes son
+históricos; sus pendientes de elegir proveedor o crear staging ya no son actuales.
+
+## Registro histórico
+
 Actualizado: 2026-10-18. Tablero **local Markdown**, aclarado con el usuario; no se creó ni modificó un GitHub Project. Describe avance verificable, no certifica aprobación final de la entrega.
 
 ## Hecho y verificado

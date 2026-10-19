@@ -173,7 +173,8 @@ class Evaluation(BaseModel):
 
 @app.get('/health')
 def health():
-    return {'status': 'ok', 'service': 'jemba-evaluator'}
+    commit = os.environ.get('RAILWAY_GIT_COMMIT_SHA', '')
+    return {'status': 'ok', 'service': 'jemba-evaluator', 'commit': commit if re.fullmatch(r'[a-f0-9]{40}', commit) else 'local'}
 
 
 @app.post('/evaluate', response_model=Evaluation)

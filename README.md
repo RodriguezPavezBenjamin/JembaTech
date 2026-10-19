@@ -2,6 +2,12 @@
 
 Acceso web opcional con Google: [configuración Firebase, vinculación de cuentas y límites](docs/firebase-auth.md).
 
+Staging web: **https://jembatech.up.railway.app**. El usuario confirmó el acceso
+Google y el flujo cliente–administrador. [Despliegue, salud, rollback y activación
+del workflow](docs/railway-staging.md). La nueva automatización está preparada
+localmente: falta Secret, publicación y ejecución real. [Terraform Railway](infra/railway/README.md)
+todavía requiere adopción/importación y estado protegido; no se declara terminado.
+
 Aplicación multiplataforma para cotizar PC, elegir presets y recibir una revisión explicable de compatibilidad, capacidades, consumo y precios consultados/estimados. El puntaje orienta sobre reglas de referencia; no mide FPS ni certifica rendimiento o compatibilidad final.
 
 ## Avance EP2: nuevo cotizador
@@ -16,7 +22,11 @@ La EP2 usa SoloTodo en un piloto local. En `/admin/fuentes` conviven la importac
 
 El [diseño adaptativo](docs/diseno-adaptativo-ep2.md) especifica alternativas de CPU según contexto, restricciones antes de preferencias, motivos visibles y control del usuario, con evaluación posterior propuesta. No se ha implementado un ranking: importar el catálogo bajo confirmación es una función distinta de recomendar piezas automáticamente. [ADR-002](docs/adr/002-referencias-y-adaptacion.md).
 
-[Tablero local](docs/tablero-ep2.md) y [checklist/guion de demo](docs/cierre-ep2.md) actualizados. Falta validación remota final, ensayo, staging y release EP2. Los derechos de reutilización y cobertura limitada de fuente siguen explícitos. [Opciones de alojamiento investigadas](docs/staging-opciones.md), sin cuentas/contratación; GitHub Pages solo no ejecuta todos los servicios.
+[Tablero local](docs/tablero-ep2.md) y [checklist/guion de demo](docs/cierre-ep2.md).
+Staging ya existe en Railway. Faltan automatización pos-CI validada, adopción IaC,
+evidencia final de fuente, documentación/ensayo y release EP2. Los derechos de
+reutilización y cobertura limitada siguen explícitos. GitHub Pages no sustituye
+los servicios backend/Python/Postgres de Railway.
 
 ## Arquitectura actual EP2
 
@@ -170,7 +180,11 @@ python -m pytest -q
 
 El workflow [CI EP2](.github/workflows/ci.yml) ejecuta lint, pruebas unitarias/integración y salud de Compose; incorpora CodeQL, Bandit, auditoría Python/npm, detección de secretos y Trivy sobre frontend, backend, Python, migraciones y PostgreSQL. Los reportes quedan como artifacts con umbrales explícitos. [Política, parches y verificación](docs/seguridad-ep2.md).
 
-Terraform todavía valida un contrato local, no infraestructura cloud desplegada. La configuración inicial se encuentra en [`infra/`](infra/README.md). El despliegue automatizado y health posterior a staging siguen pendientes: un job Docker aprobado no los reemplaza.
+El contrato histórico EP1 se conserva en [`infra/`](infra/README.md). El módulo
+[`infra/railway`](infra/railway/README.md) define recursos reales y se prueba sin
+cloud; falta importarlo y validar su plan real sin cambios. El workflow posterior
+`Railway staging` despliega/reutiliza el SHA aprobado y comprueba salud/versiones,
+pero requiere activación y prueba real. Un job Docker aprobado no acredita ese CD.
 
 ## Observabilidad inicial EP2
 

@@ -19,6 +19,7 @@ services:
     build: ./python-service
     environment:
       PORT: 8000
+      RAILWAY_GIT_COMMIT_SHA: ${RAILWAY_GIT_COMMIT_SHA:-local}
       SOLOTODO_MANUAL_PROBE_ENABLED: ${SOLOTODO_MANUAL_PROBE_ENABLED:-false}
       SOURCE_INTERNAL_TOKEN: ${SOURCE_INTERNAL_TOKEN:-}
     ports:
@@ -40,6 +41,7 @@ services:
     build: ./backend
     environment:
       PORT: 3000
+      RAILWAY_GIT_COMMIT_SHA: ${RAILWAY_GIT_COMMIT_SHA:-local}
       JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET in .env before starting Docker Compose}
       DATABASE_URL: postgresql://jemba:${POSTGRES_PASSWORD:-jemba_dev}@database:5432/jemba_cotiza
       PYTHON_SERVICE_URL: http://python-service:8000

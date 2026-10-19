@@ -5,6 +5,7 @@ export async function checkHealth({
   api = process.env.TEST_API_URL ?? 'http://127.0.0.1:3000/api',
   frontend = process.env.TEST_FRONTEND_URL ?? 'http://127.0.0.1:4200',
   python = process.env.TEST_PYTHON_URL ?? 'http://127.0.0.1:8000',
+  expectedCommit = process.env.EXPECTED_DEPLOY_COMMIT,
 } = {}) {
   const [apiResponse, webResponse, pythonResponse, proxyResponse] = await Promise.all([
     fetch(`${api}/health`, { signal: AbortSignal.timeout(3000) }),
@@ -22,6 +23,18 @@ export async function checkHealth({
   assert.equal(evaluator.status, 'ok');
   assert.equal(evaluator.service, 'jemba-evaluator');
   assert.equal((await proxyResponse.json()).database, 'ok');
+  assert.equal(backend.python, 'ok');
+  if (expectedCommit) {
+    assert.match(expectedCommit, /^[a-f0-9]{40}$/);
+    assert.equal(backend.commit, expectedCommit);
+    assert.equal(backend.pythonCommit, expectedCommit);
+    assert.equal(evaluator.commit, expectedCommit);
+    const versionResponse = await fetch(`${frontend}/version.json`, { signal: AbortSignal.timeout(3000), redirect: 'error' });
+    assert.equal(versionResponse.status, 200);
+    const version = await versionResponse.json();
+    assert.equal(version.service, 'jemba-web');
+    assert.equal(version.commit, expectedCommit);
+  }
   return { status: 'ok', frontend: 'ok', backend: 'ok', python: 'ok', database: 'ok', proxy: 'ok' };
 }
 

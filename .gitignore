@@ -10,3 +10,13 @@ infra/.terraform/
 infra/terraform.tfvars
 infra/generated/
 reports/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.plan.json
+**/terraform.tfvars
+**/terraform.tfvars.json
+**/*.auto.tfvars
+**/*.auto.tfvars.json
+crash.log

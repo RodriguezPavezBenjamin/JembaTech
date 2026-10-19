@@ -1,5 +1,11 @@
 # Frontend en Railway staging
 
+Estado actualizado, 2026-10-19: dominio **jembatech.up.railway.app**, flujo Google
+y cliente/admin confirmados manualmente por el usuario. Las instrucciones de
+creación siguientes son registro del montaje inicial. El siguiente paso de CD,
+salud/versiones y Terraform está en [Railway staging](railway-staging.md); aún
+requiere activar y validar esa automatización nueva.
+
 El contenedor Nginx sirve Angular y reenvía `/api/` al backend por la red privada.
 El navegador solo necesita el dominio público del frontend; Postgres y Python no
 necesitan dominios públicos. No se incluyen credenciales en el frontend.
@@ -24,7 +30,7 @@ Healthcheck Path: `/api/health` (comprueba también backend y base de datos).
 Después de publicar este cambio y de completar CI, desplegar el servicio.
 En Settings → Networking → Generate Domain, usar el puerto **80**. Comprobar
 la portada, una ruta Angular y `/api/health` desde ese dominio. Estos pasos son
-instrucciones pendientes de validar en Railway, no evidencia de despliegue.
+instrucciones del montaje original; la confirmación manual posterior se describe arriba.
 
 ## Compatibilidad y DNS
 

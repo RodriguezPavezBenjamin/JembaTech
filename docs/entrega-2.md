@@ -1,5 +1,11 @@
 # EP2: plan de trabajo y evidencia
 
+Estado vigente, 2026-10-19: Railway ya sirve la web y el usuario confirmó Google y
+el recorrido cliente/admin. La automatización pos-CI y módulo Terraform real están
+preparados localmente, sin activación ni importación aún. Ver [estado de cierre](cierre-ep2.md)
+y [pasos de Railway](railway-staging.md). El semáforo y cortes del 18/10 siguientes
+son históricos; no significan que haya que volver a crear staging.
+
 Actualizado: 2026-10-18. Este documento separa requisitos de la pauta, decisiones del proyecto y verificaciones reales. No declara terminada la entrega.
 
 Ampliación local del 18 de octubre: [CPU, GPU, placas, RAM y discos por modelo](fuente-web-componentes.md), contratos, panel y pruebas locales aprobados. Las rutas históricas CPU de los cortes siguientes se conservan; no describen por sí solas el alcance actual. Esta ampliación aún requiere commit/push y validación en Actions; no modifica el catálogo ni cotizaciones.

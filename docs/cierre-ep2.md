@@ -1,5 +1,28 @@
 # Cierre y demostración EP2
 
+## Estado vigente, 2026-10-19
+
+Staging Railway existe en https://jembatech.up.railway.app. El usuario confirmó
+Google, rol ADMIN y solicitud/respuesta vista por CLIENT; CI #13 verde para
+1a1279b según su captura. No repetir la selección/creación de alojamiento.
+
+Pendientes reales, en orden:
+
+1. Activar y probar [CD posterior a CI y salud/versiones](railway-staging.md):
+   código preparado localmente, aún sin Secret ni ejecución cloud.
+2. [Adoptar recursos con Terraform](../infra/railway/README.md): módulo real
+   validado sin red con mocks; no importado ni aplicado. Resolver estado seguro,
+   backup y ajustes que el proveedor comunitario no modela.
+3. Cerrar evidencia fuente → Python → NestJS → PostgreSQL → Angular con métrica
+   y error controlado, manteniendo límites/derechos y flag público desactivado.
+4. Conservar artifacts, completar documentación/datos reales, enlaces y ensayo.
+5. Tag/release EP2 solo del SHA final validado/desplegado; conservar EP1.
+
+La recuperación/vinculación más ágil de cuentas se pospone por decisión del
+usuario. No se cambian roles ni se fusionan cuentas para cerrar infraestructura.
+
+## Registro histórico anterior
+
 Actualizado: 2026-10-18. Lista local de preparación y [tablero Markdown](tablero-ep2.md), según aclaración del usuario; no se creó un tablero remoto ni se acredita cierre final. Las cifras remiten a sus cortes de verificación; la ampliación privada más reciente se detalla en [componentes](fuente-web-componentes.md).
 
 ## Estado y orden de cierre

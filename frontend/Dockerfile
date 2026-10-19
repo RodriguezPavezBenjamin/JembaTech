@@ -3,7 +3,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
+ARG RAILWAY_GIT_COMMIT_SHA
+RUN npm run build && node scripts/write-version.mjs
 
 FROM nginx:1.30-alpine
 RUN apk upgrade --no-cache libexpat libx11

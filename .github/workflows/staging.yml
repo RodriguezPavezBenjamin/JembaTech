@@ -1,0 +1,46 @@
+name: Railway staging
+on:
+  workflow_run:
+    workflows: [CI EP2]
+    branches: [main]
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: railway-staging
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    environment:
+      name: staging
+      url: https://jembatech.up.railway.app
+    steps:
+      # Solo código del push a main que acaba de aprobar CI; nunca artifacts de PR.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: 22 }
+      - name: Desplegar el SHA aprobado y verificar salud y versiones
+        env:
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
+          CI_RUN_ID: ${{ github.event.workflow_run.id }}
+          GITHUB_TOKEN: ${{ github.token }}
+          RAILWAY_STAGING_TOKEN: ${{ secrets.RAILWAY_STAGING_TOKEN }}
+        run: node scripts/deploy-staging.mjs
+      - name: Conservar evidencia sanitizada, también si falla
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: staging-evidence
+          path: reports/staging/deployment.json
+          retention-days: 14

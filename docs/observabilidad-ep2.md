@@ -1,5 +1,11 @@
 # Observabilidad inicial EP2
 
+Actualización 2026-10-19: `/api/health` ahora comprueba también el `/health` privado
+de Python y publica únicamente metadatos SHA válidos de ambos servicios. Una
+dependencia caída responde 503 genérico. El estado del despliegue y activación de
+esta nueva comprobación están en [Railway staging](railway-staging.md). Los cortes
+anteriores no se presentan como prueba de esta ampliación.
+
 Actualizado: 2026-10-17. Instrumentación HTTP y llamadas a Python, sin plataforma APM ni métricas inventadas. No reemplaza staging ni su verificación posterior.
 
 ## Correlación
