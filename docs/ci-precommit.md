@@ -1,6 +1,6 @@
 # Validación local antes del próximo commit — 18/10/2026
 
-HEAD continúa en `68a0b0d`. El usuario hará el commit y push. Este documento registra comprobaciones locales del árbol de trabajo; no certifica un nuevo run de GitHub Actions ni un despliegue Railway.
+Registro del corte local anterior a la publicación: entonces HEAD era `68a0b0d`. El usuario publicó posteriormente los cambios como `2aa3d17`; su job secrets detectó dos fixtures URI. Ver la [corrección posterior y sus comandos](ci-secrets-fixtures.md). Este documento conserva las comprobaciones locales de aquel corte; no certifica un run remoto aprobado ni un despliegue Railway.
 
 ## Cambios de CI y seguridad
 

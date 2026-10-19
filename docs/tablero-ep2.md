@@ -4,6 +4,8 @@ Actualizado: 2026-10-18. Tablero **local Markdown**, aclarado con el usuario; no
 
 ## Hecho y verificado
 
+- [x] Seguimiento del commit publicado `2aa3d17`: secrets detectó dos fixtures URI sintéticas. Datos negativos convertidos a credenciales efímeras; triage histórico por identidad/huella exactas, sin excluir archivos o detectores. Siete pruebas del gate, 22 backend y 27 Python aprobadas; escáner real comprobado en rango e historial completo sobre copia QA. Corrección local aún sin commit/push ni run remoto aprobado. [Causa, pruebas y comandos](ci-secrets-fixtures.md).
+
 - [x] Precommit del 18/10: mantenimiento Actions/SHA y Ubuntu 24.04, parches de dos HIGH en Nginx y checksum Terraform Linux. Frontend 69, backend 139, Python 198, diez pruebas de scripts y 54 controles Node aprobados; builds, auditorías, integraciones Docker aisladas, observabilidad, salud y cinco gates Trivy aprobados. No equivale a nueva CI; commit/push pendiente. [Corte y comandos actuales, incluyendo Android](ci-precommit.md).
 
 - [x] Android: wrapper 8.14.3 con checksum oficial y test instrumentado con identificador propio. Build web/cap sync y controles estáticos aprobados. Tras instalar Android Studio y trasladar SDK/AVD a D: con verificación SHA-256, **APK debug, prueba unitaria y lint nativo aprobados** con JDK 21. Portada confirmada en emulador; **flujos manuales web y Android confirmados por el usuario**. Test instrumentado automatizado y conexión al futuro staging pendientes. [Evidencia y pasos](android-validacion.md).
@@ -60,7 +62,7 @@ Criterio de cierre del enriquecimiento: una muestra útil y acotada, contrato/pr
 - [x] Workflow aprobado con actionlint 1.7.7 (sin ShellCheck/Pyflakes) y cinco controles estáticos de política integrados en frontend. Gates de seguridad y artifacts conservados.
 - [ ] Publicar el nuevo commit y ejecutar su propio Actions; comprobar que desaparecen los avisos correspondientes y se mantienen los controles/pruebas aprobados.
 
-Cambios locales preparados; no se hizo commit/push ni se lanzó un workflow remoto. El run #7 sigue siendo evidencia exclusiva de `68a0b0d`, no de este árbol de trabajo.
+El usuario publicó esos cambios en `2aa3d17`; el nuevo run reportó el bloqueo de las dos fixtures URI del apartado anterior. La corrección posterior sigue local. El run #7 sigue siendo evidencia exclusiva de `68a0b0d`, no una aprobación de 2aa3d17 ni de esta corrección.
 
 ## Validación y cierre que aún faltan
 

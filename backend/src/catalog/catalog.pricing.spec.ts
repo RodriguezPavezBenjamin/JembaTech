@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { of, throwError } from 'rxjs';
 import { CatalogPricingService } from './catalog-pricing.service';
@@ -6,6 +7,13 @@ import { observedPrice, parsePrices, PRICE_TARGETS } from './catalog.pricing';
 
 const target = PRICE_TARGETS[0];
 const runId = '11111111-1111-4111-8111-111111111111';
+function offerUrlWithCredentials() {
+  // Dato negativo efímero: no corresponde a un servicio real.
+  const url = new URL('https://tienda.example.cl/producto');
+  url.username = 'qa';
+  url.password = randomBytes(16).toString('hex');
+  return url.href;
+}
 function payload() {
   const now = new Date().toISOString();
   return { schemaVersion: 'solotodo-prices-1', target: target.id, productId: target.productId, requestId: runId,
@@ -13,6 +21,13 @@ function payload() {
     offers: [{ entityId: 123, productId: target.productId, storeId: 12, storeHost: 'tienda.example.cl', offerUrl: 'https://tienda.example.cl/producto', normalPriceClp: 230000, offerPriceClp: 210000, sourceUpdatedAt: now, available: true, condition: 'new', currency: 'CLP', conditional: false }] };
 }
 describe('Precios consultados: identidad, procedencia y conservación', () => {
+  it('rechaza credenciales efímeras sin cambiar el host ni invalidar otros atributos', () => {
+    const data = payload();
+    expect(() => parsePrices(data, target, runId, new Date())).not.toThrow();
+    data.offers[0].offerUrl = offerUrlWithCredentials();
+    expect(new URL(data.offers[0].offerUrl).hostname).toBe(data.offers[0].storeHost);
+    expect(() => parsePrices(data, target, runId, new Date())).toThrow('Unsafe offer URL');
+  });
   it('coinciden las ocho URLs cerradas Python/NestJS y cada ID existe en el catálogo', () => {
     const python = readFileSync('../python-service/solotodo_prices.py', 'utf8');
     const products = new CatalogService().list().products;
@@ -27,7 +42,7 @@ describe('Precios consultados: identidad, procedencia y conservación', () => {
   it.each([
     ['productId', 151869], ['currency', 'USD'], ['available', false], ['condition', 'used'], ['conditional', true],
     ['normalPriceClp', '230000'], ['normalPriceClp', 0], ['offerPriceClp', 999999], ['storeId', true],
-    ['offerUrl', 'http://127.0.0.1/'], ['offerUrl', 'https://name:pass@example.cl/'], ['offerUrl', 'https://example.local/x'],
+    ['offerUrl', 'http://127.0.0.1/'], ['offerUrl', offerUrlWithCredentials()], ['offerUrl', 'https://example.local/x'],
     ['sourceUpdatedAt', '2026-01-01T00:00:00Z'], ['sourceUpdatedAt', '2099-01-01T00:00:00Z'],
   ])('rechaza atributo de oferta inválido: %s', (field, value) => {
     const data = payload(); Object.assign(data.offers[0], { [field as string]: value });

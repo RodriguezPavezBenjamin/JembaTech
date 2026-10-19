@@ -6,7 +6,7 @@ export function checkSecretResults(jsonl, baseline, scannerExit) {
   if (![0, 183].includes(scannerExit)) throw new Error('El escáner de secretos no terminó correctamente.');
   if (baseline?.version !== 1 || !Array.isArray(baseline.findings)) throw new Error('Baseline de secretos inválida.');
   for (const entry of baseline.findings) {
-    if (entry.detector !== 'Postgres' || !/^[a-f0-9]{40}$/.test(entry.commit)
+    if (!['Postgres', 'URI'].includes(entry.detector) || !/^[a-f0-9]{40}$/.test(entry.commit)
         || typeof entry.file !== 'string' || !entry.file || !Number.isInteger(entry.line) || entry.line < 1
         || !/^[a-f0-9]{64}$/.test(entry.sha256) || typeof entry.reason !== 'string' || !entry.reason) {
       throw new Error('Entrada histórica sin identidad verificable.');

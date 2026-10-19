@@ -2,7 +2,9 @@
 from copy import deepcopy
 from datetime import datetime, timezone
 from io import BytesIO
+from secrets import token_hex
 from unittest.mock import patch
+from urllib.parse import urlunsplit
 
 import pytest
 from fastapi.testclient import TestClient
@@ -18,6 +20,11 @@ from solotodo_prices import (
 )
 
 NOW = datetime(2026, 10, 18, 12, tzinfo=timezone.utc)
+
+
+def offer_url_with_credentials():
+    # Dato negativo efímero: nunca es una credencial de un servicio real.
+    return urlunsplit(('https', f'qa:{token_hex(16)}@tienda.example.cl', '/producto/qa', '', ''))
 
 
 def offer():
@@ -44,7 +51,7 @@ def test_exact_product_clp_and_date_with_no_photos_or_descriptions():
     ('product', {'id': 151869}), ('currency_id', 2), ('currency_id', True),
     ('store_id', True), ('is_visible', False), ('condition', 'https://schema.org/UsedCondition'),
     ('bundle', {'id': 1}), ('cell_plan', {'id': 1}), ('best_coupon', {'discount': 20}),
-    ('external_url', 'http://127.0.0.1/x'), ('external_url', 'https://user:pass@example.cl/x'),
+    ('external_url', 'http://127.0.0.1/x'), ('external_url', offer_url_with_credentials()),
 ])
 def test_ineligible_rows_never_supply_a_price(field, value):
     row = offer(); row[field] = value
@@ -61,6 +68,12 @@ def test_old_unavailable_conditional_or_invalid_prices_are_rejected(field, value
     row = offer(); row['active_registry'][field] = value
     result = normalize_offers([row], 166287, NOW)
     assert result['rejected'] == 1 and result['offers'] == []
+
+
+def test_ephemeral_credentials_are_rejected_without_changing_the_valid_host():
+    assert safe_offer_url(offer()['external_url']) == 'tienda.example.cl'
+    with pytest.raises(ValueError, match='URL no pública HTTPS'):
+        safe_offer_url(offer_url_with_credentials())
 
 
 def test_duplicates_and_empty_page_are_explicit():

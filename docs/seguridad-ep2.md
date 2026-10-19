@@ -1,6 +1,6 @@
 # Seguridad y pipeline EP2
 
-Actualizado: 2026-10-17. Corrección validada en [CI EP2 #7](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39012531921), commit `68a0b0d7b91463bfeb9e8057e88166e5fc9c6ab1`; todos los jobs aprobados, incluidos ambos CodeQL, secretos y Docker. No acredita staging ni ausencia total de vulnerabilidades. Los apartados de verificación local conservan la secuencia histórica.
+Actualizado: 2026-10-18. Corrección anterior validada en [CI EP2 #7](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39012531921), commit `68a0b0d7b91463bfeb9e8057e88166e5fc9c6ab1`; todos los jobs aprobados, incluidos ambos CodeQL, secretos y Docker. El usuario publicó después `2aa3d17`, cuyo job secrets detectó dos fixtures URI sintéticas. [Corrección posterior y comprobación real](ci-secrets-fixtures.md), todavía local sin nuevo commit/push ni aprobación remota. No acredita staging ni ausencia total de vulnerabilidades. Los apartados de verificación local conservan la secuencia histórica.
 
 ## Política de controles
 
@@ -11,7 +11,7 @@ Actualizado: 2026-10-17. Corrección validada en [CI EP2 #7](https://github.com/
 | pip-audit 2.10.1 | Runtime Python y transitivas; cualquier vulnerabilidad conocida. `--strict` rechaza errores de recopilación. |
 | npm audit producción | HIGH/CRITICAL bloqueantes en frontend/backend. |
 | npm audit completo | Incluye desarrollo; CRITICAL bloqueantes, HIGH/MODERATE también quedan reportados. |
-| TruffleHog | Versión 3.99.2 y digest de imagen fijados; `verified,unknown`, sin tags de ignore y con fallo ante error de escaneo. Baseline exacta de tres apariciones históricas locales revisadas; cualquier otra coincidencia bloquea. |
+| TruffleHog | Versión 3.99.2 y digest de imagen fijados; `verified,unknown`, sin tags de ignore y con fallo ante error de escaneo. Baseline exacta de cinco apariciones QA históricas revisadas (tres Postgres y dos URI de tests negativos); cualquier otra coincidencia bloquea. |
 | Trivy 0.76.0 | IDs reales de frontend, backend, Python, migraciones y PostgreSQL. Falla ante error, cualquier CRITICAL (con o sin parche) y HIGH con solución disponible. |
 
 Trivy exporta un JSON **completo**, también con severidades menores y CVE sin parche. El gate CRITICAL no usa `--ignore-unfixed`; esa opción solo se aplica al gate separado de HIGH. Pasar el umbral no significa ausencia de CVE. No se añaden excepciones por CVE para obtener verde.

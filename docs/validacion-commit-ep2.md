@@ -1,6 +1,10 @@
 # Commit y validación remota EP2
 
-## Corte vigente antes del próximo commit — 2026-10-18
+## Seguimiento del commit 2aa3d17 — 2026-10-18
+
+El usuario publicó catálogo/portada/Android/CI como `2aa3d17`. Secrets bloqueó dos fixtures URI negativas sintéticas; no se declara ese run aprobado. La [corrección de fixtures y triage histórico](ci-secrets-fixtures.md) conserva los controles del scanner y contiene los comandos del siguiente commit. No se hizo commit/push de la corrección por parte del agente.
+
+## Corte anterior a la publicación de 2aa3d17 — 2026-10-18
 
 Ver [validación precommit actual](ci-precommit.md): Actions migradas a Node 24 con SHA completo, Ubuntu 24.04, parches Nginx, checksums Terraform Linux/Windows y pruebas locales repetidas. **Ahora sí se incluye Android**: APK/lint aprobados, portada confirmada en emulador y flujos manuales confirmados por el usuario en web y Android. HEAD sigue en `68a0b0d`; el usuario hará commit/push y comprobará el nuevo run. Railway y release siguen pendientes. Los comandos actuales están en ese documento; las exclusiones de Android que aparecen más abajo son históricas y no se aplican a este corte.
 

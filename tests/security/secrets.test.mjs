@@ -3,11 +3,11 @@ import { createHash } from 'node:crypto';
 import { test } from 'node:test';
 import { checkSecretResults } from '../../scripts/check-secrets.mjs';
 
-const fixture = () => {
+const fixture = (detector = 'Postgres') => {
   const raw = 'synthetic-unit-marker-not-a-credential';
-  const entry = { detector: 'Postgres', commit: 'a'.repeat(40), file: 'tests/example.yml', line: 16,
+  const entry = { detector, commit: 'a'.repeat(40), file: 'tests/example.yml', line: 16,
     sha256: createHash('sha256').update(raw).digest('hex'), reason: 'Unit test only.' };
-  const row = { DetectorName: 'Postgres', Verified: false, Raw: raw,
+  const row = { DetectorName: detector, Verified: false, Raw: raw,
     SourceMetadata: { Data: { Git: { file: entry.file, line: entry.line, commit: entry.commit } } } };
   return { baseline: { version: 1, findings: [entry] }, row };
 };
@@ -19,6 +19,38 @@ test('secretos: pasa limpio o solo la aparición histórica exacta revisada', ()
   assert.equal(result.acceptedHistoricalQa, 1);
   assert.deepEqual(result.blocked, []);
   assert.equal(JSON.stringify(result).includes(row.Raw), false);
+});
+
+test('secretos URI: acepta solo la fixture histórica exacta y nunca imprime Raw', () => {
+  const { baseline, row } = fixture('URI');
+  const result = checkSecretResults(JSON.stringify(row), baseline, 183);
+  assert.equal(result.acceptedHistoricalQa, 1);
+  assert.deepEqual(result.blocked, []);
+  assert.equal(JSON.stringify(result).includes(row.Raw), false);
+});
+
+test('secretos URI: nuevo commit, ruta, línea, huella o resultado verificado bloquean', () => {
+  for (const change of [
+    row => { row.Raw += '-different'; }, row => { row.Verified = true; },
+    row => { row.SourceMetadata.Data.Git.commit = 'b'.repeat(40); },
+    row => { row.SourceMetadata.Data.Git.file = 'backend/config.yml'; },
+    row => { row.SourceMetadata.Data.Git.line = 19; },
+  ]) {
+    const { baseline, row } = fixture('URI');
+    change(row);
+    assert.equal(checkSecretResults(JSON.stringify(row), baseline, 183).blocked.length, 1);
+  }
+});
+
+test('secretos: una entrada histórica URI no permite otros detectores ni otro hallazgo', () => {
+  const { baseline, row } = fixture('URI');
+  const other = structuredClone(row);
+  other.SourceMetadata.Data.Git.commit = 'c'.repeat(40);
+  const result = checkSecretResults([row, other].map(item => JSON.stringify(item)).join('\n'), baseline, 183);
+  assert.equal(result.acceptedHistoricalQa, 1);
+  assert.equal(result.blocked.length, 1);
+  baseline.findings[0].detector = 'AWS';
+  assert.throws(() => checkSecretResults('', baseline, 0));
 });
 
 test('secretos: credencial distinta, commit nuevo, otro archivo/línea o verificada bloquean', () => {
