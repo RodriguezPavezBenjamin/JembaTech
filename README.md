@@ -5,16 +5,16 @@ Acceso web opcional con Google: [configuración Firebase, vinculación de cuenta
 Staging web: **https://jembatech.up.railway.app**. El usuario confirmó el acceso
 Google y el flujo cliente–administrador. [Despliegue, salud, rollback y activación
 del workflow](docs/railway-staging.md). CD y salud completa se comprobaron para
-`5ef1e07` ([CI EP2 #17](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39212559189),
-[Railway staging #4](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39212869081)).
+`fd8d437` ([CI EP2 #18](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39214365822),
+[Railway staging #5](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39214746040)).
 [Terraform Railway](infra/railway/README.md): 16 objetos existentes
 importados, plan real sin cambios ni diferencias observadas y archivos cifrados,
 según el [resultado del propietario](docs/adopcion-railway-evidencia.md).
 El [complemento Railway IaC](infra/railway-native/README.md) declara ajustes no
 modelados por el proveedor, con guardas, pruebas y plan real de solo lectura sin
 cambios. No habilita un segundo gestor ni acredita reconstrucción integral.
-El propietario confirmó la revocación del token temporal. Los cambios locales
-del complemento aún requieren publicación y su propia CI/CD.
+El propietario confirmó la revocación del token temporal. El complemento ya
+aprobó CI/CD; la ficha documental posterior todavía requiere su propio commit.
 
 Aplicación multiplataforma para cotizar PC, elegir presets y recibir una revisión explicable de compatibilidad, capacidades, consumo y precios consultados/estimados. El puntaje orienta sobre reglas de referencia; no mide FPS ni certifica rendimiento o compatibilidad final.
 
@@ -30,7 +30,8 @@ La EP2 usa SoloTodo en un piloto local. En `/admin/fuentes` conviven la importac
 
 El [diseño adaptativo](docs/diseno-adaptativo-ep2.md) especifica alternativas de CPU según contexto, restricciones antes de preferencias, motivos visibles y control del usuario, con evaluación posterior propuesta. No se ha implementado un ranking: importar el catálogo bajo confirmación es una función distinta de recomendar piezas automáticamente. [ADR-002](docs/adr/002-referencias-y-adaptacion.md).
 
-[Tablero local](docs/tablero-ep2.md) y [checklist/guion de demo](docs/cierre-ep2.md).
+[Ficha de entrega y evidencias](docs/ficha-entrega-ep2.md),
+[tablero local](docs/tablero-ep2.md) y [checklist/guion de demo](docs/cierre-ep2.md).
 Staging y CD están comprobados; la adopción de los 16 objetos Terraform tiene
 plan real sin cambios. El usuario confirmó [cinco referencias reales visibles en
 staging](docs/muestra-staging-ep2.md) como muestra declarada, no adquisición nueva.

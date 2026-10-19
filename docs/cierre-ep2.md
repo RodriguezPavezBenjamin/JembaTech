@@ -1,5 +1,10 @@
 # Cierre y demostración EP2
 
+La [ficha de entrega](ficha-entrega-ep2.md) reúne integrantes/aportes confirmados,
+enlaces, evidencia por versión y pendientes finales. Los cortes de este documento
+conservan sus fechas; para identificar el candidato y sus ejecuciones consultar
+la ficha, sin trasladar aprobaciones de un SHA a otro.
+
 ## Estado vigente, 2026-10-19
 
 Staging Railway existe en https://jembatech.up.railway.app. El usuario confirmó

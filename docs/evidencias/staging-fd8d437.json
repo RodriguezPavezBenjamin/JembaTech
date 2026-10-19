@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "representation": "Resumen del artifact deployment.json; IDs de despliegue omitidos.",
+  "source": {
+    "runUrl": "https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39214746040",
+    "artifactName": "staging-evidence",
+    "artifactId": 12168708115
+  },
+  "deployment": {
+    "status": "success",
+    "checkedAt": "2026-10-19T07:14:58.117Z",
+    "commit": "fd8d437293682e6c2dcbd0592f89728073c45dd1",
+    "ciRun": "https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39214365822",
+    "services": [
+      { "service": "python-service", "status": "SUCCESS" },
+      { "service": "backend", "status": "SUCCESS" },
+      { "service": "frontend", "status": "SUCCESS" }
+    ],
+    "health": {
+      "frontend": "ok",
+      "backend": "ok",
+      "python": "ok",
+      "database": "ok",
+      "commit": "fd8d437293682e6c2dcbd0592f89728073c45dd1"
+    }
+  }
+}
