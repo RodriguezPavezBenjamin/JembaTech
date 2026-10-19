@@ -1,7 +1,7 @@
 <dialog #dialogo aria-labelledby="titulo-editor" (cancel)="cancelarEvento($event)" (click)="cerrarFondo($event)">
   <header class="cabecera"><div><small>EDICIÓN RÁPIDA</small><h2 id="titulo-editor">Cambia las piezas de tu PC</h2></div><button type="button" class="cerrar" autofocus [disabled]="guardando" aria-label="Cerrar edición" (click)="cerrar()">✕</button></header>
   <p class="aviso" *ngIf="copia">Guardaremos una copia para conservar la cotización y su coordinación anteriores.</p>
-  <p class="meta">Precios actuales del catálogo de referencia. Cancelar conserva tu cotización original.</p>
+  <p class="meta">Precios normales consultados o estimaciones manuales, según cada ficha. Cancelar conserva tu cotización original. Despacho no incluido.</p>
   <p *ngIf="cargando" role="status">Cargando componentes…</p>
   <p class="error" role="alert" *ngIf="error">{{ error }}</p>
   <button *ngIf="!cargando && !catalogo.length" type="button" (click)="cargar()">REINTENTAR CATÁLOGO</button>
@@ -16,7 +16,7 @@
           <select [name]="'pieza-' + fila.key" [(ngModel)]="fila.id" (ngModelChange)="cambio()" [attr.aria-label]="grupo.label + ' ' + fila.key" required>
             <option value="" disabled>Elige un modelo…</option>
             <option *ngIf="fila.id && !producto(fila.id)" [value]="fila.id" disabled>Modelo anterior no disponible · selecciona otro</option>
-            <option *ngFor="let producto of opciones(grupo.category)" [value]="producto.id" [disabled]="repetido(producto.id, fila.key)">{{ producto.name }} · {{ dinero(producto.price) }}</option>
+            <option *ngFor="let producto of opciones(grupo.category)" [value]="producto.id" [disabled]="repetido(producto.id, fila.key) || producto.priceInfo?.kind === 'unavailable'">{{ producto.name }} · {{ producto.priceInfo?.kind === 'unavailable' ? 'sin oferta vigente' : dinero(producto.price) }} · {{ producto.priceInfo?.kind === 'observed' ? 'normal consultado' : producto.priceInfo?.kind === 'unavailable' ? 'actualizar fuente' : producto.price ? 'estimado' : 'incluido' }}</option>
           </select>
           <input *ngIf="grupo.multiple; else unidad" class="cantidad" type="number" [name]="'cantidad-' + fila.key" [(ngModel)]="fila.quantity" (ngModelChange)="cambio()" min="1" [max]="grupo.category === 'support' ? 1 : 8" step="1" required [attr.aria-label]="'Cantidad de ' + (producto(fila.id)?.name || grupo.label)" />
           <ng-template #unidad><span class="unidad">1 u.</span></ng-template>

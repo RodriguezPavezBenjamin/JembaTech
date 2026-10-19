@@ -9,6 +9,7 @@ const require = createRequire(join(process.cwd(), 'package.json'));
 const { PrismaClient } = require('@prisma/client');
 const { HttpService } = require('@nestjs/axios');
 const { SourcesService } = require('./dist/sources/sources.service.js');
+const { sourceTarget } = require('./dist/sources/source.targets.js');
 const { of } = require('rxjs');
 const prisma = new PrismaClient();
 const suffix = randomUUID();
@@ -19,6 +20,8 @@ const token = randomBytes(32).toString('hex');
 let userId;
 let calls = 0;
 let fail = false;
+let componentMode = false;
+const gpuId = String(Number(externalId) + 1);
 
 function normalized(stamp, name = qaName) {
   return { schema_version: 'solotodo-cpu-1', access_status: 'reuse-not-confirmed',
@@ -28,19 +31,29 @@ function normalized(stamp, name = qaName) {
 const server = createServer(async (req, res) => {
   try {
     assert.equal(req.headers['x-source-token'], token);
-    assert.equal(req.url, '/sources/solotodo/cpu/recover');
+    assert.equal(req.url, componentMode ? '/sources/solotodo/components/recover' : '/sources/solotodo/cpu/recover');
     const parts = []; for await (const part of req) parts.push(part);
     const body = JSON.parse(Buffer.concat(parts).toString());
-    assert.equal(body.limit, 1); calls++;
+    if (componentMode) assert.equal(body.target, 'rtx-5060'); else assert.equal(body.limit, 1);
+    calls++;
     res.setHeader('Content-Type', 'application/json');
     if (fail) { res.statusCode = 502; res.end(JSON.stringify({ detail: { code: 'SOURCE_ACCESS_DENIED' } })); return; }
     const stamp = new Date().toISOString();
+    if (componentMode) {
+      res.end(JSON.stringify({ ...normalized(stamp), schema_version: 'solotodo-components-2', category: 'gpu', target: 'rtx-5060',
+        products: [{ ...normalized(stamp).products[0], external_id: gpuId, category: 'gpu',
+          specs: { chip: 'NVIDIA RTX 5060 QA', chipBrand: 'NVIDIA', vramGb: 16, memoryType: 'GDDR6', declaredTdpWatts: 160, lengthMm: null, slots: null, bus: null },
+          source_url: `https://www.solotodo.cl/products/${gpuId}` }],
+        request_id: body.request_id, retrieved_at: stamp, source_request_url: sourceTarget('rtx-5060').url, retrieval_ms: 2 }));
+      return;
+    }
     res.end(JSON.stringify({ ...normalized(stamp), request_id: body.request_id, retrieved_at: stamp, source_request_url: 'https://api.solotodo.com/products/?categories=3&page_size=1', retrieval_ms: 2 }));
   } catch { res.statusCode = 500; res.end('{}'); }
 });
 
 try {
   assert.equal(await prisma.externalReference.count({ where: { source: 'solotodo', externalId } }), 0);
+  assert.equal(await prisma.externalReference.count({ where: { source: 'solotodo', externalId: gpuId } }), 0);
   assert.equal(await prisma.sourceRun.count({ where: { source: 'solotodo', mode: 'manual-api', OR: [{ status: 'RUNNING' }, { startedAt: { gt: new Date(Date.now() - 60000) } }] } }), 0, 'No ejecutar mientras haya una consulta real activa/reciente');
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   process.env.PYTHON_SERVICE_URL = `http://127.0.0.1:${server.address().port}`;
@@ -86,10 +99,19 @@ try {
   const interrupted = await prisma.sourceRun.create({ data: { source: 'solotodo', mode: 'manual-api', status: 'RUNNING', createdById: userId, retrievedAt: new Date(), startedAt: new Date(Date.now() - 180000) } });
   await service.recoverCpu(dto, userId);
   assert.equal((await prisma.sourceRun.findUnique({ where: { id: interrupted.id } })).errorCode, 'INTERRUPTED');
+  await rewindQaRuns(); componentMode = true;
+  const gpuRun = await service.recoverComponents({ target: 'rtx-5060', acknowledged: true }, userId);
+  assert.equal(gpuRun.storedCount, 1);
+  const gpu = await prisma.externalReference.findUnique({ where: { source_externalId: { source: 'solotodo', externalId: gpuId } } });
+  assert.equal(gpu.category, 'gpu'); assert.equal(gpu.specs.vramGb, 16); assert.equal(gpu.acquisitionMode, 'manual-api');
+  await assert.rejects(service.recoverCpu(dto, userId), error => error.getStatus?.() === 429);
+  await rewindQaRuns(); fail = true;
+  await assert.rejects(service.recoverComponents({ target: 'rtx-5060', acknowledged: true }, userId), error => error.getResponse?.().code === 'SOURCE_ACCESS_DENIED');
+  assert.equal((await prisma.externalReference.findUnique({ where: { id: gpu.id } })).lastRunId, gpuRun.id);
   console.log('Recuperación: clave interna, procedencia, tiempos, cooldown, exclusión concurrente, prioridad API, fallo y auditoría interrumpida: OK');
 } finally {
   server.close();
-  await prisma.externalReference.deleteMany({ where: { source: 'solotodo', externalId, name: { startsWith: qaName } } });
+  await prisma.externalReference.deleteMany({ where: { source: 'solotodo', externalId: { in: [externalId, gpuId] }, name: { startsWith: qaName } } });
   if (userId) {
     await prisma.sourceRun.deleteMany({ where: { createdById: userId, source: 'solotodo' } });
     await prisma.user.deleteMany({ where: { id: userId, name: 'QA recovery temporal' } });

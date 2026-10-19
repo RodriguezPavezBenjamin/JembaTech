@@ -2,21 +2,35 @@
   <div class="fuente-titulo">
     <div><span class="eyebrow">JEMBATECH · ADMINISTRACIÓN</span><h1>Fuentes y calidad</h1></div>
   </div>
-  <p class="lead">SoloTodo · piloto privado de fichas técnicas CPU.</p>
-  <p class="aviso-fuente">Sincronización desactivada · solo consultas puntuales de prueba. Las condiciones de reutilización siguen pendientes. Estas referencias no cambian el catálogo, sus precios ni las cotizaciones.</p>
+  <p class="lead">SoloTodo · referencias privadas de componentes.</p>
+  <p class="aviso-fuente">Sincronización desactivada · consultas puntuales. La importación al armador incorpora fichas con foto y oferta apta; las referencias técnicas de abajo son independientes. No cambia cotizaciones guardadas. Condiciones de reutilización pendientes: piloto local, sin despliegue público ni cron.</p>
   @if (error) { <p class="error" role="alert">{{ error }}</p> }
   @if (mensaje) { <p class="success" role="status">{{ mensaje }}</p> }
   <div class="metricas-fuente" aria-label="Estado de datos">
     <div><span>REFERENCIAS</span><strong>{{ resumen?.referenceCount ?? '—' }}</strong></div>
     <div><span>EJECUCIONES</span><strong>{{ resumen?.runCount ?? '—' }}</strong></div>
-    <div><span>VÁLIDAS · ÚLTIMO LOTE</span><strong>{{ validezUltimoLote }}</strong></div>
+    <div><span>ACEPTADAS · ÚLTIMO LOTE</span><strong>{{ validezUltimoLote }}</strong></div>
     <div><span>ORIGEN DEL LOTE</span><strong class="texto-metrica">{{ origenLote }}</strong></div>
   </div>
 
+  <section class="consulta-fuente" aria-labelledby="titulo-catalogo">
+    <div><span class="eyebrow">CATÁLOGO DEL ARMADOR · SOLO ESCRITORIO</span><h2 id="titulo-catalogo">Importar modelos con foto y precio</h2><p>Topes iniciales: 35 procesadores, 30 gráficas, 20 RAM, 20 placas y 15 gabinetes. Intel desde 11.ª y Core Ultra; Ryzen 5000/7000/9000. Sin portátiles, SO-DIMM ni servidores.</p></div>
+    @if (catalogo; as datos) {
+      <p class="nota-fuente">Importados: CPU {{ datos.counts['cpu'] }} / {{ datos.caps['cpu'] }} · GPU {{ datos.counts['gpu'] }} / {{ datos.caps['gpu'] }} · RAM {{ datos.counts['ram'] }} / {{ datos.caps['ram'] }} · placas {{ datos.counts['board'] }} / {{ datos.caps['board'] }} · gabinetes {{ datos.counts['case'] }} / {{ datos.caps['case'] }}.</p>
+      <div class="controles-consulta">
+        <label for="familia-catalogo">Familia / variedad<select id="familia-catalogo" [(ngModel)]="objetivoCatalogo" (ngModelChange)="catalogoConfirmado = false" [disabled]="guardando">@for (target of datos.targets; track target.id) { <option [value]="target.id">{{ etiquetasCatalogo[target.category] }} · {{ target.query }} · hasta {{ target.take }}</option> }</select></label>
+        <label class="confirmacion-consulta"><input type="checkbox" [(ngModel)]="catalogoConfirmado" [disabled]="guardando">Importar una familia al armador con foto, precio normal y fecha. Revisa hasta 25 candidatas CPU o 10 de otra categoría y consulta ofertas de hasta 5; sin alterar cotizaciones anteriores.</label>
+        <button type="button" [disabled]="!puedeImportarCatalogo" (click)="importarCatalogo()">{{ guardando ? 'Procesando…' : 'Importar al armador' }}</button>
+      </div>
+      <p class="nota-fuente">Los campos ausentes quedan por confirmar, no como cero. Se usa la foto asignada por SoloTodo a la ficha; puede ser de familia. Si falla se muestra una ilustración. Sin oferta apta no se agrega un precio inventado. Cada familia requiere confirmación y comparte la espera de un minuto. Puede tardar hasta un minuto.</p>
+    }
+  </section>
+
   <section class="consulta-fuente" aria-labelledby="titulo-consulta">
-    <div><span class="eyebrow">RECUPERACIÓN WEB · CPU</span><h2 id="titulo-consulta">Consultar SoloTodo</h2><p>Una página, hasta 5 fichas. Python consulta y valida; el servidor guarda fecha, origen y resultados. Sin copiar JSON.</p></div>
+    <div><span class="eyebrow">RECUPERACIÓN WEB · POR MODELO</span><h2 id="titulo-consulta">Elige qué quieres revisar</h2><p>Una búsqueda, hasta 5 fichas. Puede incluir variantes de memoria, ensamblador, sufijo o presentación: son candidatas, no coincidencias SKU aprobadas.</p></div>
     <div class="controles-consulta">
-      <label for="limite-fuente">Fichas por consulta<select id="limite-fuente" [(ngModel)]="limiteConsulta" [disabled]="guardando"><option [ngValue]="1">1 ficha</option><option [ngValue]="3">3 fichas</option><option [ngValue]="5">5 fichas</option></select></label>
+      <label for="categoria-consulta">Componente<select id="categoria-consulta" [(ngModel)]="categoriaConsulta" (ngModelChange)="cambiarCategoriaConsulta()" [disabled]="guardando">@for (categoria of categorias; track categoria.id) { <option [value]="categoria.id">{{ categoria.label }}</option> }</select></label>
+      <label for="modelo-consulta">Modelo de referencia<select id="modelo-consulta" [(ngModel)]="objetivoConsulta" (ngModelChange)="consultaConfirmada = false" [disabled]="guardando || !objetivosDisponibles.length">@for (target of objetivosDisponibles; track target.id) { <option [value]="target.id">{{ target.brand }} · {{ target.label }}</option> }</select></label>
       <label class="confirmacion-consulta"><input type="checkbox" [(ngModel)]="consultaConfirmada" [disabled]="guardando">Confirmo una consulta puntual del piloto, sin actualizar precios ni activar sincronización.</label>
       <button type="button" [disabled]="!puedeConsultar" (click)="consultarFuente()">{{ guardando ? 'Procesando…' : 'Consultar y guardar' }}</button>
     </div>
@@ -26,12 +40,24 @@
     @if (errorConsulta) { <p class="error" role="alert">{{ errorConsulta }}</p> }
   </section>
 
+  <section class="consulta-fuente" aria-labelledby="titulo-precios">
+    <div><span class="eyebrow">PRECIOS DEL COTIZADOR · SKU REVISADOS</span><h2 id="titulo-precios">Consultar precio publicado</h2><p>Hasta 5 ofertas del modelo exacto. Solo CLP, producto nuevo, disponible según la fuente y actualizado en las últimas 24 h. No se recorren otras páginas ni se garantiza el mínimo del mercado.</p></div>
+    <div class="controles-consulta">
+      <label for="modelo-precio">Modelo / presentación<select id="modelo-precio" [(ngModel)]="objetivoPrecio" (ngModelChange)="precioConfirmado = false" [disabled]="guardando">@for (target of precios; track target.id) { <option [value]="target.id">{{ target.label }}</option> }</select></label>
+      <label class="confirmacion-consulta"><input type="checkbox" [(ngModel)]="precioConfirmado" [disabled]="guardando">Actualizar el precio normal de este modelo para nuevas revisiones. No modificar cotizaciones guardadas.</label>
+      <button type="button" [disabled]="!puedeConsultarPrecio" (click)="consultarPrecio()">{{ guardando ? 'Procesando…' : 'Consultar y aplicar precio' }}</button>
+    </div>
+    @if (precioSeleccionado; as precio) { <p class="nota-fuente">Normal: {{ dinero(precio.normalPriceClp) }} · oferta publicada: {{ dinero(precio.offerPriceClp) }} · {{ precio.storeHost }}. Consultado {{ precio.observedAt | date:'dd/MM HH:mm' }}; vence {{ precio.expiresAt | date:'dd/MM HH:mm' }}. Despacho y condiciones se confirman en la tienda.</p> }
+    @if (precioVencido) { <p class="error">Este precio venció; ya no se aplica al total. El cotizador muestra la estimación manual hasta una nueva consulta válida.</p> }
+    <p class="nota-fuente">El total usa precio normal, no cupones o descuentos condicionados. Si no hay oferta apta o vence, vuelve a mostrar ESTIMADO. Abrir/filtrar esta página no consulta tiendas ni SoloTodo.</p>
+  </section>
+
   <details class="muestra-fuente">
     <summary>Herramienta avanzada: validar muestra JSON <span>Alternativa manual</span></summary>
-    <p>Hasta 5 fichas. El administrador declara su fecha y procedencia; esto no certifica una adquisición automática ni autoriza reutilizar el catálogo.</p>
+    <p>Hasta 5 fichas. Categorías: cpu, gpu, motherboard, ram y storage. Sin category se conserva el formato CPU original. Una muestra declarada no certifica adquisición ni autoriza reutilización.</p>
     <form (ngSubmit)="preparar()">
       <label for="json-muestra">JSON de la muestra</label>
-      <textarea id="json-muestra" name="muestra" [(ngModel)]="muestra" rows="6" maxlength="100000" [disabled]="guardando" placeholder='{"retrievedAt":"fecha ISO con zona horaria","records":[...]}'></textarea>
+      <textarea id="json-muestra" name="muestra" [(ngModel)]="muestra" rows="6" maxlength="100000" [disabled]="guardando" placeholder='{"category":"gpu","retrievedAt":"fecha ISO con zona horaria","records":[...]}'></textarea>
       @if (errorMuestra) { <p class="error" role="alert">{{ errorMuestra }}</p> }
       <button type="submit" [disabled]="guardando || !muestra.trim()">{{ guardando ? 'Validando y guardando…' : 'Validar y guardar muestra' }}</button>
     </form>
@@ -41,39 +67,80 @@
     <h2>Referencias técnicas</h2>
     <form class="buscar-fuente" (ngSubmit)="cargar()"><label class="sr-only" for="buscar-fuente">Buscar por nombre, marca o Part Number</label><input id="buscar-fuente" name="busqueda" [(ngModel)]="busqueda" maxlength="100" placeholder="Nombre, marca o Part Number"><button type="submit" [disabled]="cargando">Buscar</button></form>
   </div>
+  <div class="filtros-fuente">
+    <label for="categoria-filtro">Componente<select id="categoria-filtro" [(ngModel)]="categoriaFiltro" (ngModelChange)="cargar()" [disabled]="cargando || guardando"><option value="">Todos</option>@for (categoria of categorias; track categoria.id) { <option [value]="categoria.id">{{ categoria.label }}</option> }</select></label>
+    <label for="marca-filtro">Marca / chip<select id="marca-filtro" [(ngModel)]="marcaFiltro" (ngModelChange)="cargar()" [disabled]="cargando || guardando"><option value="">Todas</option><option value="AMD">AMD</option><option value="Intel">Intel</option><option value="NVIDIA">NVIDIA</option><option value="MSI">MSI</option><option value="ASUS">ASUS</option><option value="ASRock">ASRock</option><option value="Kingston">Kingston</option><option value="Crucial">Crucial</option><option value="Seagate">Seagate</option></select></label>
+    <span>El listado usa datos guardados. Filtrar no consulta SoloTodo.</span>
+  </div>
   @if (cargando) { <p role="status">Cargando referencias…</p> }
   @if (!cargando && !referencias.items.length && !error) { <p class="vacio-fuente">Aún no hay referencias que coincidan. Consulta la fuente o valida una muestra para comenzar; no se generarán productos ficticios.</p> }
   <div class="referencias-fuente" [attr.aria-busy]="cargando">
     @for (item of referencias.items; track item.id) {
       <article class="referencia-fuente">
-        <div class="referencia-cabecera"><span>{{ item.brand }} · CPU {{ item.externalId }}</span><span class="etiqueta-fuente">PILOTO</span></div>
+        <div class="referencia-cabecera"><span>{{ item.brand }} · {{ nombreCategoria(item.category) }} · {{ item.externalId }}</span><span class="etiqueta-fuente">SIN VINCULAR</span></div>
         <h3>{{ item.name }}</h3>
-        <p class="datos-cpu">{{ item.specs.socket }} · {{ item.specs.cores }} núcleos / {{ item.specs.threads }} hilos</p>
+        @if (item.category === 'gpu') {
+          <p class="datos-cpu">{{ item.specs.chip }} · {{ item.specs.vramGb }} GB {{ item.specs.memoryType }}</p>
+        } @else if (item.category === 'cpu') {
+          <p class="datos-cpu">{{ item.specs.socket }} · {{ item.specs.cores }} núcleos / {{ item.specs.threads }} hilos</p>
+          @if (item.specs.efficiencyCores) { <p class="nota-fuente">{{ item.specs.performanceCores }} de rendimiento + {{ item.specs.efficiencyCores }} de eficiencia</p> }
+        } @else if (item.category === 'motherboard') {
+          <p class="datos-cpu">{{ item.specs.socket }} · {{ item.specs.formFactor }} · {{ item.specs.chipset }}</p>
+        } @else if (item.category === 'ram') {
+          <p class="datos-cpu">{{ item.specs.capacityGb }} GB · {{ item.specs.modules }} × {{ item.specs.moduleCapacityGb }} GB · {{ item.specs.ramType }}</p>
+        } @else if (item.category === 'storage') {
+          <p class="datos-cpu">{{ item.specs.storageType }} · {{ item.specs.capacityGb }} GB · {{ item.specs.interface }} · {{ item.specs.formFactor }}</p>
+        }
         <dl>
-          <div><dt>TDP declarado</dt><dd>{{ item.specs.declaredTdpWatts !== null ? item.specs.declaredTdpWatts + ' W' : 'Sin dato' }}</dd></div>
+          @if (item.category === 'gpu') {
+            <div><dt>Largo / slots</dt><dd>{{ item.specs.lengthMm != null ? item.specs.lengthMm + ' mm' : 'Sin dato' }} · {{ item.specs.slots ?? 'Sin dato' }} slots</dd></div>
+            <div><dt>Interfaz</dt><dd>{{ item.specs.bus || 'Sin dato' }}</dd></div>
+          }
+          @if (aplicaTdp(item.category)) { <div><dt>TDP declarado</dt><dd>{{ item.specs.declaredTdpWatts !== null ? item.specs.declaredTdpWatts + ' W' : 'Sin dato' }}</dd></div> }
+          @if (item.category === 'motherboard') {
+            <div><dt>Memoria / slots RAM</dt><dd>{{ item.specs.ramType }} · {{ item.specs.ramSlots }} slots</dd></div>
+            <div><dt>Conexiones de almacenamiento</dt><dd>M.2: {{ item.specs.m2Slots ?? 'Sin dato' }} · SATA: {{ item.specs.sataPorts ?? 'Sin dato' }}</dd></div>
+          }
+          @if (item.category === 'ram') {
+            <div><dt>Formato / velocidad</dt><dd>{{ item.specs.formFactor }} · {{ item.specs.speedMt }} MT/s</dd></div>
+            <div><dt>Latencia</dt><dd>{{ item.specs.casLatency != null ? 'CL' + item.specs.casLatency : 'Sin dato' }}</dd></div>
+          }
+          @if (item.category === 'storage') {
+            <div><dt>Interfaz de conexión</dt><dd>{{ item.specs.bus }}</dd></div>
+            @if (item.specs.storageType === 'HDD') {
+              <div><dt>Rotación</dt><dd>{{ item.specs.rpm != null ? item.specs.rpm + ' RPM' : 'Sin dato' }}</dd></div>
+            } @else {
+              <div><dt>Lectura / escritura declaradas</dt><dd>{{ item.specs.readMbps ?? 'Sin dato' }} / {{ item.specs.writeMbps ?? 'Sin dato' }} MB/s</dd></div>
+              <div><dt>Conector</dt><dd>{{ item.specs.connector || 'Sin dato' }}</dd></div>
+            }
+          }
           <div><dt>Part Number</dt><dd>{{ item.partNumber || 'Sin dato' }}</dd></div>
           <div><dt>{{ item.acquisitionMode === 'manual-api' ? 'Recuperada por el servidor' : 'Recuperación declarada' }}</dt><dd>{{ item.retrievedAt | date:'dd/MM/yyyy HH:mm' }}</dd></div>
           <div><dt>Actualización de origen</dt><dd>{{ item.sourceUpdatedAt ? (item.sourceUpdatedAt | date:'dd/MM/yyyy HH:mm') : 'Sin dato' }}</dd></div>
         </dl>
+        <p class="calidad-referencia">{{ antiguedad(item) }}</p>
+        <p class="nota-fuente">{{ faltantes(item) }}</p>
+        @if (item.category === 'motherboard') { <p class="nota-fuente">Socket, DDR y conteos no certifican BIOS ni puertos utilizables simultáneamente; confirmar el modelo final.</p> }
+        @if (item.category === 'storage' && item.specs.interface === 'PCIe') { <p class="nota-fuente">M.2 describe el formato; el protocolo NVMe no está declarado en estos campos. Confirmar con el fabricante.</p> }
         <div class="referencia-pie"><span>Sin precio verificado · sin vínculo al catálogo</span>@if (origenSeguro(item); as url) { <a [href]="url" target="_blank" rel="noopener noreferrer">Ver origen ↗</a> }</div>
         <details class="hash-fuente"><summary>Trazabilidad</summary><code>{{ item.contentHash }}</code><p>{{ item.acquisitionMode === 'manual-api' ? 'Consulta API puntual, recuperada por el servidor.' : 'Muestra declarada por administrador.' }} Derechos de reutilización pendientes.</p></details>
       </article>
     }
   </div>
   <nav class="paginacion-fuente" aria-label="Paginación de referencias"><button class="secondary" [disabled]="cargando || referencias.page <= 1" (click)="cargar(referencias.page - 1)">Anterior</button><span>{{ referencias.total }} fichas · página {{ referencias.page }} de {{ paginas }}</span><button class="secondary" [disabled]="cargando || referencias.page >= paginas" (click)="cargar(referencias.page + 1)">Siguiente</button></nav>
-  <p class="nota-fuente">El TDP no es consumo máximo ni recomendación de fuente. Una fecha de actualización no garantiza stock o precio vigente.</p>
+  <p class="nota-fuente">Aceptadas = cumplen el contrato y los criterios de esa ejecución, no exactitud comprobada. Importar al armador exige además foto, oferta apta y cuota; los descartes quedan en el historial. El TDP de CPU o chip GPU no es consumo máximo del equipo ni recomendación de fuente. El aviso de 90 días es un criterio interno, no una garantía del proveedor.</p>
 
   <h2>Últimas ejecuciones</h2>
   <div class="historial-fuente">
     @for (run of ejecuciones; track run.id) {
       <details class="ejecucion-fuente">
-        <summary><span>{{ estado(run.status) }} · {{ run.mode === 'manual-api' ? 'API puntual' : 'Muestra JSON' }} · {{ run.startedAt | date:'dd/MM HH:mm' }}</span><span>{{ run.metrics?.accepted ?? '—' }} válidas / {{ run.metrics?.received ?? '—' }} recibidas</span></summary>
+        <summary><span>{{ estado(run.status) }} · {{ run.metrics?.kind === 'price-quote' ? 'Ofertas de precio' : run.mode === 'manual-api' ? 'API puntual' : 'Muestra JSON' }} · {{ run.startedAt | date:'dd/MM HH:mm' }}</span><span>{{ run.metrics?.accepted ?? '—' }} válidas / {{ run.metrics?.received ?? '—' }} recibidas</span></summary>
         <p class="id-ejecucion">ID / correlación: {{ run.id }}</p>
         @if (run.sourceRequestUrl) { <p class="id-ejecucion">Consulta: {{ run.sourceRequestUrl }}</p> }
         @if (run.retrievalMs !== null && run.retrievalMs !== undefined) { <p>Recuperación: {{ run.retrievalMs }} ms · total: {{ run.durationMs }} ms</p> }
-        @if (run.metrics; as m) { <p>{{ m.validPercent }}% válidas · {{ m.duplicatePercent }}% duplicadas · {{ m.rejected }} rechazadas · {{ m.missingTdp }} sin TDP · {{ m.processingMs }} ms de procesamiento</p><p>{{ run.storedCount }} guardadas · {{ run.staleSkipped }} omitidas por antigüedad/conflicto.</p> }
+        @if (run.metrics; as m) { <p>{{ m.validPercent }}% válidas · {{ m.duplicatePercent }}% duplicadas · {{ m.rejected }} rechazadas @if (m.kind !== 'price-quote' && aplicaTdp(m.category)) { · {{ m.missingTdp }} sin TDP } @if (m.kind !== 'price-quote') { · {{ m.processingMs }} ms de procesamiento }</p>@if (m.kind === 'price-quote') { <p>Auditoría de precios guardada; no modifica las referencias técnicas ni cotizaciones existentes.</p> } @else { <p>{{ run.storedCount }} guardadas · {{ run.staleSkipped }} omitidas por antigüedad/conflicto.</p> } }
         @if (run.errorCode) { <p class="error">Código: {{ run.errorCode }}. La operación no reemplazó fichas válidas anteriores.</p> }
-        @for (issue of run.issues ?? []; track issue.index) { <p class="incidencia-fuente">Fila {{ issue.index + 1 }} · {{ issue.code }} @if (issue.fields.length) { · {{ issue.fields.join(', ') }} }</p> }
+        @for (issue of run.issues ?? []; track issue.index) { <p class="incidencia-fuente">Fila {{ issue.index + 1 }} · {{ incidencia(issue.code) }} @if (issue.fields.length) { · {{ issue.fields.join(', ') }} }</p> }
       </details>
     } @empty { <p class="nota-fuente">Sin ejecuciones registradas.</p> }
   </div>

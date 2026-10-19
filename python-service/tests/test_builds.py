@@ -57,6 +57,18 @@ def test_budget_is_independent_from_build_total(configuration):
     assert any(item.category == 'budget' for item in result.issues)
 
 
+def test_individual_64gb_modules_count_slots_capacity_and_subtotal(configuration):
+    configuration['components'][3].update(quantity=2, price=100000)
+    configuration['components'][3]['specs'].update(capacityGb=64, modules=1, power=4)
+    configuration['components'][2]['specs'].update(ramSlots=2)
+    result = evaluate(configuration)
+    assert result.ram_gb == 128 and result.total_price == 270000
+    assert result.can_save
+    assert any('XMP/EXPO' in warning for warning in result.warnings)
+    configuration['components'][3]['quantity'] = 3
+    assert not evaluate(configuration).can_save
+
+
 def test_psu_margin_rounds_up_at_boundary():
     assert recommended_watts(400) == 550
     assert recommended_watts(407) == 550
@@ -139,3 +151,33 @@ def test_gpu_manufacturer_psu_floor_is_not_ignored(configuration):
     result = evaluate(configuration)
     assert result.recommended_watts == 700
     assert not result.can_save
+
+
+@pytest.mark.parametrize('intended_use', ['oficina', 'estudio', 'gaming', 'programacion', 'edicion'])
+@pytest.mark.parametrize('capacity', [8, 16])
+def test_intended_use_only_adds_low_ram_warning(configuration, intended_use, capacity):
+    configuration['components'][3]['specs'].update(capacityGb=capacity, modules=1)
+    baseline = evaluate(configuration)
+    configuration['intended_use'] = intended_use
+    result = evaluate(configuration)
+    expected = capacity < 16 and intended_use in {'gaming', 'programacion', 'edicion'}
+    assert any('Para este uso' in issue.message for issue in result.issues) == expected
+    assert result.ram_gb == capacity
+    assert result.total_price == baseline.total_price
+    assert result.can_save
+    assert result.score == (90 if expected else 100)
+
+
+def test_incomplete_api_specs_are_not_zero_or_full_compatibility(configuration):
+    board = configuration['components'][2]['specs']
+    board.pop('maxRam')
+    board['unverified'] = ['capacidad RAM máxima']
+    case = configuration['components'][6]['specs']
+    for key in ['radiators', 'psuForms', 'fan120', 'fan140', 'included120', 'included140']:
+        case.pop(key)
+    case['unverified'] = ['formatos de fuente', 'radiadores y montaje simultáneo de ventiladores']
+    result = evaluate(configuration)
+    assert result.can_save
+    assert result.level == 'Revisión parcial · confirmar montaje'
+    assert any('por confirmar' in issue.message for issue in result.issues)
+    assert not any('Faltan' in issue.message for issue in result.issues)

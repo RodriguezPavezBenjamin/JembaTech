@@ -1,1 +1,1 @@
-{"compilerOptions":{"module":"commonjs","declaration":true,"removeComments":true,"emitDecoratorMetadata":true,"experimentalDecorators":true,"target":"ES2023","sourceMap":true,"outDir":"./dist","strict":true,"esModuleInterop":true,"skipLibCheck":true}}
+{"compilerOptions":{"module":"commonjs","declaration":true,"removeComments":true,"emitDecoratorMetadata":true,"experimentalDecorators":true,"target":"ES2023","sourceMap":true,"outDir":"./dist","strict":true,"esModuleInterop":true,"skipLibCheck":true,"resolveJsonModule":true}}

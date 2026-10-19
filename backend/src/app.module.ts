@@ -12,6 +12,8 @@ import { JwtAuthGuard } from "./auth.guard";
 import { RolesGuard } from "./roles.guard";
 import { CatalogController } from "./catalog/catalog.controller";
 import { CatalogService } from "./catalog/catalog.service";
+import { CatalogPricingService } from './catalog/catalog-pricing.service';
+import { CatalogImportService } from './catalog/catalog-import.service';
 import { BuildsController } from "./builds/builds.controller";
 import { BuildsService } from "./builds/builds.service";
 import { SourcesController } from "./sources/sources.controller";
@@ -44,6 +46,8 @@ if (!jwtSecret)
     JwtAuthGuard,
     RolesGuard,
     CatalogService,
+    CatalogPricingService,
+    CatalogImportService,
     BuildsService,
     SourcesService,
   ],

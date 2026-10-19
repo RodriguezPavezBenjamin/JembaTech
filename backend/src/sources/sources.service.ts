@@ -3,8 +3,9 @@ import { BadRequestException, ConflictException, HttpException, Injectable, Serv
 import { Prisma, SourceRun } from "@prisma/client";
 import { currentRequestId, emitEvent, pythonPost } from "../observability/observability";
 import { PrismaService } from "../prisma.service";
-import { CpuRecoveryDto, CpuSampleDto, ReferenceQueryDto } from "./source.dto";
-import { parseCpuRecovery, parseCpuResult } from "./source.contract";
+import { ComponentRecoveryDto, CpuRecoveryDto, CpuSampleDto, ReferenceQueryDto } from "./source.dto";
+import { parseComponentRecovery, parseComponentResult, parseCpuRecovery, parseCpuResult } from "./source.contract";
+import { sourceTarget, SOURCE_CATEGORIES, SourceCategory } from './source.targets';
 
 @Injectable()
 export class SourcesService {
@@ -23,7 +24,8 @@ export class SourcesService {
   async references(query: ReferenceQueryDto) {
     const q = query.q?.trim();
     const where: Prisma.ExternalReferenceWhereInput = {
-      source: "solotodo", category: "cpu",
+      source: "solotodo", category: query.category ?? { in: [...SOURCE_CATEGORIES] },
+      ...(query.brand?.trim() ? { AND: [{ OR: [{ brand: { equals: query.brand.trim(), mode: 'insensitive' } }, { specs: { path: ['chipBrand'], equals: query.brand.trim() } }] }] } : {}),
       ...(q ? { OR: ["name", "brand", "partNumber"].map(field => ({ [field]: { contains: q, mode: "insensitive" } })) } : {}),
     };
     const [items, total] = await this.prisma.$transaction([
@@ -37,7 +39,8 @@ export class SourcesService {
     return this.prisma.sourceRun.findMany({ where: { source: "solotodo" }, orderBy: [{ startedAt: "desc" }, { id: "desc" }], take: 20, omit: { createdById: true } });
   }
 
-  async prepareSample(dto: CpuSampleDto, userId: string) {
+  async prepareSample(dto: CpuSampleDto, userId: string, category?: SourceCategory) {
+    if (category !== undefined && !(SOURCE_CATEGORIES as readonly string[]).includes(category)) throw new BadRequestException('Categoría no admitida.');
     const stamp = Date.parse(dto.retrievedAt);
     if (!/(Z|[+-]\d{2}:\d{2})$/.test(dto.retrievedAt) || !Number.isFinite(stamp) || stamp > Date.now() + 300000) throw new BadRequestException("La fecha debe incluir zona horaria y no ser futura.");
     // El lote es una muestra declarada por admin, NO evidencia de adquisición verificada.
@@ -52,11 +55,11 @@ export class SourcesService {
     let stage = "PYTHON_UNAVAILABLE";
     try {
       const response = await pythonPost<unknown>(this.http,
-        `${process.env.PYTHON_SERVICE_URL ?? "http://localhost:8000"}/sources/solotodo/cpu/normalize`,
-        { retrieved_at: dto.retrievedAt, results: dto.records }, { timeout: 5000, maxContentLength: 200000, maxBodyLength: 100000 },
+        `${process.env.PYTHON_SERVICE_URL ?? "http://localhost:8000"}/sources/solotodo/${category ? 'components' : 'cpu'}/normalize`,
+        { retrieved_at: dto.retrievedAt, results: dto.records, ...(category ? { category } : {}) }, { timeout: 5000, maxContentLength: 200000, maxBodyLength: 100000 },
       );
       stage = "INVALID_PYTHON_RESPONSE";
-      const result = parseCpuResult(response.data, dto.records.length, dto.retrievedAt);
+      const result = category ? parseComponentResult(response.data, dto.records.length, dto.retrievedAt, category) : parseCpuResult(response.data, dto.records.length, dto.retrievedAt);
       const inputIds = new Set(dto.records.flatMap(row => {
         if (!row || typeof row !== "object" || Array.isArray(row)) return [];
         const id = (row as Record<string, unknown>).id;
@@ -73,6 +76,16 @@ export class SourcesService {
   }
 
   async recoverCpu(dto: CpuRecoveryDto, userId: string) {
+    return this.recover(dto, userId);
+  }
+
+  async recoverComponents(dto: ComponentRecoveryDto, userId: string) {
+    const target = sourceTarget(dto.target);
+    if (!target) throw new BadRequestException('Elige un modelo de la selección disponible.');
+    return this.recover({ limit: 5, acknowledged: dto.acknowledged }, userId, target);
+  }
+
+  private async recover(dto: CpuRecoveryDto, userId: string, target?: NonNullable<ReturnType<typeof sourceTarget>>) {
     if (dto.acknowledged !== true || !Number.isInteger(dto.limit) || dto.limit < 1 || dto.limit > 5) throw new BadRequestException("Confirma la consulta puntual y elige de 1 a 5 fichas.");
     if (!this.probeEnabled()) throw new ServiceUnavailableException({ message: "La consulta puntual no está habilitada en este ambiente.", code: "MANUAL_PROBE_DISABLED" });
     const start = Date.now();
@@ -82,7 +95,7 @@ export class SourcesService {
     if (recent) throw new HttpException({ message: "Espera un minuto entre consultas a la fuente.", code: "SOURCE_COOLDOWN", nextAllowedAt: new Date(recent.startedAt.getTime() + 60000).toISOString() }, 429);
     let run: SourceRun;
     try {
-      run = await this.prisma.sourceRun.create({ data: { source: "solotodo", mode: "manual-api", createdById: userId, retrievedAt: new Date(), sourceRequestUrl: `https://api.solotodo.com/products/?categories=3&page_size=${dto.limit}` } });
+      run = await this.prisma.sourceRun.create({ data: { source: "solotodo", mode: "manual-api", createdById: userId, retrievedAt: new Date(), sourceRequestUrl: target?.url ?? `https://api.solotodo.com/products/?categories=3&page_size=${dto.limit}` } });
     } catch (error) {
       if ((error as { code?: string })?.code === "P2002") throw new ConflictException("Ya hay una consulta a SoloTodo en proceso.");
       throw new ServiceUnavailableException("No pudimos iniciar la auditoría; no se consultó la fuente.");
@@ -91,12 +104,12 @@ export class SourcesService {
     let stage = "PYTHON_UNAVAILABLE";
     try {
       const response = await pythonPost<unknown>(this.http,
-        `${process.env.PYTHON_SERVICE_URL ?? "http://localhost:8000"}/sources/solotodo/cpu/recover`,
-        { limit: dto.limit, request_id: run.id },
+        `${process.env.PYTHON_SERVICE_URL ?? "http://localhost:8000"}/sources/solotodo/${target ? 'components' : 'cpu'}/recover`,
+        target ? { target: target.id, request_id: run.id } : { limit: dto.limit, request_id: run.id },
         { timeout: 15000, maxContentLength: 200000, headers: { "X-Source-Token": process.env.SOURCE_INTERNAL_TOKEN } },
       );
       stage = "INVALID_PYTHON_RESPONSE";
-      const acquired = parseCpuRecovery(response.data, dto.limit, run.id, run.startedAt);
+      const acquired = target ? parseComponentRecovery(response.data, target.id, run.id, run.startedAt) : parseCpuRecovery(response.data, dto.limit, run.id, run.startedAt);
       stage = "PERSISTENCE_FAILED";
       const saved = await this.completeRun(run, acquired.result, new Date(acquired.retrievedAt), acquired.retrievalMs, start);
       this.log("recovery_finished", run.id, { durationMs: Date.now() - start, accepted: acquired.result.metrics.accepted, stored: saved.storedCount });
@@ -120,7 +133,7 @@ export class SourcesService {
         // Orden estable para reducir interbloqueos si llegan lotes concurrentes.
         for (const p of [...result.products].sort((a, b) => a.externalId.localeCompare(b.externalId))) {
           const data = {
-            source: "solotodo", category: "cpu", externalId: p.externalId,
+            source: "solotodo", category: p.category, externalId: p.externalId,
             name: p.name, brand: p.brand, partNumber: p.partNumber, specs: p.specs,
             sourceUrl: p.sourceUrl, retrievedAt: new Date(p.retrievedAt),
             sourceUpdatedAt: p.sourceUpdatedAt ? new Date(p.sourceUpdatedAt) : null,
@@ -128,7 +141,7 @@ export class SourcesService {
           };
           const reference = await tx.externalReference.upsert({ where: { source_externalId: { source: "solotodo", externalId: p.externalId } }, create: data, update: {} });
           // Una muestra antigua no pisa la ficha recuperada más recientemente.
-          const updated = await tx.externalReference.updateMany({ where: { id: reference.id, ...(run.mode === "manual-sample" ? { acquisitionMode: { not: "manual-api" } } : {}), OR: [...(run.mode === "manual-api" ? [{ acquisitionMode: { not: "manual-api" } }] : []), { retrievedAt: { lt: data.retrievedAt } }, { retrievedAt: data.retrievedAt, contentHash: data.contentHash }] }, data });
+          const updated = await tx.externalReference.updateMany({ where: { id: reference.id, category: p.category, ...(run.mode === "manual-sample" ? { acquisitionMode: { not: "manual-api" } } : {}), OR: [...(run.mode === "manual-api" ? [{ acquisitionMode: { not: "manual-api" } }] : []), { retrievedAt: { lt: data.retrievedAt } }, { retrievedAt: data.retrievedAt, contentHash: data.contentHash }] }, data });
           if (updated.count) storedCount++; else staleSkipped++;
         }
         return tx.sourceRun.update({ where: { id: run.id }, data: { status: "SUCCEEDED", finishedAt: new Date(), retrievedAt, retrievalMs, durationMs: Date.now() - start, metrics: result.metrics, issues: result.issues, storedCount, staleSkipped } });

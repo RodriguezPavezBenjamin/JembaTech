@@ -4,6 +4,13 @@
 .controles-consulta { display: flex; align-items: end; gap: 1rem; flex-wrap: wrap; }
 .controles-consulta > label:first-child { min-width: 140px; font-size: .75rem; color: var(--muted); }
 .controles-consulta select { display: block; margin-top: .4rem; }
+.controles-consulta > label:not(.confirmacion-consulta) { flex: 1 1 180px; font-size: .75rem; color: var(--muted); }
+.controles-consulta select { width: 100%; }
+.filtros-fuente { display: flex; flex-wrap: wrap; gap: .8rem; align-items: end; margin-bottom: 1rem; }
+.filtros-fuente label { flex: 0 1 190px; font-size: .75rem; color: var(--muted); }
+.filtros-fuente select { display: block; width: 100%; margin-top: .4rem; }
+.filtros-fuente > span { flex: 1 1 220px; font-size: .75rem; color: var(--muted); padding-bottom: .5rem; }
+.calidad-referencia { padding: .5rem .7rem; border-left: 2px solid var(--accent); font-size: .75rem; color: var(--text); background: rgba(var(--accent-rgb), .04); }
 .confirmacion-consulta { flex: 1 1 280px; display: flex; gap: .6rem; align-items: center; font-size: .8rem; color: var(--muted); }
 .confirmacion-consulta input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--accent); }
 .fuente-titulo, .fuente-seccion, .referencia-cabecera, .referencia-pie, .paginacion-fuente { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }

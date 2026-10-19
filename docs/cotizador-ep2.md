@@ -2,15 +2,19 @@
 
 ## Flujo implementado
 
+Ampliación 18/10: [22 opciones adicionales, fuentes y alcance real del selector de uso](catalogo-ampliado.md). Los precios nuevos son estimaciones explícitas, no ofertas importadas.
+
+Actualización posterior: [importación al armador desde SoloTodo](catalogo-solotodo.md) con fotos, ofertas, límites por categoría y datos por confirmar. No modifica el comportamiento del selector de uso ni snapshots anteriores.
+
 1. Tres presets visuales centrados (día a día, gaming, creador) y una franja destacada «Personalizado / Crear mi PC» debajo para empezar desde cero. Foto de referencia, título y precio estimado a primera vista; especificaciones de los presets al pasar el cursor, enfocar con teclado o tocar el ojo. Un preset abre directamente el resumen y permite editar cualquier categoría. La información extensa de procedencia se conserva en la documentación, no en un desplegable de la pantalla.
 2. Procesador: primero AMD/Intel, luego modelos; opción Ver todos.
 3. Gráfica: primero NVIDIA/AMD, integrada o Ver todas.
 4. Placa madre: modelos MSI AM4/AM5/LGA1700 con foto, ranuras RAM, capacidad máxima, M.2/SATA, formato y conectividad. Los perfiles genéricos anteriores siguen resolviéndose, pero solo aparecen si ya estaban seleccionados.
-5. RAM: marcas, DDR4/DDR5, módulos individuales y kits, RGB y cantidades dentro de cada tarjeta. Se suman todas las capacidades, módulos y consumos.
+5. RAM: solo módulos individuales entre las opciones nuevas: 8/16/32 GB DDR4 y 8/16/32/64 GB DDR5. Cantidad elegible por tarjeta; 2 × 16 GB son 32 GB y dos ranuras. Prioriza ofertas de módulos individuales importados; completa capacidades faltantes con perfiles estimados, fotos de familia y datos explícitos, sin dividir kits. Los kits anteriores conservan sus IDs/precios para armados existentes.
 6. Almacenamiento: HDD, SSD SATA y SSD NVMe; varias unidades y cantidades.
 7. Refrigeración por aire y líquida AIO en grupos separados, con filtros visibles; ventilador y soporte opcionales debajo, sin añadir otro paso. Los modelos DeepCool tienen fotos y datos de montaje. El cooler incluido no usa una foto ajena: depende de la presentación del procesador.
 8. Gabinetes Fractal/Corsair con foto y ficha de formatos, GPU/cooler, radiadores, bahías y ventiladores. Las notas explican restricciones y distribuciones; la revisión sigue siendo preliminar.
-9. Fuente: potencia, formato ATX/SFX/SFX-L y cableado no modular/semimodular/modular.
+9. Fuente: 57 perfiles estimados, potencias 450/550/650/750/850/1000/1200 W, formatos ATX/SFX/SFX-L y cableado no modular/semimodular/modular. Fotos oficiales referenciales, no modelos ofertados. Abre con todas las potencias, sin fijar automáticamente la mínima recomendada; muestra incompatibles identificados, sin permitir un montaje inseguro.
 10. Resumen compacto con edición por categoría. Pantalla separada para nombrar y guardar; consulta opcional, desactivada por defecto. El nombre se conserva en historial de cliente y administrador.
 
 El detalle de componentes también se muestra en las cotizaciones del cliente y del administrador.

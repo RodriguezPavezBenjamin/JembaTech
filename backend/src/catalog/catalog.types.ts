@@ -1,3 +1,5 @@
+import { PriceInfo } from './catalog.pricing';
+
 export type ProductCategory =
   | "cpu"
   | "gpu"
@@ -16,6 +18,7 @@ export interface CatalogProduct {
   name: string;
   description: string;
   price: number;
+  priceInfo?: PriceInfo;
   icon: string;
   image?: string;
   imageSource?: string;

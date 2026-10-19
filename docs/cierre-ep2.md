@@ -1,15 +1,15 @@
 # Cierre y demostración EP2
 
-Actualizado: 2026-10-17. Lista local de preparación y [tablero Markdown](tablero-ep2.md), según aclaración del usuario; no se creó un tablero remoto ni se acredita cierre final. Las cifras remiten a sus cortes de verificación; la evaluación de fuente de cinco CPU sí se ejecutó en este último corte.
+Actualizado: 2026-10-18. Lista local de preparación y [tablero Markdown](tablero-ep2.md), según aclaración del usuario; no se creó un tablero remoto ni se acredita cierre final. Las cifras remiten a sus cortes de verificación; la ampliación privada más reciente se detalla en [componentes](fuente-web-componentes.md).
 
 ## Estado y orden de cierre
 
 | Prioridad | Tarea | Criterio de cierre / estado |
 | --- | --- | --- |
 | 1 | Elegir infraestructura de staging | Pendiente. El usuario no tiene alojamiento elegido. Consultar disponibilidad institucional/créditos antes de comprometer servicios o costes. |
-| 2 | Fuente: piloto y evaluación | Circuito/evaluación técnica hechos: cinco CPU, métricas y política documentadas. Reutilización/republicación sin confirmar y muestra no representativa; no marcar esos límites resueltos. |
+| 2 | Fuente útil para el cotizador | [Importador local del armador](catalogo-solotodo.md): CPU, GPU, RAM, placas y gabinetes con foto identificada, oferta CLP y caducidad; datos de montaje ausentes generan revisión parcial. Conserva las cotizaciones y los ocho mapeos anteriores. Cobertura limitada y condiciones de uso/publicación pendientes; no sincronización pública/recurrente. |
 | 3 | Desplegar los cuatro bloques desde Actions | Pendiente: frontend, NestJS, FastAPI y PostgreSQL, con versión identificable, HTTPS y servicios internos protegidos. |
-| 4 | Verificar seguridad y salud del despliegue | Controles locales y bloqueo de CRITICAL incluso sin parche implementados. Falta run remoto final, revisión de hallazgos y prueba posdespliegue. |
+| 4 | Verificar seguridad y salud del despliegue | CI EP2 #7 aprobado para `68a0b0d`, incluidos Docker y controles. Faltan revisión/conservación de reportes y salud posdespliegue de staging. |
 | 5 | Documentación y diseño preliminar | Arquitectura/modelo/diagramas actualizados y diseño adaptativo especificado. Falta completar datos reales de staging y evidencias finales. |
 | 6 | Seguimiento del proyecto | Tablero local actualizado con tareas realizadas, validaciones y pendientes. |
 | 7 | Ensayar demo y etiquetar versión | Guion abajo. Tag/release EP2 solo después de validar el commit final desplegado; no reutilizar la release EP1. |
@@ -45,16 +45,16 @@ El gate de imágenes ahora bloquea cualquier CRITICAL, también sin parche, y HI
 | Correlación y salud | Integración QA con Nginx/NestJS/Python, 3 solicitudes correlacionadas, permisos y ausencia de marcas privadas en logs; ambiente local con base saludable. Sin histórico centralizado. |
 | Seguridad | [Política y verificación](seguridad-ep2.md): reportes y límites explícitos. Hay hallazgos pendientes; un gate aprobado no significa ausencia de vulnerabilidades. |
 | Arquitectura/diseño | [Arquitectura](arquitectura.md), [modelo](modelo-datos-inicial.md), [diseño adaptativo](diseno-adaptativo-ep2.md), [ADR-002](adr/002-referencias-y-adaptacion.md). Ranking y evaluación de utilidad todavía propuestos. |
-| Remoto / staging | Faltan enlace de Actions de la versión final, URL funcional, prueba posdespliegue y coincidencia commit desplegado/tag. No usar el verde histórico EP1 como prueba de estos cambios nuevos. |
+| Remoto / staging | [CI EP2 #7 aprobado](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39012531921), SHA `68a0b0d7b91463bfeb9e8057e88166e5fc9c6ab1`, nueve jobs correctos. Faltan URL funcional de staging, salud posterior y coincidencia commit desplegado/tag. |
 | Gestión / presentación | Tablero local actualizado. Faltan fecha confirmada y ensayo; no se inventan enlaces o aprobación final. |
 
 ## Guion de demo propuesto
 
 Duración orientativa: 8–10 minutos, ajustable a lo que indique la profesora. No se ha ensayado ni grabado por este documento.
 
-1. **Versión y alcance:** abrir staging, indicar commit/release y mostrar límites del piloto CPU. Si no hay staging, declarar el ensayo como local, no como entrega final.
+1. **Versión y alcance:** abrir staging, indicar commit/release y mostrar límites del piloto de componentes. Si no hay staging, declarar el ensayo como local, no como entrega final.
 2. **Usuario:** elegir preset o personalizado, cambiar una pieza y cantidad, mostrar análisis y guardar una cotización QA propia. No modificar clientes reales para la demo.
-3. **Administrador/fuente:** abrir Fuentes y calidad desde el avatar. Mostrar procedencia, fecha y adquisición de la ficha existente. Para una recuperación nueva usar la acción confirmada de 1 ficha solo cuando las condiciones y operación estén acordadas; no ejecutarla repetidamente como efecto visual.
+3. **Administrador/fuente:** abrir Fuentes y calidad desde el avatar. Mostrar categorías, datos propios de cada componente, procedencia, fecha y adquisición de la ficha existente. Una consulta dirigida trae una página de hasta cinco candidatas; usarla solo como acción confirmada cuando las condiciones y operación estén acordadas, nunca repetidamente como efecto visual. Los filtros solo leen PostgreSQL.
 4. **Cadena y métrica:** seguir una corrida desde recuperación a preparación y persistencia/listado. Mostrar tamaño de muestra, validez, duplicados y tiempos diferenciados. Explicar por qué la ficha antigua no representa stock ni precios.
 5. **Error controlado:** demostrar 401/403 sin acceso a referencias privadas, o una prueba QA de fuente desactivada/fallida. No tumbar servicios ni alterar datos reales; si se muestra un test con transporte simulado, decirlo explícitamente. Conservar la última referencia válida.
 6. **DevSecOps/observabilidad:** abrir el run final de Actions, controles y artifacts; mostrar salud y un `X-Request-Id` correlacionado sin credenciales/cuerpos. Explicar límites de métricas por proceso.
@@ -75,4 +75,4 @@ La comprobación de salud usa los servicios locales en marcha. En staging deber�
 
 Las pruebas de integración que crean cuentas QA y leen logs se ejecutan en un ambiente aislado según la configuración del workflow; no lanzarlas indiscriminadamente contra clientes reales. El test de observabilidad necesita Nginx instrumentado: el servidor de desarrollo Angular no lo sustituye.
 
-Antes de una entrega definitiva, repetir el pipeline sobre el commit elegido, guardar enlaces a sus artifacts/run, comprobar staging y ensayar. Mantener fuera de ese trabajo el cambio local de `frontend/android/gradle/wrapper/gradle-wrapper.properties` salvo decisión explícita del usuario.
+Antes de una entrega definitiva, repetir el pipeline sobre el commit elegido, guardar enlaces a sus artifacts/run, comprobar staging y ensayar. Android ya tiene APK debug, prueba unitaria y lint nativo aprobados localmente con JDK 21/SDK trasladado a D:. Portada confirmada en emulador y flujos manuales confirmados por el usuario en web y Android. Incluir las correcciones documentadas en [validación Android](android-validacion.md); siguen pendientes el test instrumentado automatizado y la conexión al futuro staging.

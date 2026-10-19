@@ -1,5 +1,6 @@
 import { BadRequestException } from "@nestjs/common";
 import { CatalogService } from "./catalog.service";
+import { EXPANDED_PRODUCTS } from './catalog.expansion';
 
 describe("CatalogService", () => {
   const service = new CatalogService();
@@ -19,6 +20,12 @@ describe("CatalogService", () => {
     });
     expect(service.list().source).toBe("reference-manual");
   });
+  it('agrega modelos recientes sin reemplazar IDs y distingue el presupuesto eléctrico del TDP', () => {
+    const products = service.list().products;
+    expect(products.find(p => p.id === 'cpu-9600x')?.specs).toMatchObject({ socket: 'AM5', stockCooler: false, integrated: true, declaredTdpWatts: 65, power: 142 });
+    expect(products.find(p => p.id === 'gpu-asrock-9060xt-16')?.specs).toMatchObject({ vramGb: 16, lengthMm: 249, minPsu: 550, pcie8: 1 });
+    expect(service.resolve({ ...base, cpu: 'cpu-9600x', gpu: 'gpu-asrock-9060xt-16' }).components).toHaveLength(2);
+  });
 
   it("rechaza un producto que pertenece a una categoría distinta", () => {
     expect(() => service.resolve({ ...base, cpu: "gpu-4060" })).toThrow(
@@ -31,7 +38,7 @@ describe("CatalogService", () => {
     const boards = products.filter(
       (p) => p.category === "board" && !p.specs.legacy,
     );
-    expect(boards).toHaveLength(6);
+    expect(boards).toHaveLength(8);
     expect(
       boards.every(
         (p) =>
@@ -55,6 +62,36 @@ describe("CatalogService", () => {
       service.resolve({ ...base, board: "board-AM4-DDR4-ATX" }).components[0]
         .id,
     ).toBe("board-AM4-DDR4-ATX");
+  });
+
+  it('amplía cinco categorías sin duplicar IDs ni presentar estimaciones como ofertas', () => {
+    const products = service.list().products;
+    expect(new Set(products.map(p => p.id)).size).toBe(products.length);
+    expect(EXPANDED_PRODUCTS).toHaveLength(22);
+    for (const [category, count] of Object.entries({ cpu: 8, gpu: 4, board: 2, ram: 4, storage: 4 })) {
+      expect(EXPANDED_PRODUCTS.filter(p => p.category === category)).toHaveLength(count);
+    }
+    for (const added of EXPANDED_PRODUCTS) {
+      const published = products.find(p => p.id === added.id)!;
+      expect(published.specs.legacy).toBe(added.category === 'ram' && added.specs.modules !== 1 ? true : undefined);
+      expect(published.priceInfo).toEqual({ kind: 'estimated' });
+      expect(published.price).toBeGreaterThan(0);
+      expect(published.imageSource).toMatch(/^https:/);
+    }
+    expect(products.find(p => p.id === 'cpu-7500f')?.specs).toMatchObject({ integrated: false, stockCooler: true, socket: 'AM5' });
+    expect(products.find(p => p.id === 'cpu-i5-12400f')?.specs).toMatchObject({ integrated: false, stockCooler: false });
+    expect(products.find(p => p.id === 'drive-kingston-nv3-1000')?.specs).toMatchObject({ kind: 'NVMe', partNumber: 'SNV3S/1000G' });
+    expect(products.find(p => p.id === 'drive-crucial-mx500-2000')?.specs).toMatchObject({ kind: 'SATA', partNumber: 'CT2000MX500SSD1' });
+  });
+
+  it('resuelve kits nuevos por producto y transmite el uso sin recortar el catálogo', () => {
+    const draft = { ...base, cpu: 'cpu-9700x', board: 'board-msi-b650-gaming-plus',
+      memory: [{ id: 'ram-fury-ddr5-kit-32', quantity: 2 }], drives: [{ id: 'drive-kingston-nv3-1000', quantity: 1 }] };
+    const gaming = service.resolve(draft);
+    const office = service.resolve({ ...draft, intendedUse: 'oficina' });
+    expect(gaming.components).toEqual(office.components);
+    expect(office.intended_use).toBe('oficina');
+    expect(gaming.components.find(p => p.category === 'ram')).toMatchObject({ quantity: 2, specs: { modules: 2, capacityGb: 32 } });
   });
 
   it("incluye fotos de aire, AIO, gabinete y accesorios con montaje declarado", () => {

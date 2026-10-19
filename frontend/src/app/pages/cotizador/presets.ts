@@ -32,7 +32,7 @@ export const PRESETS: Preset[] = [
     cpu: "cpu-5600g",
     gpu: "gpu-integrated",
     board: "board-msi-b550m-vdh",
-    memory: "ram-kingston-ddr4-8",
+    memory: "ram-module-DDR4-8",
     quantity: 2,
     drive: "drive-kingston-a400-480",
     case: "case-fractal-pop-mini",
@@ -51,8 +51,8 @@ export const PRESETS: Preset[] = [
     cpu: "cpu-5600",
     gpu: "gpu-4060",
     board: "board-msi-b550-a-pro",
-    memory: "ram-kingston-ddr4-rgb-16",
-    quantity: 1,
+    memory: "ram-module-DDR4-8",
+    quantity: 2,
     drive: "drive-samsung-990-pro-1000",
     case: "case-corsair-4000d",
     psu: "psu-650-Modular-completa-ATX",
@@ -70,8 +70,8 @@ export const PRESETS: Preset[] = [
     cpu: "cpu-7600",
     gpu: "gpu-4070s",
     board: "board-msi-b650-s",
-    memory: "ram-corsair-vengeance-32",
-    quantity: 1,
+    memory: "ram-module-DDR5-16",
+    quantity: 2,
     drive: "drive-samsung-990-pro-2000",
     case: "case-corsair-4000d",
     psu: "psu-750-Modular-completa-ATX",
@@ -80,7 +80,10 @@ export const PRESETS: Preset[] = [
 export function draftFromPreset(
   preset: Preset,
   budget = preset.budget,
+  products: Producto[] = [],
 ): Borrador {
+  const reference = products.find(p => p.id === preset.memory);
+  const observed = reference && products.find(p => p.category === 'ram' && !p.specs['legacy'] && p.specs['modules'] === 1 && p.specs['ram'] === reference.specs['ram'] && p.specs['capacityGb'] === reference.specs['capacityGb'] && p.priceInfo?.kind === 'observed' && Date.parse(p.priceInfo.expiresAt) > Date.now());
   return {
     name: preset.name,
     budget,
@@ -88,7 +91,7 @@ export function draftFromPreset(
     cpu: preset.cpu,
     gpu: preset.gpu,
     board: preset.board,
-    memory: [{ id: preset.memory, quantity: preset.quantity }],
+    memory: [{ id: observed?.id ?? preset.memory, quantity: preset.quantity }],
     drives: [{ id: preset.drive, quantity: 1 }],
     extras: [],
     cooler: "cooler-stock",
@@ -97,12 +100,12 @@ export function draftFromPreset(
   };
 }
 export function presetPrice(preset: Preset, products: Producto[]) {
-  const draft = draftFromPreset(preset);
+  const draft = draftFromPreset(preset, preset.budget, products);
   const ids = [
     preset.cpu,
     preset.gpu,
     preset.board,
-    preset.memory,
+    draft.memory![0].id,
     preset.drive,
     "cooler-stock",
     preset.case,

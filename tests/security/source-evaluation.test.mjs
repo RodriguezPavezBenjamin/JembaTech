@@ -19,3 +19,13 @@ test('evaluación de fuente: rechaza URLs, duplicados y límites ajenos', () => 
     ['--live', '--limit', '1', '--limit', '2'],
   ]) assert.throws(() => parseSourceEvaluationArgs(args));
 });
+
+test('evaluación dirigida de componentes: solo selecciones conocidas, sin URLs o mezcla de límites', () => {
+  for (const target of ['ryzen-7600', 'ryzen-9600x', 'core-i5-14400', 'core-ultra-245k', 'rtx-4060', 'rtx-5060', 'rx-7600', 'rx-9060xt', 'msi-b650', 'msi-b760', 'fury-ddr4', 'fury-ddr5', 'barracuda-hdd', 'mx500-sata', 'nv3-pcie', 'ryzen-5600', 'ryzen-5600g', 'ryzen-7800x3d', 'msi-b550-a-pro', 'msi-4060-ventus', 'fury-rgb-ddr4-kit', 'a400-480-sata', '990-pro-1tb']) {
+    assert.deepEqual(parseSourceEvaluationArgs(['--live', '--target', target]), { limit: 5, target });
+  }
+  for (const args of [ ['--target', 'rtx-5060'], ['--live', '--target', 'unknown'], ['--live', '--target', 'https://localhost/'],
+    ['--live', '--target', 'rtx-5060', '--target', 'rx-7600'], ['--live', '--limit', '1', '--target', 'rtx-5060'] ]) {
+    assert.throws(() => parseSourceEvaluationArgs(args));
+  }
+});

@@ -12,12 +12,12 @@ concurrency:
   cancel-in-progress: true
 jobs:
   frontend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults: { run: { working-directory: frontend } }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           {
             node-version: 22,
@@ -29,6 +29,8 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: node --test ../tests/integration/document.test.mjs
+      - name: Validar configuración Android y política CI (sin compilar APK)
+        run: node --test ../tests/integration/android-config.test.mjs ../tests/integration/ci-policy.test.mjs
       - run: node --test ../tests/security/*.test.mjs
       - name: Auditar dependencias de producción
         run: |
@@ -39,19 +41,19 @@ jobs:
         run: |
           mkdir -p ../reports
           npm audit --audit-level=critical --json > ../reports/npm-full-frontend.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: npm-frontend
           path: reports/npm-*frontend.json
           retention-days: 14
   backend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults: { run: { working-directory: backend } }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           {
             node-version: 22,
@@ -72,19 +74,19 @@ jobs:
         run: |
           mkdir -p ../reports
           npm audit --audit-level=critical --json > ../reports/npm-full-backend.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: npm-backend
           path: reports/npm-*backend.json
           retention-days: 14
   python:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults: { run: { working-directory: python-service } }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: { python-version: "3.12" }
       - run: pip install -r requirements.txt -r requirements-dev.txt
       - run: python -m ruff check .
@@ -92,12 +94,12 @@ jobs:
       - run: python ../tests/security/test_scan_images.py
       - run: python ../tests/security/test_scan_secrets.py
   security-python:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults: { run: { working-directory: python-service } }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: { python-version: "3.12" }
       - run: pip install -r requirements-security.txt
       - name: Bandit (código de producción)
@@ -107,7 +109,7 @@ jobs:
       - name: Auditar dependencias Python y transitivas
         if: ${{ !cancelled() }}
         run: python -m pip_audit --strict -r requirements.txt -f json -o ../reports/pip-audit.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: security-python
@@ -117,7 +119,7 @@ jobs:
           retention-days: 14
   codeql:
     name: CodeQL (${{ matrix.language }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
@@ -127,8 +129,8 @@ jobs:
       matrix:
         language: [javascript-typescript, python]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: 22 }
       - name: Preparar análisis estático
         uses: github/codeql-action/init@f051dc808ef3645eb0d08647ec751634ec2304ac # v4
@@ -143,19 +145,19 @@ jobs:
           output: reports/codeql
       - name: Bloquear hallazgos altos y críticos
         run: node scripts/check-codeql.mjs reports/codeql
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: codeql-${{ matrix.language }}
           path: reports/codeql/*.sarif
           retention-days: 14
   secrets:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: 22 }
       - name: Analizar secretos expuestos
         env:
@@ -163,11 +165,11 @@ jobs:
           SECRET_SCAN_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
         run: bash scripts/scan-secrets.sh
   terraform:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults: { run: { working-directory: infra } }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: hashicorp/setup-terraform@v4
         with: { terraform_version: "1.16.4" }
       - run: terraform init -backend=false
@@ -175,12 +177,12 @@ jobs:
       - run: terraform validate
       - run: terraform plan -input=false -var-file=terraform.tfvars.example
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     needs: [frontend, backend, python, security-python, codeql, secrets, terraform]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with: { node-version: 22 }
       - name: Construir servicios y probar integración NestJS-FastAPI
         shell: bash
@@ -192,6 +194,8 @@ jobs:
           node --test tests/integration/builds.test.mjs
           docker compose exec -T backend node --input-type=module < tests/integration/sources.test.mjs
           docker compose exec -T backend node --input-type=module < tests/integration/source-recovery.test.mjs
+          docker compose exec -T -e EP2_ISOLATED_PRICE_QA=true backend node --input-type=module < tests/integration/catalog-prices.test.mjs
+          docker compose exec -T -e EP2_ISOLATED_CATALOG_QA=true backend node --input-type=module < tests/integration/catalog-import.test.mjs
           node --test tests/integration/observability.test.mjs
           node scripts/check-health.mjs
           TEST_DATABASE_IMAGE="$(docker compose images -q database)" node --test tests/integration/database-image.test.mjs
@@ -207,7 +211,7 @@ jobs:
         run: bash scripts/scan-images.sh
       - name: Guardar reportes Docker
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: trivy-images
           path: reports/trivy-*.json

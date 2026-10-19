@@ -1,18 +1,18 @@
 # JembaTech
 
-Aplicación multiplataforma para cotizar PC, elegir presets y recibir una revisión explicable de compatibilidad, capacidades, consumo y precios estimados. El puntaje orienta sobre reglas de referencia; no mide FPS ni certifica rendimiento o compatibilidad final.
+Aplicación multiplataforma para cotizar PC, elegir presets y recibir una revisión explicable de compatibilidad, capacidades, consumo y precios consultados/estimados. El puntaje orienta sobre reglas de referencia; no mide FPS ni certifica rendimiento o compatibilidad final.
 
 ## Avance EP2: nuevo cotizador
 
 El cotizador ahora separa uso/presupuesto, CPU, gráfica, placa, RAM, almacenamiento múltiple, refrigeración/extras, gabinete, fuente y resumen. NestJS resuelve IDs y precios del catálogo; FastAPI revisa las reglas y el consumo; PostgreSQL conserva el detalle de piezas y cantidades de la cotización.
 
-El catálogo de esta fase es manual, con modelos y precios de referencia, fotos de fabricantes/editores e ilustraciones de respaldo. No está sincronizado con una fuente externa. [Flujo del cotizador](docs/cotizador-ep2.md) y [procedencia de imágenes](docs/imagenes-cotizador.md).
+El [catálogo desde SoloTodo](docs/catalogo-solotodo.md) incorpora CPU, GPU, RAM, placas y gabinetes bajo topes 35/30/20/20/15, con foto de la ficha y oferta CLP validada. Intel desde 11.ª/Core Ultra y Ryzen 5000/7000/9000; solo escritorio. Datos de montaje ausentes quedan por confirmar, no como ceros. La carga es local, finita y confirmada; no consulta al abrir el armador. Las referencias manuales/presets y otras categorías conservan fotos de fabricantes/editores y estimaciones explícitas. Un precio importado vencido no se cotiza como vigente. [Precios consultados anteriores](docs/precios-cotizador.md): ocho mapeos conservados. No hay cron ni garantía de stock o mínimo del mercado. [Flujo](docs/cotizador-ep2.md) y [fotos](docs/imagenes-cotizador.md).
 
-La EP2 usa SoloTodo como fuente técnica del piloto: el administrador puede consultar de 1 a 5 fichas CPU mediante un botón en `/admin/fuentes`, sin copiar JSON. NestJS coordina la recuperación autenticada en FastAPI, valida procedencia y guarda datos/métricas en PostgreSQL; la vista privada los consulta. [Evaluación real acotada](docs/fuente-web-evaluacion.md): cinco CPU válidas y sin duplicados, pero antiguas y sin Part Number; no representa todo el catálogo. Hay espera global de un minuto, exclusión concurrente y conservación ante fallos. Reutilización/republicación sin confirmar; no hay sincronización periódica ni sustitución automática del catálogo. [Semáforo, contratos y configuración](docs/entrega-2.md).
+La EP2 usa SoloTodo en un piloto local. En `/admin/fuentes` conviven la importación confirmada al armador y el listado independiente de referencias técnicas de CPU, GPU, placas, RAM y almacenamiento. NestJS coordina FastAPI y valida antes de guardar datos/métricas en PostgreSQL. [Evaluaciones técnicas históricas](docs/fuente-web-componentes.md) y [cinco CPU iniciales](docs/fuente-web-evaluacion.md) se conservan como evidencia, no como catálogo actual. Espera global de un minuto, exclusión concurrente y conservación ante fallos. Reutilización/republicación sin confirmar; sin sincronización periódica ni despliegue público. [Semáforo y configuración](docs/entrega-2.md).
 
 ## Diseño preliminar y cierre EP2
 
-El [diseño adaptativo](docs/diseno-adaptativo-ep2.md) especifica alternativas de CPU según contexto, restricciones antes de preferencias, motivos visibles y control del usuario, con evaluación posterior propuesta. No se ha implementado un ranking ni se incorporan automáticamente fichas externas al cotizador. [ADR-002](docs/adr/002-referencias-y-adaptacion.md).
+El [diseño adaptativo](docs/diseno-adaptativo-ep2.md) especifica alternativas de CPU según contexto, restricciones antes de preferencias, motivos visibles y control del usuario, con evaluación posterior propuesta. No se ha implementado un ranking: importar el catálogo bajo confirmación es una función distinta de recomendar piezas automáticamente. [ADR-002](docs/adr/002-referencias-y-adaptacion.md).
 
 [Tablero local](docs/tablero-ep2.md) y [checklist/guion de demo](docs/cierre-ep2.md) actualizados. Falta validación remota final, ensayo, staging y release EP2. Los derechos de reutilización y cobertura limitada de fuente siguen explícitos. [Opciones de alojamiento investigadas](docs/staging-opciones.md), sin cuentas/contratación; GitHub Pages solo no ejecuta todos los servicios.
 
@@ -22,7 +22,7 @@ El [diseño adaptativo](docs/diseno-adaptativo-ep2.md) especifica alternativas d
 
 ```text
 Frontend (4200) -> NestJS (3000) -> PostgreSQL (5432)
-                           -> FastAPI (8000) -> SoloTodo (piloto CPU puntual)
+                           -> FastAPI (8000) -> SoloTodo (piloto técnico puntual)
 ```
 
 Documentación de apoyo: [arquitectura](docs/arquitectura.md), [contexto](docs/diagrama-contexto.md), [contenedores](docs/diagrama-contenedores.md), [componentes](docs/diagrama-componentes.md), [modelo de datos](docs/modelo-datos-inicial.md), [despliegue preliminar](docs/despliegue-preliminar.md) y [ADR-001](docs/adr/001-arquitectura-centralizada.md).
@@ -43,7 +43,7 @@ Documentación de apoyo: [arquitectura](docs/arquitectura.md), [contexto](docs/d
 4. NestJS consulta FastAPI para obtener el puntaje y luego persiste la cotizacion privada en PostgreSQL.
 5. La persona puede solicitar coordinacion; JembaTech gestiona el estado y el cierre se realiza por WhatsApp.
 
-SoloTodo está en evaluación para EP2 mediante mecanismos autorizados. Instagram es una posibilidad futura, no parte comprometida de esta entrega. No se activará sincronización recurrente sin validar condiciones de uso.
+SoloTodo está en evaluación para EP2 mediante mecanismos autorizados. La portada incluye un carrusel 3D de ocho trabajos publicados en Instagram, todos con foto local, fecha, resumen y enlace al original. Avanza cada cinco segundos, permite pausar y navegar con flechas, teclado o gestos, y respeta movimiento reducido. No consulta una API ni sincroniza un feed. Se retiraron la galería anterior y su modal, conservando los archivos compartidos con el cotizador. La vista incrustada no quedó validada en local y no se ofrece como funcional. [Alcance y comprobación](docs/instagram-portfolio.md). No se activará sincronización recurrente sin validar condiciones de uso.
 
 ## Navegacion y roles del frontend
 
@@ -54,7 +54,7 @@ Angular Router separa las vistas en componentes cargados de forma diferida y un 
 - `/cotizaciones`: historial privado del cliente; requiere sesion.
 - `/consultas`: seguimiento de coordinaciones; requiere sesion.
 - `/admin/cotizaciones-clientes`: gestion de cotizaciones recibidas; requiere rol `ADMIN`.
-- `/admin/fuentes`: referencias CPU y métricas de calidad del piloto; requiere rol `ADMIN`, acceso desde el menú de cuenta.
+- `/admin/fuentes`: referencias de componentes y métricas de calidad del piloto; requiere rol `ADMIN`, acceso desde el menú de cuenta.
 
 Los guards del frontend mejoran la experiencia de navegacion. La autorizacion efectiva se valida nuevamente en NestJS, por lo que ocultar una opcion en la interfaz no reemplaza la seguridad del backend.
 
@@ -103,6 +103,8 @@ npm run android:open
 
 No se versionan APK, AAB, cachés Gradle ni configuraciones locales del SDK Android.
 
+Validación del 18/10/2026: preparación web/Capacitor, APK debug, prueba unitaria y lint nativo aprobados localmente con Gradle 8.14.3 y JDK 21. SDK y AVD trasladados a D: con verificación SHA-256. Portada confirmada en emulador; el usuario confirmó los flujos manuales tanto en web como en Android. Siguen pendientes el test instrumentado automatizado y la conexión al futuro staging. [Evidencia y comandos](docs/android-validacion.md). El control estático de CI no equivale a compilar o ejecutar Android.
+
 ## Endpoints principales
 
 - `GET /api/health`: estado de NestJS.
@@ -111,7 +113,7 @@ No se versionan APK, AAB, cachés Gradle ni configuraciones locales del SDK Andr
 - `POST /api/auth/register` y `POST /api/auth/login`: crean una cuenta o emiten una sesion JWT.
 - `GET /api/auth/me`: devuelve el perfil autenticado.
 - `PATCH /api/auth/me`: actualiza nombre, telefono o contrasena validando primero la contrasena actual.
-- `GET /api/catalog`: catálogo manual versionado y aviso de precios/fichas de referencia.
+- `GET /api/catalog`: catálogo versionado, importaciones identificadas y referencias manuales conservadas para presets/categorías anteriores.
 - `POST /api/builds/preview`: analiza IDs/cantidades de un borrador sin persistir; no requiere sesión.
 - `POST /api/builds`: reevalúa y guarda una cotización propia con snapshot; requiere JWT.
 - `PATCH /api/builds/:id`: edita borrador propio permitido con `expectedUpdatedAt`; no altera una coordinación existente.
@@ -121,6 +123,8 @@ No se versionan APK, AAB, cachés Gradle ni configuraciones locales del SDK Andr
 - `PATCH /api/quotes/:id/coordination`: un `ADMIN` actualiza estado, fecha y nota interna.
 - `DELETE /api/quotes/:id` y `DELETE /api/quotes/:id/request`: retirada lógica propia de cotización/consulta, con validación de acceso.
 - `GET /api/admin/sources/solotodo`, `/references` y `/runs`: resumen, referencias e historial; solo `ADMIN`.
+- `GET /api/admin/sources/solotodo/catalog`: límites, familias y avance de importación; solo `ADMIN`.
+- `POST /api/admin/sources/solotodo/catalog/recover`: importar una familia confirmada con foto/oferta al armador; solo `ADMIN`, espera y auditoría compartidas.
 - `POST /api/admin/sources/solotodo/cpu/recover`: recuperación confirmada de 1–5 CPU; solo `ADMIN`, con espera y clave interna hacia Python.
 - `POST /api/admin/sources/solotodo/cpu/samples`: alternativa JSON declarada; solo `ADMIN` y sin consulta al proveedor.
 - `GET /api/admin/observability`: métricas acotadas por proceso; solo `ADMIN`.

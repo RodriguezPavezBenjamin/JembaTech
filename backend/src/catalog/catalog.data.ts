@@ -2,6 +2,8 @@ import { CatalogProduct, ProductCategory } from "./catalog.types";
 import { MODEL_PRODUCTS } from "./catalog.models";
 import { PRODUCT_DETAILS } from "./catalog.photos";
 import { HARDWARE_PRODUCTS } from "./catalog.hardware";
+import { RECENT_PRODUCTS } from './catalog.recent';
+import { EXPANDED_PRODUCTS } from './catalog.expansion';
 
 // Precios manuales ilustrativos en CLP: no representan stock ni ofertas vigentes.
 // Los perfiles genéricos declaran sus límites para probar las reglas del cotizador.
@@ -25,6 +27,8 @@ const product = (
 });
 
 export const PRODUCTS: CatalogProduct[] = [
+  ...RECENT_PRODUCTS,
+  ...EXPANDED_PRODUCTS,
   ...MODEL_PRODUCTS,
   ...HARDWARE_PRODUCTS,
   product(
@@ -334,7 +338,7 @@ PRODUCTS.push(
       heightMm: 70,
       radiatorMm: 0,
       power: 3,
-      sockets: ["AM4", "AM5", "LGA1700"],
+      sockets: ["AM4", "AM5", "LGA1200", "LGA1700", "LGA1851"],
     },
   ),
   product(

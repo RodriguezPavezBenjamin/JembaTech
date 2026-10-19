@@ -14,6 +14,7 @@ from pydantic import (
     Field,
     ValidationError,
     field_validator,
+    model_validator,
 )
 
 
@@ -40,7 +41,18 @@ class CpuSpecs(BaseModel):
     socket_unicode: str = Field(min_length=1, max_length=40)
     core_count_value: int = Field(strict=True, ge=1, le=256)
     thread_count_value: int = Field(strict=True, ge=1, le=512)
+    e_core_count_value: int = Field(default=0, strict=True, ge=0, le=256)
+    total_core_count: int | None = Field(default=None, strict=True, ge=1, le=256)
     tdp: float | None = Field(default=None, gt=0, le=1000, allow_inf_nan=False)
+
+    @model_validator(mode='after')
+    def validate_total_cores(self):
+        total = self.core_count_value + self.e_core_count_value
+        if total > 256 or (self.total_core_count is not None and self.total_core_count != total):
+            raise ValueError('Total de núcleos inconsistente')
+        if self.thread_count_value < total:
+            raise ValueError('Número de hilos inferior a núcleos totales')
+        return self
 
     @field_validator('socket_unicode')
     @classmethod
@@ -118,7 +130,7 @@ class CpuReference(BaseModel):
 
 class RowIssue(BaseModel):
     index: int
-    code: Literal['invalid_record', 'duplicate_id', 'conflicting_duplicate']
+    code: Literal['invalid_record', 'target_mismatch', 'duplicate_id', 'conflicting_duplicate']
     fields: list[str] = Field(default_factory=list)
 
 
@@ -163,7 +175,7 @@ def normalize_cpu_batch(batch: CpuBatch) -> CpuBatchResult:
         data = {
             'external_id': str(raw.id), 'name': raw.name, 'brand': raw.brand.name,
             'part_number': raw.part_number, 'socket': raw.specs.socket_unicode,
-            'cores': raw.specs.core_count_value, 'threads': raw.specs.thread_count_value,
+            'cores': raw.specs.core_count_value + raw.specs.e_core_count_value, 'threads': raw.specs.thread_count_value,
             'declared_tdp_watts': raw.specs.tdp,
         }
         # Hash semántico: no cambia por fecha de consulta ni texto descartado.

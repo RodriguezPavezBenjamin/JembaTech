@@ -1,0 +1,42 @@
+# Entorno QA aislado, sin publicar puertos ni usar el volumen principal.
+services:
+  database:
+    image: ${CATALOG_QA_DATABASE_IMAGE:?}
+    environment:
+      POSTGRES_DB: jemba_catalog_qa
+      POSTGRES_USER: catalog_qa
+      POSTGRES_PASSWORD: ${CATALOG_QA_DB_PASSWORD:?}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U catalog_qa -d jemba_catalog_qa']
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes: ['qa_catalog_data:/var/lib/postgresql/data']
+  python-service:
+    image: primeraentrega-python-service
+    environment:
+      SOLOTODO_MANUAL_PROBE_ENABLED: 'false'
+  migrate:
+    image: primeraentrega-backend
+    command: ['node', 'node_modules/prisma/build/index.js', 'migrate', 'deploy']
+    environment:
+      DATABASE_URL: ${CATALOG_QA_DATABASE_URL:?}
+    depends_on:
+      database: { condition: service_healthy }
+  backend:
+    image: primeraentrega-backend
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    environment:
+      JWT_SECRET: ${CATALOG_QA_JWT_SECRET:?}
+      DATABASE_URL: ${CATALOG_QA_DATABASE_URL:?}
+      PYTHON_SERVICE_URL: http://python-service:8000
+      SOLOTODO_MANUAL_PROBE_ENABLED: 'false'
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      python-service: { condition: service_started }
+volumes:
+  qa_catalog_data:

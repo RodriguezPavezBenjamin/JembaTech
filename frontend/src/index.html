@@ -319,7 +319,8 @@
   }
   .section-sub { text-align: center; color: var(--muted); margin-bottom: 3rem; letter-spacing: 2px; font-size: 0.9rem; }
   .divider {
-    width: 80px; height: 3px;
+    width: min(240px, 60%); height: 4px;
+    border-radius: 999px;
     background: linear-gradient(90deg, transparent, var(--accent), transparent);
     margin: 0.75rem auto 0;
   }
@@ -360,370 +361,71 @@
   .service-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
 
   /* ─── WHY US ─── */
-  #why { background: var(--bg2); }
-  .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
-  .why-item { text-align: center; }
+  #why { background: transparent; }
+  .why-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: clamp(1rem, 3vw, 2rem); box-shadow: 0 12px 36px rgba(0,0,0,0.16); }
+  .why-kicker { margin-bottom: 1.5rem; text-align: center; font-family: 'Orbitron', sans-serif; color: var(--muted); font-size: 0.65rem; letter-spacing: 2px; }
+  .why-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .why-item { text-align: center; padding: 0.5rem 1rem; }
+  .why-item + .why-item { border-left: 1px solid var(--border); }
   .why-num {
     font-family: 'Orbitron', sans-serif;
-    font-size: 3rem; font-weight: 900;
+    font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 900;
     color: var(--accent); text-shadow: var(--glow);
   }
-  .why-item p { color: var(--muted); margin-top: 0.5rem; font-size: 0.95rem; letter-spacing: 1px; }
-
-  /* ─── GALLERY / CAROUSEL ─── */
-  #gallery { background: transparent; }
-
-  .carousel-wrapper {
-    position: relative;
-    overflow: hidden;
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.18), inset 0 0 60px rgba(0,0,0,0.4);
-    margin-top: 2rem;
-    height: 500px;
-    background: rgba(0,0,0,0.72);
-  }
-
-  .carousel-track {
-    display: flex;
-    height: 100%;
-    transition: transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
-    will-change: transform;
-  }
-
-  .carousel-slide {
-    min-width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-    background: rgba(0,0,0,0.72);
-  }
-
-  [data-theme="light"] .carousel-slide {
-    background: rgba(0,10,20,0.72);
-  }
-
-  @media (max-width: 768px) {
-    .carousel-wrapper { height: 260px; }
-  }
-
-  .carousel-slide img {
-    width: 100%; height: 100%;
-    object-fit: contain;
-    display: block;
-    padding: 12px;
-    transition: transform 0.5s ease;
-  }
-
-  .carousel-slide:hover img { transform: scale(1.015); }
-
-  /* Overlay gradient solo en la parte inferior para el contador */
-  .carousel-slide::after {
-    content: '';
-    position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
-    background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%);
-    pointer-events: none;
-  }
-
-  /* Slide counter badge */
-  .carousel-counter {
-    position: absolute;
-    bottom: 1.5rem; right: 1.5rem;
-    z-index: 10;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    color: var(--accent);
-    background: rgba(0,0,0,0.65);
-    border: 1px solid var(--border);
-    padding: 0.4rem 0.9rem;
-    border-radius: 4px;
-    backdrop-filter: blur(6px);
-  }
-
-  /* Arrow buttons */
-  .carousel-btn {
-    position: absolute;
-    top: 50%; transform: translateY(-50%);
-    z-index: 10;
-    background: rgba(0,0,0,0.55);
-    border: 1.5px solid var(--accent);
-    color: var(--accent);
-    width: 50px; height: 50px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: all 0.25s;
-    backdrop-filter: blur(6px);
-  }
-  .carousel-btn:hover {
-    background: var(--accent);
-    color: #000;
-    box-shadow: 0 0 25px rgba(var(--accent-rgb), 0.5);
-  }
-  .carousel-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2.5; }
-  .carousel-btn.prev { left: 1rem; }
-  .carousel-btn.next { right: 1rem; }
-
-  /* Dots */
-  .carousel-dots {
-    display: flex; gap: 0.5rem;
-    justify-content: center;
-    margin-top: 1.25rem;
-    flex-wrap: wrap;
-  }
-  .carousel-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--border);
-    border: 1px solid rgba(var(--accent-rgb), 0.3);
-    cursor: pointer;
-    transition: all 0.3s;
-    padding: 0;
-  }
-  .carousel-dot.active {
-    background: var(--accent);
-    box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.6);
-    transform: scale(1.3);
-  }
-
-  /* Thumbnails strip */
-  .carousel-thumbs {
-    display: flex;
-    gap: 0.6rem;
-    margin-top: 1rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent) transparent;
-  }
-  .carousel-thumbs::-webkit-scrollbar { height: 4px; }
-  .carousel-thumbs::-webkit-scrollbar-track { background: transparent; }
-  .carousel-thumbs::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
-
-  .carousel-thumb {
-    flex-shrink: 0;
-    width: 72px; height: 52px;
-    border-radius: 6px;
-    overflow: hidden;
-    border: 2px solid transparent;
-    cursor: pointer;
-    transition: all 0.25s;
-    opacity: 0.5;
-  }
-  .carousel-thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .carousel-thumb.active {
-    border-color: var(--accent);
-    opacity: 1;
-    box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.4);
-  }
-  .carousel-thumb:hover { opacity: 0.85; }
-
-  /* ─── WORK MODAL — MARKETPLACE STYLE ─── */
-  .work-modal {
-    display: none;
-    position: fixed; inset: 0; z-index: 9000;
-    background: rgba(0,0,0,0.92);
-    align-items: center; justify-content: center;
-    backdrop-filter: blur(16px);
-    padding: 1.5rem;
-  }
-  .work-modal.open { display: flex; }
-
-  .work-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    max-width: 1100px;
-    width: 100%;
-    overflow: hidden;
-    box-shadow: 0 0 100px rgba(var(--accent-rgb), 0.2);
-    animation: cardIn 0.38s cubic-bezier(0.34,1.56,0.64,1);
-    position: relative;
-    display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    min-height: 560px;
-    max-height: 90vh;
-  }
-  :root[data-theme="light"] .work-card {
-    box-shadow: 0 8px 60px rgba(0,229,255,0.2), 0 0 0 1px rgba(0,229,255,0.25);
-  }
-  @keyframes cardIn {
-    from { opacity:0; transform: scale(0.88) translateY(20px); }
-    to   { opacity:1; transform: scale(1) translateY(0); }
-  }
-
-  /* Imagen: panel izquierdo completo */
-  .work-card-img {
-    width: 100%; height: 100%;
-    min-height: 360px;
-    object-fit: contain;
-    background: var(--image-bg);
-    display: block;
-    border-right: 1px solid var(--border);
-  }
-  [data-theme="light"] .work-card-img { background: #0a1520; }
-
-  /* Info: panel derecho */
-  .work-card-body {
-    padding: 2rem 1.75rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 0.5rem;
-    position: relative;
-    overflow-y: auto;
-  }
-  .work-card-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    flex: 1;
-  }
-
-  /* Tipo de servicio — chip estilo tag */
-  .work-card-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.65rem;
-    letter-spacing: 2.5px;
-    color: #000;
-    background: var(--accent);
-    text-transform: uppercase;
-    padding: 0.3rem 0.8rem;
-    border-radius: 30px;
-    width: fit-content;
-    margin-bottom: 0.25rem;
-    font-weight: 700;
-  }
-
-  .work-card-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 1.1rem;
-    color: var(--accent);
-    letter-spacing: 1px;
-    line-height: 1.3;
-    margin-bottom: 0.25rem;
-  }
-
-  /* Divisor */
-  .work-card-divider {
-    width: 40px; height: 2px;
-    background: linear-gradient(90deg, var(--accent), transparent);
-    margin: 0.5rem 0;
-  }
-
-  .work-card-quote {
-    border-left: 3px solid var(--accent2, var(--accent));
-    padding-left: 1rem;
-    margin: 0;
-    color: var(--muted);
-    font-style: italic;
-    font-size: 0.92rem;
-    line-height: 1.6;
-  }
-
-  .work-card-desc {
-    color: var(--text);
-    font-size: 0.88rem;
-    line-height: 1.75;
-    opacity: 0.82;
-    margin-top: 0.25rem;
-  }
-
-  /* Botón cerrar */
-  .work-card-close {
-    position: absolute; top: 1rem; right: 1rem;
-    background: rgba(0,0,0,0.5); border: 1.5px solid var(--accent);
-    color: var(--accent); width: 36px; height: 36px;
-    border-radius: 50%; font-size: 1rem; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; z-index: 2;
-  }
-  .work-card-close:hover { background: var(--accent); color: #000; }
-
-  /* Mobile: apilado vertical, ocupa toda la pantalla */
-  @media (max-width: 768px) {
-    .work-modal {
-      padding: 0;
-      align-items: flex-end;
-    }
-    .work-card {
-      grid-template-columns: 1fr;
-      min-height: auto;
-      height: 92vh;
-      max-height: 92vh;
-      border-radius: 16px 16px 0 0;
-      overflow: hidden;
-      width: 100%;
-      max-width: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-    .work-card-img {
-      width: 100%;
-      height: 48vh;
-      min-height: 0;
-      flex-shrink: 0;
-      border-right: none;
-      border-bottom: 1px solid var(--border);
-      object-fit: cover;
-    }
-    .work-card-body {
-      flex: 1;
-      padding: 1rem 1rem 0.75rem;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .work-card-content { gap: 0.35rem; }
-    .work-card-title { font-size: 0.95rem; }
-    .work-card-desc { font-size: 0.82rem; }
-    .modal-nav { padding: 0.6rem 0 0.25rem; }
-  }
-
-  /* Swipe hint */
+  .why-item p { color: var(--muted); margin-top: 0.5rem; font-size: 0.9rem; line-height: 1.6; }
+  .why-benefits { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+  .why-benefits .service-card { background: var(--bg2); }
+  .why-benefits h3 { line-height: 1.5; }
   @media (max-width: 600px) {
-    .carousel-btn { width: 40px; height: 40px; }
-    .carousel-btn.prev { left: 0.5rem; }
-    .carousel-btn.next { right: 0.5rem; }
+    .why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .why-item { padding: 1rem 0.5rem; }
+    .why-item:nth-child(3) { border-left: none; }
+    .why-item:nth-child(n + 3) { border-top: 1px solid var(--border); }
+    .why-kicker { margin-bottom: 0.5rem; }
   }
 
-  /* ─── MODAL NAV ─── */
-  .modal-nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 1rem 0 0.25rem;
-    border-top: 1px solid var(--border);
-    margin-top: auto;
-    flex-shrink: 0;
+  /* ─── INSTAGRAM / CARRUSEL 3D ─── */
+  #gallery { background: transparent; }
+  .instagram-heading { text-align: center; }
+  .instagram-profile { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; margin-top: 1.25rem; color: var(--accent); text-decoration: none; border: 1px solid var(--border); border-radius: 50%; background: var(--bg2); transition: border-color 0.2s, box-shadow 0.2s; }
+  .instagram-profile:hover { border-color: var(--accent); box-shadow: var(--glow); }
+  .instagram-profile svg { width: 24px; height: 24px; }
+  .instagram-carousel { --work-card-width: min(520px, 76%); position: relative; margin-top: 1rem; }
+  /* Sin JS, las ocho publicaciones siguen disponibles como una tira desplazable. */
+  .instagram-grid { display: flex; gap: 1.25rem; overflow-x: auto; padding: 1rem; scroll-snap-type: x mandatory; }
+  .instagram-card { flex: 0 0 var(--work-card-width); min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; scroll-snap-align: center; }
+  .instagram-grid.is-ready { display: grid; grid-template-columns: 100%; gap: 0; padding: 2rem 0; overflow: clip; perspective: 1100px; touch-action: pan-y; }
+  .is-ready .instagram-card { grid-area: 1 / 1; width: var(--work-card-width); justify-self: center; align-self: stretch; z-index: calc(10 - var(--distance)); transform: translateX(calc(var(--offset) * 58%)) translateZ(calc(var(--distance) * -150px)) rotateY(calc(var(--offset) * -18deg)); opacity: calc(1 - var(--distance) * 0.22); transition: transform 650ms cubic-bezier(0.22, 0.68, 0, 1), opacity 650ms ease, border-color 350ms; backface-visibility: hidden; }
+  .is-ready .instagram-card[data-distant] { visibility: hidden; opacity: 0; pointer-events: none; }
+  .is-ready .instagram-card[aria-hidden="true"] { filter: brightness(0.75) blur(0.8px); pointer-events: none; }
+  .is-ready .instagram-card[aria-current="true"] { border-color: var(--accent); box-shadow: 0 18px 40px rgba(0,0,0,0.35), 0 0 24px rgba(var(--accent-rgb),0.12); }
+  .instagram-cover { display: block; position: relative; aspect-ratio: 16 / 10; flex-shrink: 0; background: var(--image-bg); overflow: hidden; }
+  .instagram-cover > img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center 35%; }
+  .instagram-cover-label { position: absolute; top: 0.75rem; left: 0.75rem; padding: 0.4rem 0.6rem; border-radius: 5px; background: rgba(0,0,0,0.78); color: #fff; font-size: 0.65rem; letter-spacing: 1px; }
+  .instagram-toolbar { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+  .instagram-toolbar[hidden] { display: none; }
+  .instagram-nav { position: absolute; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: 1px solid var(--accent); border-radius: 50%; background: var(--bg); color: var(--accent); cursor: pointer; pointer-events: auto; box-shadow: 0 4px 14px rgba(0,0,0,0.35); }
+  #instagramPrev { left: calc(50% - var(--work-card-width) / 2 + 12px); }
+  #instagramNext { right: calc(50% - var(--work-card-width) / 2 + 12px); }
+  .instagram-nav svg { width: 22px; height: 22px; }
+  .instagram-nav:hover { background: var(--accent); color: var(--on-accent); }
+  .instagram-card-body { padding: 1.25rem; display: flex; flex-direction: column; flex: 1; gap: 0.7rem; }
+  .instagram-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; color: var(--muted); font-size: 0.7rem; }
+  .instagram-meta span { color: var(--accent); letter-spacing: 1px; font-weight: 600; }
+  .instagram-card h3 { font-family: 'Orbitron', sans-serif; font-size: 0.98rem; line-height: 1.5; color: var(--text); }
+  .instagram-card p { color: var(--muted); font-size: 0.92rem; line-height: 1.65; }
+  .instagram-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-top: auto; padding-top: 0.65rem; }
+  .instagram-original { border-radius: 5px; padding: 0.7rem 0.8rem; font-size: 0.8rem; font-weight: 600; text-decoration: none; color: var(--on-accent); background: var(--accent); border: 1px solid var(--accent); }
+  #gallery a:focus-visible, #gallery button:focus-visible, #instagramPosts:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  @media (max-width: 600px) {
+    .instagram-carousel { --work-card-width: 88%; }
+    .is-ready .instagram-card { transform: translateX(calc(var(--offset) * 48%)) translateZ(calc(var(--distance) * -130px)) rotateY(calc(var(--offset) * -16deg)); }
+    .instagram-card-body { padding: 1rem; }
+    .instagram-card h3 { font-size: 0.88rem; }
+    .instagram-card p { font-size: 0.85rem; }
+    .instagram-nav { width: 44px; height: 44px; }
   }
-  .modal-nav-btn {
-    display: flex; align-items: center; justify-content: center;
-    width: 38px; height: 38px;
-    background: rgba(0,0,0,0.4);
-    border: 1.5px solid var(--accent);
-    color: var(--accent);
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s;
-    flex-shrink: 0;
-  }
-  .modal-nav-btn:hover { background: var(--accent); color: #000; box-shadow: var(--glow); }
-  .modal-nav-btn svg { width: 18px; height: 18px; }
-  .modal-nav-counter {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.72rem;
-    letter-spacing: 2px;
-    color: var(--muted);
-    min-width: 50px;
-    text-align: center;
-  }
+  @media (prefers-reduced-motion: reduce) { .is-ready .instagram-card { transition: none; } }
 
   /* ─── CONTACT ─── */
   #contact {
@@ -1049,17 +751,7 @@
   [data-theme="light"] .sidebar-item { color: var(--accent); border-color: var(--border); }
   [data-theme="light"] .sidebar-item svg { stroke: var(--accent); }
   [data-theme="light"] .sidebar-item:hover { border-color: var(--accent); box-shadow: var(--glow); }
-  [data-theme="light"] .work-card-tag { background: var(--accent); color: #06111a; }
-  [data-theme="light"] .carousel-slide { background: #04101a; }
-  [data-theme="light"] .carousel-dot { border-color: rgba(var(--accent-rgb), 0.3); }
-  [data-theme="light"] .carousel-dot.active { background: var(--accent); box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.6); }
-  [data-theme="light"] .carousel-thumb.active { border-color: var(--accent); box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.4); }
-  [data-theme="light"] .carousel-btn { border-color: var(--accent); color: var(--accent); }
-  [data-theme="light"] .carousel-btn:hover { background: var(--accent); color: #06111a; box-shadow: 0 0 25px rgba(var(--accent-rgb), 0.5); }
-  [data-theme="light"] .carousel-counter { color: var(--accent); border-color: var(--border); }
   [data-theme="light"] .wa-fab { box-shadow: 0 4px 20px rgba(var(--accent-rgb), 0.4); }
-  [data-theme="light"] .work-card { border-color: var(--border); box-shadow: 0 8px 60px rgba(0,229,255,0.2), 0 0 0 1px rgba(0,229,255,0.25); }
-  [data-theme="light"] .work-card-img { border-right-color: var(--border); }
   [data-theme="light"] #themeFabToggle { color: var(--accent); border-color: var(--border); }
 
   /* ─── LOGO CLICK ANIMATION ─── */
@@ -1235,28 +927,31 @@
 <!-- Why Us -->
 <section id="why">
   <div class="container">
-    <h2 class="section-title">¿POR QUÉ YO?</h2>
+    <h2 class="section-title">¿POR QUÉ JEMBATECH?</h2>
     <div class="divider"></div>
-    <p class="section-sub">MIS NÚMEROS</p>
+    <p class="section-sub">EXPERIENCIA Y ATENCIÓN CERCANA</p>
+    <div class="why-panel" role="group" aria-label="JembaTech en cifras">
+    <p class="why-kicker">JEMBATECH EN CIFRAS</p>
     <div class="why-grid">
       <div class="why-item">
         <div class="why-num">905+</div>
-        <p>Seguidores que confían en mí</p>
+        <p>Seguidores en Instagram</p>
       </div>
       <div class="why-item">
         <div class="why-num">20+</div>
-        <p>Trabajos que he realizado</p>
+        <p>Trabajos realizados</p>
       </div>
       <div class="why-item">
         <div class="why-num">100%</div>
-        <p>Mi compromiso con cada cliente</p>
+        <p>Compromiso con cada cliente</p>
       </div>
       <div class="why-item">
         <div class="why-num">2</div>
-        <p>Zonas de cobertura: Stgo & Valparaíso</p>
+        <p>Zonas de cobertura: Santiago y Valparaíso</p>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;margin-top:3rem;">
+    </div>
+    <div class="why-benefits">
       <div class="service-card">
         <div class="service-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
         <h3>GARANTÍA EN MANO DE OBRA</h3>
@@ -1276,46 +971,97 @@
   </div>
 </section>
 
-<!-- Gallery Carousel -->
+<!-- Trabajos publicados: selección manual con acceso al original -->
 <section id="gallery">
   <div class="container">
-    <h2 class="section-title">TRABAJOS QUE HE REALIZADO</h2>
-    <div class="divider"></div>
-    <p class="section-sub">CLIENTES SATISFECHOS · HAZ CLIC PARA AMPLIAR</p>
-
-    <div class="carousel-wrapper" id="carousel">
-      <!-- Track -->
-      <div class="carousel-track" id="carouselTrack">
-        <div class="carousel-slide"><img src="./media/portfolio/20200911_172331.jpg" alt="Trabajo 1" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/20220712_153324.jpg" alt="Trabajo 2" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/20220714_132819.jpg" alt="Trabajo 3" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/SnapInsta.to_622149211_18074393702091806_7019796454176246559_n.jpg" alt="Trabajo 4" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/SnapInsta.to_649393137_17978679602825836_1167495615100214261_n.jpg" alt="Trabajo 5" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/SnapInsta.to_650732347_18071241107204990_4165742315428070953_n.jpg" alt="Trabajo 6" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/SnapInsta.to_652312101_18112753729669966_5907132694303239556_n.jpg" alt="Trabajo 7" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/SnapInsta.to_652843846_18110027842753258_5339563256197555192_n.jpg" alt="Trabajo 8" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/SnapInsta.to_653363037_18082775180353377_7455241835060939604_n.jpg" alt="Trabajo 9" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/SnapInsta.to_655226020_18094345324843970_8152732067528020249_n.jpg" alt="Trabajo 10" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/WhatsApp Image 2021-07-26 at 14.22.47.jpeg" alt="Trabajo 11" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/WhatsApp Image 2021-07-26 at 14.42.48.jpeg" alt="Trabajo 12" loading="lazy"></div>
-        <div class="carousel-slide"><img src="./media/portfolio/WhatsApp Image 2026-04-26 at 02.11.11.jpeg" alt="Trabajo 14" loading="lazy"></div>
+    <div class="instagram-heading">
+      <h2 class="section-title">TRABAJOS DE JEMBATECH</h2>
+      <div class="divider"></div>
+      <a class="instagram-profile" href="https://www.instagram.com/jemba_tech/" target="_blank" rel="noopener noreferrer" aria-label="Visitar Instagram de JembaTech" title="Instagram de JembaTech">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.9" fill="currentColor" stroke="none"/></svg>
+      </a>
+    </div>
+    <div class="instagram-carousel" id="instagramCarousel">
+    <div class="instagram-grid" id="instagramPosts" role="region" aria-roledescription="carrusel" aria-label="Trabajos de JembaTech" aria-description="Flechas izquierda y derecha para cambiar de trabajo. Espacio para pausar o reanudar el movimiento." tabindex="0">
+      <article class="instagram-card" data-instagram-post="CgCuAqsu5Ph">
+        <a class="instagram-cover" href="https://www.instagram.com/jemba_tech/p/CgCuAqsu5Ph/" target="_blank" rel="noopener noreferrer" aria-label="Ver upgrade de notebook en Instagram"><img src="./media/portfolio/SnapInsta.to_655226020_18094345324843970_8152732067528020249_n.jpg" alt="Notebook HP junto a su usuario tras el upgrade publicado" loading="lazy"><span class="instagram-cover-label">VER EN INSTAGRAM ↗</span></a>
+        <div class="instagram-card-body">
+          <div class="instagram-meta"><span>UPGRADE</span><time datetime="2022-07-15">15 jul 2022</time></div>
+          <h3>Una nueva etapa para tu notebook</h3>
+          <p>Cambio de disco HDD a SSD para renovar el almacenamiento del equipo.</p>
+          <div class="instagram-actions"><a class="instagram-original" href="https://www.instagram.com/jemba_tech/p/CgCuAqsu5Ph/" target="_blank" rel="noopener noreferrer">Ver publicación ↗</a></div>
+        </div>
+      </article>
+      <article class="instagram-card" data-instagram-post="CVocA74lHD8">
+        <a class="instagram-cover" href="https://www.instagram.com/jemba_tech/p/CVocA74lHD8/" target="_blank" rel="noopener noreferrer" aria-label="Ver instalación y asesoría de notebook en Instagram"><img src="./media/portfolio/SnapInsta.to_622149211_18074393702091806_7019796454176246559_n.jpg" alt="Usuario con su notebook HP Pavilion x360 encendido" loading="lazy"><span class="instagram-cover-label">VER EN INSTAGRAM ↗</span></a>
+        <div class="instagram-card-body">
+          <div class="instagram-meta"><span>INSTALACIÓN + ASESORÍA</span><time datetime="2021-10-29">29 oct 2021</time></div>
+          <h3>Tu notebook, listo para usar</h3>
+          <p>Instalación del sistema operativo y drivers, junto con orientación sobre atajos de teclado y aplicaciones.</p>
+          <div class="instagram-actions"><a class="instagram-original" href="https://www.instagram.com/jemba_tech/p/CVocA74lHD8/" target="_blank" rel="noopener noreferrer">Ver publicación ↗</a></div>
+        </div>
+      </article>
+      <article class="instagram-card" data-instagram-post="CTTRZEbL9n9">
+        <a class="instagram-cover" href="https://www.instagram.com/jemba_tech/p/CTTRZEbL9n9/" target="_blank" rel="noopener noreferrer" aria-label="Ver upgrade con SSD M.2 en Instagram"><img src="./media/portfolio/SnapInsta.to_650732347_18071241107204990_4165742315428070953_n.jpg" alt="Notebook encendido junto a su usuario en la publicación de upgrade" loading="lazy"><span class="instagram-cover-label">VER EN INSTAGRAM ↗</span></a>
+        <div class="instagram-card-body">
+          <div class="instagram-meta"><span>UPGRADE · SSD M.2</span><time datetime="2021-09-01">1 sep 2021</time></div>
+          <h3>Mejora de almacenamiento</h3>
+          <p>Instalación de un SSD M.2 en un notebook que ya contaba con 8 GB de RAM y gráfica dedicada.</p>
+          <div class="instagram-actions"><a class="instagram-original" href="https://www.instagram.com/jemba_tech/p/CTTRZEbL9n9/" target="_blank" rel="noopener noreferrer">Ver publicación ↗</a></div>
+        </div>
+      </article>
+      <article class="instagram-card" data-instagram-post="CnQzTZQONxr">
+        <a class="instagram-cover" href="https://www.instagram.com/jemba_tech/p/CnQzTZQONxr/" target="_blank" rel="noopener noreferrer" aria-label="Ver mantenimiento de PC en Instagram"><img src="./media/portfolio/SnapInsta.to_653363037_18082775180353377_7455241835060939604_n.jpg" alt="Usuario junto a su PC de escritorio en la publicación de mantenimiento" loading="lazy"><span class="instagram-cover-label">VER EN INSTAGRAM ↗</span></a>
+        <div class="instagram-card-body">
+          <div class="instagram-meta"><span>MANTENIMIENTO</span><time datetime="2023-01-10">10 ene 2023</time></div>
+          <h3>Un armado que vuelve al taller</h3>
+          <p>Limpieza y formateo de un PC, dos años después de su ensamble.</p>
+          <div class="instagram-actions"><a class="instagram-original" href="https://www.instagram.com/jemba_tech/p/CnQzTZQONxr/" target="_blank" rel="noopener noreferrer">Ver publicación ↗</a></div>
+        </div>
+      </article>
+      <article class="instagram-card" data-instagram-post="CudDs9GJqBR">
+        <a class="instagram-cover" href="https://www.instagram.com/jemba_tech/p/CudDs9GJqBR/" target="_blank" rel="noopener noreferrer" aria-label="Ver armado Ryzen 5700X y RTX 3060 en Instagram"><img src="./media/portfolio/SnapInsta.to_649393137_17978679602825836_1167495615100214261_n.jpg" alt="PC con iluminación violeta y cajas de Ryzen 7 y GeForce RTX 3060" loading="lazy"><span class="instagram-cover-label">VER EN INSTAGRAM ↗</span></a>
+        <div class="instagram-card-body">
+          <div class="instagram-meta"><span>ARMADO POR COTIZACIÓN</span><time datetime="2023-07-08">8 jul 2023</time></div>
+          <h3>Ryzen 5700X + RTX 3060</h3>
+          <p>Un armado a medida con Ryzen 5700X, NVIDIA RTX 3060 y 16 GB de RAM, según la publicación original.</p>
+          <div class="instagram-actions"><a class="instagram-original" href="https://www.instagram.com/jemba_tech/p/CudDs9GJqBR/" target="_blank" rel="noopener noreferrer">Ver publicación ↗</a></div>
+        </div>
+      </article>
+      <article class="instagram-card" data-instagram-post="CvssFaaJRx7">
+        <a class="instagram-cover" href="https://www.instagram.com/jemba_tech/p/CvssFaaJRx7/" target="_blank" rel="noopener noreferrer" aria-label="Ver fotos del cambio de gabinete en Instagram"><img src="./media/portfolio/instagram-CvssFaaJRx7.jpg" alt="PC en gabinete Kolink con ventiladores RGB azules, de la publicación original" loading="lazy"><span class="instagram-cover-label">VER EN INSTAGRAM ↗</span></a>
+        <div class="instagram-card-body">
+          <div class="instagram-meta"><span>UPGRADE · GABINETE</span><time datetime="2023-08-08">8 ago 2023</time></div>
+          <h3>Cambio de gabinete con RGB</h3>
+          <p>Traslado del equipo a un Kolink Observatory Lite Mesh RGB. Mira las fotos del cambio en la publicación.</p>
+          <div class="instagram-actions"><a class="instagram-original" href="https://www.instagram.com/jemba_tech/p/CvssFaaJRx7/" target="_blank" rel="noopener noreferrer">Ver publicación ↗</a></div>
+        </div>
+      </article>
+      <article class="instagram-card" data-instagram-post="C5CK9F_JbCD">
+        <a class="instagram-cover" href="https://www.instagram.com/jemba_tech/p/C5CK9F_JbCD/" target="_blank" rel="noopener noreferrer" aria-label="Ver fotos del armado Ryzen 7 7700 en Instagram"><img src="./media/portfolio/instagram-C5CK9F_JbCD.jpg" alt="PC Ryzen 7 7700 en gabinete Thermaltake con ventilador RGB, de la publicación original" loading="lazy"><span class="instagram-cover-label">VER EN INSTAGRAM ↗</span></a>
+        <div class="instagram-card-body">
+          <div class="instagram-meta"><span>ARMADO POR COTIZACIÓN</span><time datetime="2024-03-27">27 mar 2024</time></div>
+          <h3>Un PC a medida, pieza por pieza</h3>
+          <p>Ryzen 7 7700, Radeon RX 5500 XT, 16 GB de RAM, SSD de 1 TB y gabinete Thermaltake, según el trabajo publicado.</p>
+          <div class="instagram-actions"><a class="instagram-original" href="https://www.instagram.com/jemba_tech/p/C5CK9F_JbCD/" target="_blank" rel="noopener noreferrer">Ver publicación ↗</a></div>
+        </div>
+      </article>
+      <article class="instagram-card" data-instagram-post="DepvUVoGPre">
+        <a class="instagram-cover" href="https://www.instagram.com/jemba_tech/p/DepvUVoGPre/" target="_blank" rel="noopener noreferrer" aria-label="Ver limpieza completa de PCs en Instagram"><img src="./media/portfolio/instagram-DepvUVoGPre.jpg" alt="PC abierto con ventiladores iluminados tras el mantenimiento publicado por JembaTech" loading="lazy"><span class="instagram-cover-label">VER EN INSTAGRAM ↗</span></a>
+        <div class="instagram-card-body">
+          <div class="instagram-meta"><span>LIMPIEZA + PASTA TÉRMICA</span><time datetime="2026-10-18">18 oct 2026</time></div>
+          <h3>Limpieza completa de PCs</h3>
+          <p>Limpieza del polvo acumulado y cambio de pasta térmica en equipos de escritorio, según la publicación original.</p>
+          <div class="instagram-actions"><a class="instagram-original" href="https://www.instagram.com/jemba_tech/p/DepvUVoGPre/" target="_blank" rel="noopener noreferrer">Ver publicación ↗</a></div>
+        </div>
+      </article>
+    </div>
+      <div class="instagram-toolbar" id="instagramToolbar" hidden>
+        <button class="instagram-nav" id="instagramPrev" type="button" aria-label="Publicación anterior" aria-controls="instagramPosts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
+        <button class="instagram-nav" id="instagramNext" type="button" aria-label="Publicación siguiente" aria-controls="instagramPosts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
       </div>
-      <!-- Arrows -->
-      <button class="carousel-btn prev" id="carPrev" aria-label="Anterior">
-        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <button class="carousel-btn next" id="carNext" aria-label="Siguiente">
-        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-      <!-- Counter -->
-      <div class="carousel-counter" id="carCounter">1 / 14</div>
     </div>
 
-    <!-- Dots -->
-    <div class="carousel-dots" id="carDots"></div>
-
-    <!-- Thumbnails -->
-    <div class="carousel-thumbs" id="carThumbs"></div>
   </div>
 
 </section>
@@ -1477,30 +1223,6 @@
 </div>
 
 <!-- Work Modal — fuera de cualquier sección para evitar stacking context -->
-<div class="work-modal" id="workModal">
-  <div class="work-card" id="workCard">
-    <img class="work-card-img" id="modalImg" src="" alt="">
-    <div class="work-card-body">
-      <button class="work-card-close" id="modalClose">✕</button>
-      <div class="work-card-content">
-        <div class="work-card-tag" id="modalTag">TRABAJO REALIZADO</div>
-        <div class="work-card-title" id="modalTitle"></div>
-        <div class="work-card-divider"></div>
-        <blockquote class="work-card-quote" id="modalQuote"></blockquote>
-        <p class="work-card-desc" id="modalDesc"></p>
-      </div>
-      <div class="modal-nav">
-        <button class="modal-nav-btn" id="modalPrev" aria-label="Anterior">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <span class="modal-nav-counter" id="modalCounter">1 / 13</span>
-        <button class="modal-nav-btn" id="modalNext" aria-label="Siguiente">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <script>
 // ─── BACKGROUND ANIMATION ───
@@ -1726,131 +1448,68 @@ themeFab.addEventListener('click', () => {
 
 // Foxy no se cierra — solo aparece
 
-// ─── CAROUSEL ───
+// ─── INSTAGRAM CAROUSEL ───
 (function() {
-  const track = document.getElementById('carouselTrack');
-  const slides = track.querySelectorAll('.carousel-slide');
-  const total = slides.length;
-  const dotsContainer = document.getElementById('carDots');
-  const thumbsContainer = document.getElementById('carThumbs');
-  const counter = document.getElementById('carCounter');
-  const modal = document.getElementById('workModal');
-  let current = 0;
-  let autoTimer = null;
-
-  // ─ Datos de cada trabajo (basados en las fotos que mandaste)
-  const trabajos = [
-    { title: 'Mantención de Notebook', tag: 'MANTENCIÓN · 2020', quote: '"Me dejó el equipo como nuevo, súper atento y rápido"', desc: 'Limpieza interna completa, cambio de pasta térmica y revisión general de hardware. El equipo presentaba sobrecalentamiento y lentitud. Se restauró el rendimiento original.' },
-    { title: 'Diagnóstico y Reparación de PC', tag: 'REPARACIÓN · 2022', quote: '"Excelente trabajo, muy profesional y honesto con el presupuesto"', desc: 'Diagnóstico completo de la placa madre. Se identificaron componentes dañados y se realizó la reparación exitosa, evitando el cambio total del equipo.' },
-    { title: 'Formateo e Instalación Windows', tag: 'FORMATEO · 2022', quote: '"Rápido y al precio que acordamos, lo recomiendo 100%"', desc: 'Formateo completo, instalación de Windows 11, drivers actualizados y configuración de programas básicos. Equipo entregado listo para usar.' },
-    { title: 'Build Gaming RGB', tag: 'ARMADO DE PC · GAMING', quote: '"Me armó exactamente lo que quería dentro de mi presupuesto"', desc: 'PC Gamer de alto rendimiento con iluminación RGB personalizada, cable management prolijo y prueba de estrés. Ideal para gaming competitivo 1080p.' },
-    { title: 'Entrega de Notebook Reparada', tag: 'REPARACIÓN · CLIENTE FELIZ', quote: '"Pensé que tendría que comprar uno nuevo, Benja lo salvó"', desc: 'Notebook con problemas de arranque y pantalla. Se reemplazó el disco por un SSD y se restauró el sistema operativo. Cliente 100% satisfecho.' },
-    { title: 'PC Gamer RTX Armada', tag: 'ARMADO DE PC · GAMA ALTA', quote: '"Quedé impresionado con el resultado, muy detallista"', desc: 'Build de gama alta con tarjeta RTX, refrigeración líquida y setup RGB sincronizado. Benchmarks incluidos. Rendimiento en 1440p sin problemas.' },
-    { title: 'Setup PC de Escritorio', tag: 'ARMADO · TRABAJO/GAMING', quote: '"Me asesoró muy bien y consiguió los componentes al mejor precio"', desc: 'PC de escritorio equilibrada para trabajo y gaming casual. Selección inteligente de componentes para maximizar rendimiento dentro del presupuesto.' },
-    { title: 'PC con Iluminación RGB', tag: 'ARMADO · FULL RGB', quote: '"La PC quedó espectacular, mejor de lo que esperaba"', desc: 'Armado completo con gabinete vidrio templado, iluminación RGB en todos los componentes y ventiladores ARGB. Un PC que impresiona visual y técnicamente.' },
-    { title: 'Upgrade de RAM y SSD', tag: 'UPGRADE · MEJORA DE RENDIMIENTO', quote: '"Notó el cambio al tiro, arranca en segundos ahora"', desc: 'Upgrade de RAM de 8GB a 16GB y reemplazo de HDD por SSD NVMe. El equipo triplicó su velocidad de arranque y respuesta general.' },
-    { title: 'Notebook HP Reparada', tag: 'REPARACIÓN · NOTEBOOK', quote: '"Súper contento, lo recomiendo a todos mis amigos"', desc: 'Notebook HP con falla de sistema operativo y disco en mal estado. Se reemplazó el disco, se instaló Windows actualizado y se realizó limpieza general.' },
-    { title: 'PC Gamer con Gabinete RGB', tag: 'ARMADO · GAMA MEDIA-ALTA', quote: '"Quedó igual a como lo imaginé, excelente comunicación"', desc: 'PC Gamer con gabinete torre, ventilación optimizada e iluminación ARGB coordinada. Rendimiento para gaming en 1080p ultra sin problemas.' },
-    { title: 'Build RGB Completo', tag: 'ARMADO · FULL BUILD', quote: '"El mejor en lo que hace, muy honesto y puntual"', desc: 'Armado completo desde cero: selección de componentes, compra, ensamblaje y configuración. Cable management impecable y prueba de estrés aprobada.' },
-    { title: 'Setup PC Oscuro', tag: 'ARMADO · DARK THEME', quote: '"Perfecto en todo sentido, lo recomiendo sin dudar"', desc: 'PC de alto rendimiento con estética dark, gabinete negro, iluminación tenue y componentes de calidad. Silencioso y potente a la vez.' },
-  ];
-
-  // Build dots
-  slides.forEach((_, i) => {
-    const d = document.createElement('button');
-    d.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-    d.setAttribute('aria-label', 'Slide ' + (i+1));
-    d.addEventListener('click', () => goTo(i));
-    dotsContainer.appendChild(d);
-  });
-
-  // Build thumbnails
-  slides.forEach((slide, i) => {
-    const img = slide.querySelector('img');
-    const th = document.createElement('div');
-    th.className = 'carousel-thumb' + (i === 0 ? ' active' : '');
-    const tImg = document.createElement('img');
-    tImg.src = img.src; tImg.alt = img.alt; tImg.loading = 'lazy';
-    th.appendChild(tImg);
-    th.addEventListener('click', () => goTo(i));
-    thumbsContainer.appendChild(th);
-  });
-
-  function goTo(idx) {
-    current = (idx + total) % total;
-    track.style.transform = `translateX(-${current * 100}%)`;
-    counter.textContent = `${current + 1} / ${total}`;
-    dotsContainer.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === current));
-    const thumbEls = thumbsContainer.querySelectorAll('.carousel-thumb');
-    thumbEls.forEach((t, i) => t.classList.toggle('active', i === current));
-    thumbsContainer.scrollTo({ left: thumbEls[current].offsetLeft - thumbsContainer.clientWidth / 2 + thumbEls[current].clientWidth / 2, behavior: 'smooth' });
-    resetAuto();
+  const carousel = document.getElementById('instagramCarousel');
+  const track = document.getElementById('instagramPosts');
+  const cards = [...track.querySelectorAll('.instagram-card')];
+  const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let current = 0, timer, paused = motion.matches, hovered = false, focused = false;
+  let visible = typeof IntersectionObserver !== 'function';
+  function schedule() {
+    clearTimeout(timer);
+    const running = !motion.matches && !paused && !hovered && !focused && !document.hidden && visible;
+    if (running) timer = setTimeout(() => show(current + 1), 5000);
   }
-
-  function resetAuto() {
-    clearInterval(autoTimer);
-    autoTimer = setInterval(() => goTo(current + 1), 5000);
+  function show(index) {
+    current = (index + cards.length) % cards.length;
+    cards.forEach((card, i) => {
+      // Distancia circular: dos tarjetas detrás a cada lado, también al cerrar la vuelta.
+      const offset = ((i - current + cards.length + Math.floor(cards.length / 2)) % cards.length) - Math.floor(cards.length / 2);
+      card.style.setProperty('--offset', offset);
+      card.style.setProperty('--distance', Math.abs(offset));
+      card.toggleAttribute('data-distant', Math.abs(offset) > 2);
+      card.setAttribute('aria-current', String(i === current));
+      card.setAttribute('aria-hidden', String(i !== current));
+      card.toggleAttribute('inert', i !== current);
+    });
+    schedule();
   }
-
-  document.getElementById('carPrev').addEventListener('click', () => goTo(current - 1));
-  document.getElementById('carNext').addEventListener('click', () => goTo(current + 1));
-
-  // Touch / swipe
-  let touchStartX = 0;
-  track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-  track.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if (Math.abs(dx) > 50) goTo(current + (dx < 0 ? 1 : -1));
+  function manual(index) { show(index); }
+  cards.forEach((card, i) => {
+    card.setAttribute('role', 'group');
+    card.setAttribute('aria-roledescription', 'publicación');
+    card.setAttribute('aria-label', `${i + 1} de ${cards.length}`);
   });
-
-  // ─ Modal card al hacer clic en la imagen
-  let modalIndex = 0;
-
-  function openModal(i) {
-    modalIndex = (i + total) % total;
-    const t = trabajos[modalIndex] || {};
-    document.getElementById('modalImg').src = slides[modalIndex].querySelector('img').src;
-    document.getElementById('modalTag').textContent = t.tag || 'TRABAJO REALIZADO';
-    document.getElementById('modalTitle').textContent = t.title || `Trabajo ${modalIndex + 1}`;
-    document.getElementById('modalQuote').textContent = t.quote || '';
-    document.getElementById('modalDesc').textContent = t.desc || '';
-    document.getElementById('modalCounter').textContent = `${modalIndex + 1} / ${total}`;
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
-    clearInterval(autoTimer);
+  document.getElementById('instagramPrev').addEventListener('click', () => manual(current - 1));
+  document.getElementById('instagramNext').addEventListener('click', () => manual(current + 1));
+  carousel.addEventListener('pointerenter', event => { if (event.pointerType !== 'touch') { hovered = true; schedule(); } });
+  carousel.addEventListener('pointerleave', () => { hovered = false; schedule(); });
+  carousel.addEventListener('focusin', () => { focused = true; schedule(); });
+  carousel.addEventListener('focusout', event => { focused = carousel.contains(event.relatedTarget); schedule(); });
+  track.addEventListener('keydown', event => {
+    if (event.target !== track) return;
+    if (event.key === ' ') { event.preventDefault(); paused = !paused; schedule(); return; }
+    const index = { ArrowLeft: current - 1, ArrowRight: current + 1, Home: 0, End: cards.length - 1 }[event.key];
+    if (index !== undefined) { event.preventDefault(); manual(index); }
+  });
+  let touchStart;
+  track.addEventListener('touchstart', event => { touchStart = { x: event.touches[0].clientX, y: event.touches[0].clientY }; }, { passive: true });
+  track.addEventListener('touchend', event => {
+    if (!touchStart) return;
+    const dx = event.changedTouches[0].clientX - touchStart.x, dy = event.changedTouches[0].clientY - touchStart.y;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) manual(current + (dx < 0 ? 1 : -1));
+    touchStart = undefined;
+  }, { passive: true });
+  track.addEventListener('touchcancel', () => { touchStart = undefined; }, { passive: true });
+  document.addEventListener('visibilitychange', schedule);
+  motion.addEventListener('change', () => { paused = motion.matches; schedule(); });
+  if (typeof IntersectionObserver === 'function') {
+    new IntersectionObserver(entries => { visible = entries.some(entry => entry.isIntersecting); schedule(); }, { threshold: 0.25 }).observe(carousel);
   }
-
-  slides.forEach((slide, i) => {
-    slide.style.cursor = 'pointer';
-    slide.addEventListener('click', () => openModal(i));
-  });
-
-  document.getElementById('modalPrev').addEventListener('click', (e) => {
-    e.stopPropagation();
-    openModal(modalIndex - 1);
-  });
-  document.getElementById('modalNext').addEventListener('click', (e) => {
-    e.stopPropagation();
-    openModal(modalIndex + 1);
-  });
-
-  function closeModal() {
-    modal.classList.remove('open');
-    document.body.style.overflow = '';
-    resetAuto();
-  }
-
-  document.getElementById('modalClose').addEventListener('click', closeModal);
-  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
-    if (modal.classList.contains('open')) {
-      if (e.key === 'ArrowLeft') openModal(modalIndex - 1);
-      if (e.key === 'ArrowRight') openModal(modalIndex + 1);
-    }
-  });
-
-  resetAuto();
+  track.classList.add('is-ready');
+  document.getElementById('instagramToolbar').hidden = false;
+  show(0);
 })();
 
 // ─── WHATSAPP FORM ───

@@ -19,8 +19,9 @@
   margin: 0;
 }
 .divider {
-  width: 80px;
-  height: 3px;
+  width: min(240px, 60%);
+  height: 4px;
+  border-radius: 999px;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
   margin: 0.8rem auto;
 }

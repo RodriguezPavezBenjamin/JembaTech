@@ -43,10 +43,15 @@
 }
 .accion-seleccion,
 .cantidad,
-.montaje {
+.montaje,
+.precio-origen {
   position: relative;
   z-index: 2;
 }
+.precio-origen { color: var(--accent); font: 0.66rem/1.5 "Exo 2", sans-serif; }
+.precio-origen summary { cursor: pointer; }
+.precio-origen p { margin-block: 0.35rem; }
+.precio-origen a { color: var(--accent); }
 .pie {
   flex-wrap: wrap;
 }

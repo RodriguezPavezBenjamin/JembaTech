@@ -9,7 +9,7 @@ import { firstValueFrom } from 'rxjs';
 const context = new AsyncLocalStorage<{ requestId: string }>();
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const methods = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']);
-const operations = new Set(['/evaluate', '/builds/preview', '/sources/solotodo/cpu/normalize', '/sources/solotodo/cpu/recover']);
+const operations = new Set(['/evaluate', '/builds/preview', '/sources/solotodo/cpu/normalize', '/sources/solotodo/cpu/recover', '/sources/solotodo/components/normalize', '/sources/solotodo/components/recover', '/sources/solotodo/prices/recover', '/sources/solotodo/catalog/recover']);
 
 export function requestIdFrom(value: unknown): string {
   return typeof value === 'string' && uuid.test(value) ? value.toLowerCase() : randomUUID();

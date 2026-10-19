@@ -73,6 +73,17 @@ describe("Cotizador: selección y recuperación del armado", () => {
     vi.useRealTimers();
   });
 
+  it('comparte el separador decorativo debajo del título Arma tu PC', () => {
+    TestBed.configureTestingModule({ imports: [CotizadorComponent], providers: [provideRouter([])] });
+    const fixture = TestBed.createComponent(CotizadorComponent);
+    fixture.detectChanges();
+    const header = (fixture.nativeElement as HTMLElement).querySelector('.cabecera')!;
+    expect(header.querySelector('h2')?.textContent).toBe('ARMA TU PC');
+    expect(header.querySelector('h2 + .divider')?.getAttribute('aria-hidden')).toBe('true');
+    expect(header.querySelectorAll('.divider')).toHaveLength(1);
+    expect(header.querySelector('.divider + p')?.textContent).toContain('Un punto de partida');
+  });
+
   it('el fondo de circuitos es decorativo y conserva la acción de Personalizado', () => {
     TestBed.configureTestingModule({ imports: [CotizadorComponent], providers: [provideRouter([])] });
     const fixture = TestBed.createComponent(CotizadorComponent);
@@ -84,6 +95,21 @@ describe("Cotizador: selección y recuperación del armado", () => {
     const start = vi.spyOn(fixture.componentInstance, 'empezar').mockImplementation(() => {});
     button.click();
     expect(start).toHaveBeenCalledExactlyOnceWith('personalizado');
+  });
+
+  it('aclara el uso y no oculta piezas al cambiarlo', () => {
+    TestBed.configureTestingModule({ imports: [CotizadorComponent], providers: [provideRouter([])] });
+    const fixture = TestBed.createComponent(CotizadorComponent);
+    fixture.componentInstance.inicio = 'personalizado';
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('#uso')?.getAttribute('aria-describedby')).toBe('ayuda-uso');
+    expect(root.querySelector('#ayuda-uso')?.textContent).toContain('no limita las piezas');
+    const before = fixture.componentInstance.productos('ram').map(p => p.id);
+    expect(before).toEqual(['ram8']);
+    fixture.componentInstance.preferencias.controls.intendedUse.setValue('oficina');
+    fixture.detectChanges();
+    expect(fixture.componentInstance.productos('ram').map(p => p.id)).toEqual(before);
   });
 
   it('cotizar otro vuelve a los presets y limpia solo el borrador local', () => {
@@ -193,6 +219,22 @@ describe("Cotizador: selección y recuperación del armado", () => {
     expect(cotizador.total()).toBe(40000);
     cotizador.cambiarCantidad(memory, 1);
     expect(cotizador.total()).toBe(20000);
+  });
+
+  it('muestra los avisos detallados únicamente en Resumen, no en selección ni guardado', () => {
+    TestBed.configureTestingModule({ imports: [CotizadorComponent], providers: [provideRouter([])] });
+    const fixture = TestBed.createComponent(CotizadorComponent);
+    const c = fixture.componentInstance;
+    c.analisis.set({ total_price: 0, ram_gb: 0, storage_gb: 0, psu_watts: 0, estimated_consumption_watts: 0, recommended_watts: 0, remaining_budget: 1000000, missing: [], can_save: true, score: 70, level: 'Revisión parcial', warnings: [], recommendations: [], explanation: '', issues: [{ category: 'board', severity: 'warning', message: 'Confirmar QVL' }] });
+    for (const step of [5, 9, 11]) { c.paso.set(step); fixture.detectChanges(); expect(fixture.nativeElement.querySelector('.problemas')).toBeNull(); }
+    c.paso.set(10); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.problemas')?.textContent).toContain('Confirmar QVL');
+  });
+
+  it('entra a fuentes sin fijar automáticamente la potencia recomendada', () => {
+    const c = create(); c.maxPaso = 9; c.potenciaFiltro = 650;
+    c.ir(9);
+    expect(c.potenciaFiltro).toBe(0); expect(c.modularidad).toBe('Todas'); expect(c.mostrarIncompatibles).toBe(true);
   });
 
   it("conserva el nombre al recuperar el borrador", () => {

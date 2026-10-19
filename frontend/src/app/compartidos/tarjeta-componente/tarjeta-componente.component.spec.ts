@@ -1,6 +1,9 @@
+import 'zone.js';
 import { describe, expect, it, vi } from "vitest";
 import { TarjetaComponenteComponent } from "./tarjeta-componente.component";
 import { Producto } from "../../modelos/catalogo";
+import { TestBed } from '@angular/core/testing';
+import { SimpleChange } from '@angular/core';
 
 const product = (
   category: Producto["category"],
@@ -15,6 +18,63 @@ const product = (
   specs,
 });
 describe("Fichas de hardware", () => {
+  it('distingue capacidad por módulo de un kit anterior', () => {
+    const card = new TarjetaComponenteComponent();
+    card.producto = product('ram', { capacityGb: 64, modules: 1, speed: 5600 });
+    expect(card.caracteristicas()).toContainEqual({ label: 'POR MÓDULO', value: '64 GB' });
+    expect(card.caracteristicas()).toContainEqual({ label: 'PRESENTACIÓN', value: '1 módulo · cantidad elegible' });
+    card.producto = product('ram', { capacityGb: 64, modules: 2 });
+    expect(card.caracteristicas()).toContainEqual({ label: 'POR MÓDULO', value: '32 GB' });
+  });
+  it('el precio importado sin oferta no se rotula como estimado ni incluido', () => {
+    TestBed.resetTestingModule();
+    try {
+      TestBed.configureTestingModule({ imports: [TarjetaComponenteComponent] });
+      const fixture = TestBed.createComponent(TarjetaComponenteComponent);
+      fixture.componentInstance.producto = { ...product('case', { forms: ['ATX'], gpuClearanceMm: 360, coolerClearanceMm: 170, bays25: 2, bays35: 2, unverified: ['confirmar formatos de placa admitidos'] }), priceInfo: { kind: 'unavailable' }, image: 'https://media.solotodo.com/media/products/photo.avif', imageSource: 'https://www.solotodo.cl/products/1' };
+      fixture.componentInstance.fotoFallida = true; fixture.detectChanges();
+      const text = (fixture.nativeElement as HTMLElement).textContent;
+      expect(text).toContain('Precio por actualizar'); expect(text).toContain('SIN OFERTA VIGENTE');
+      expect(text).toContain('Foto no disponible'); expect(text).not.toContain('PRECIO ESTIMADO');
+      expect(fixture.componentInstance.formatoOrientativo).toBe(true);
+    } finally { TestBed.resetTestingModule(); }
+  });
+  it('una foto corregida se vuelve a mostrar sin reintentar en bucle una URL rota', () => {
+    const card = new TarjetaComponenteComponent();
+    const previous = { ...product('cpu', {}), image: 'https://media.solotodo.com/media/products/old.jpg' };
+    const next = { ...previous, image: 'https://media.solotodo.com/media/products/new.avif' };
+    card.fotoFallida = true;
+    card.ngOnChanges({ producto: new SimpleChange(previous, next, false) });
+    expect(card.fotoFallida).toBe(false);
+    card.fotoFallida = true;
+    card.ngOnChanges({ producto: new SimpleChange(next, { ...next }, false) });
+    expect(card.fotoFallida).toBe(true);
+  });
+  it('datos ausentes no se muestran como cero, sin Wi-Fi ni NaN', () => {
+    const card = new TarjetaComponenteComponent();
+    card.producto = product('board', { ramSlots: 4, ram: 'DDR5' });
+    expect(card.caracteristicas().find(c => c.label === 'CAPACIDAD RAM')?.value).toBe('Por confirmar');
+    expect(card.caracteristicas().find(c => c.label === 'INALÁMBRICO')?.value).toBe('Por confirmar');
+    card.producto = product('case', { forms: ['ATX'], gpuClearanceMm: 360, coolerClearanceMm: 170, bays25: 2, bays35: 2 });
+    expect(card.caracteristicas().find(c => c.label === 'VENTILADORES')?.value).toBe('Por confirmar');
+    expect(card.caracteristicas().some(c => /NaN|undefined/.test(c.value))).toBe(false);
+  });
+  it('distingue precio consultado de estimado y sus detalles no seleccionan la tarjeta', () => {
+    TestBed.resetTestingModule();
+    try {
+      TestBed.configureTestingModule({ imports: [TarjetaComponenteComponent] });
+      const fixture = TestBed.createComponent(TarjetaComponenteComponent);
+      const card = fixture.componentInstance;
+      card.producto = product('cpu', {}); fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('PRECIO ESTIMADO');
+      card.producto = { ...card.producto, price: 230000, priceInfo: { kind: 'observed', source: 'SoloTodo', currency: 'CLP', externalId: '166287', partNumber: null, storeHost: 'tienda.example.cl', offerUrl: 'https://tienda.example.cl/p', sourceUrl: 'https://www.solotodo.cl/products/166287', observedAt: '2026-10-18T03:00:00Z', offerUpdatedAt: '2026-10-18T02:00:00Z', expiresAt: '2026-10-19T02:00:00Z', normalPriceClp: 230000, offerPriceClp: 210000, scope: 'first-page' } }; fixture.detectChanges();
+      expect(fixture.nativeElement.textContent).toContain('PRECIO CONSULTADO · NORMAL');
+      expect(fixture.nativeElement.textContent).toContain('tienda.example.cl');
+      const add = vi.spyOn(card.elegir, 'emit');
+      (fixture.nativeElement.querySelector('.precio-origen summary') as HTMLElement).click();
+      expect(add).not.toHaveBeenCalled();
+    } finally { TestBed.resetTestingModule(); }
+  });
   it("alterna agregar y quitar una selección única", () => {
     const card = new TarjetaComponenteComponent();
     card.producto = product("board", {});

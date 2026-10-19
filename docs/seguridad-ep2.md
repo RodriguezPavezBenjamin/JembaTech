@@ -1,6 +1,6 @@
 # Seguridad y pipeline EP2
 
-Actualizado: 2026-10-17. Implementación local; el resultado de Actions requiere commit/push. No acredita staging ni ausencia total de vulnerabilidades.
+Actualizado: 2026-10-17. Corrección validada en [CI EP2 #7](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39012531921), commit `68a0b0d7b91463bfeb9e8057e88166e5fc9c6ab1`; todos los jobs aprobados, incluidos ambos CodeQL, secretos y Docker. No acredita staging ni ausencia total de vulnerabilidades. Los apartados de verificación local conservan la secuencia histórica.
 
 ## Política de controles
 
@@ -23,6 +23,8 @@ Verificación adicional del corte de fuente/cierre: 7 pruebas Node de CodeQL, sa
 Artifacts de auditorías/SARIF conservados 14 días, también ante fallos. Los resultados crudos de secretos son temporales privados y se eliminan sin publicarlos. Permisos mínimos; solo CodeQL recibe `security-events: write`. Acciones nuevas fijadas por SHA y detector por versión/digest; herramientas Python fijadas fuera del runtime. El nuevo análisis CodeQL sobre la corrección requiere GitHub: reproducir la lectura de un SARIF anterior no equivale a ejecutar el analizador sobre código nuevo.
 
 ## Corrección del primer run EP2
+
+Resultado posterior: el run #7 aprobado confirma el análisis remoto del código corregido y los controles del workflow para `68a0b0d`. Las menciones a un nuevo run pendiente dentro del registro del primer corte describen el estado anterior a esa confirmación.
 
 El [run 39011432378](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39011432378), commit `a2f0cb09ef3fe2e773be17b643e27e450157513e`, aprobó frontend, backend, Python, auditoría Python, Terraform y CodeQL JavaScript/TypeScript. Fallaron CodeQL Python y secretos; Docker se omitió por dependencia. No se marca esa versión como validada.
 

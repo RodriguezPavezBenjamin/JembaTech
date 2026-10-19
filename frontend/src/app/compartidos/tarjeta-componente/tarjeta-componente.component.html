@@ -50,7 +50,7 @@
   <div class="contenido">
     <span class="recomendado" *ngIf="recomendado && !motivo">{{
       producto.category === "case"
-        ? "FORMATO ADECUADO"
+        ? formatoOrientativo ? "FORMATO ORIENTATIVO" : "FORMATO ADECUADO"
         : "POTENCIA Y FORMATO ADECUADOS"
     }}</span>
     <h4>{{ integrada ? "Integrada" : producto.name }}</h4>
@@ -71,7 +71,7 @@
       >{{
         producto.image && !fotoFallida
           ? producto.imageLabel
-          : "Referencia del fabricante"
+          : fotoFallida ? "Foto no disponible · ilustración de referencia" : "Referencia del fabricante"
       }}
       </span
     >
@@ -81,9 +81,18 @@
       class="fuente"
       >Fotografía con licencia · créditos en documentación</span
     >
+    <details class="precio-origen" *ngIf="precioConsultado as precio; else estimado">
+      <summary>PRECIO CONSULTADO · NORMAL</summary>
+      <p *ngIf="precio.partNumber">SKU: {{ precio.partNumber }}</p>
+      <p>{{ precio.storeHost }} · {{ precio.observedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+      <p>Precio de oferta publicado: {{ dinero(precio.offerPriceClp) }}. Confirma medio de pago, stock y despacho; no es el mínimo de todo el mercado.</p>
+      <p>Oferta actualizada {{ precio.offerUpdatedAt | date:'dd/MM HH:mm' }} · vence {{ precio.expiresAt | date:'dd/MM HH:mm' }}</p>
+      <a [href]="precio.sourceUrl" target="_blank" rel="noopener noreferrer">Ver en SoloTodo ↗</a>
+    </details>
+    <ng-template #estimado><small class="fuente" *ngIf="producto.price">{{ precioPorActualizar ? 'SIN OFERTA VIGENTE · actualizar fuente' : 'PRECIO ESTIMADO · referencia manual' }}</small></ng-template>
     <div class="pie">
       <strong>{{
-        producto.price ? dinero(producto.price) : "INCLUIDO"
+        precioPorActualizar ? 'Precio por actualizar' : producto.price ? dinero(producto.price) : "INCLUIDO"
       }}</strong>
       <button
         type="button"

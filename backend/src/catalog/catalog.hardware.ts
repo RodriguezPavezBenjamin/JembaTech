@@ -231,7 +231,7 @@ for (const c of [
       includedFans: c.fans,
       heatpipes: c.heatpipes,
       power: c.power,
-      sockets: ["AM4", "AM5", "LGA1700"],
+      sockets: ["AM4", "AM5", "LGA1200", "LGA1700", ...(c.id !== 'le520' ? ['LGA1851'] : [])],
       mountNote:
         c.id === "ak620"
           ? "RAM de hasta 43 mm con ambos ventiladores; elevar el ventilador aumenta la altura total."

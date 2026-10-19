@@ -1,6 +1,12 @@
 # EP2: plan de trabajo y evidencia
 
-Actualizado: 2026-10-17. Este documento separa requisitos de la pauta, decisiones del proyecto y verificaciones reales. No declara terminada la entrega.
+Actualizado: 2026-10-18. Este documento separa requisitos de la pauta, decisiones del proyecto y verificaciones reales. No declara terminada la entrega.
+
+Ampliación local del 18 de octubre: [CPU, GPU, placas, RAM y discos por modelo](fuente-web-componentes.md), contratos, panel y pruebas locales aprobados. Las rutas históricas CPU de los cortes siguientes se conservan; no describen por sí solas el alcance actual. Esta ampliación aún requiere commit/push y validación en Actions; no modifica el catálogo ni cotizaciones.
+
+Corte de precios anterior: [precios consultados del cotizador](precios-cotizador.md), ocho modelos vinculados explícitamente, dos productos añadidos y 23 búsquedas técnicas. No recalcula cotizaciones históricas.
+
+Último corte: [catálogo SoloTodo para el armador](catalogo-solotodo.md), importación local confirmada de CPU, GPU, RAM, placas y gabinetes, con foto de la ficha, precio normal CLP, fecha y caducidad. Topes 35/30/20/20/15; no son cantidades garantizadas. Los productos importados sin oferta vigente se bloquean, no se muestran como estimaciones actuales. Derechos de publicación, CI remota nueva y staging siguen pendientes.
 
 ## Objetivo de la pauta
 
@@ -12,18 +18,25 @@ La capacidad inteligente completa, A/B y evaluación final con usuarios no son o
 
 | Bloque | Estado | Evidencia / falta |
 |---|---|---|
-| Base EP1 y mejoras del cotizador | Implementado; validación remota en corrección | El primer run EP2 aprobó frontend/backend/Python y falló en CodeQL Python/secretos. Correcciones locales probadas; falta repetir Actions con el commit nuevo. |
-| Fuente SoloTodo | Piloto técnico y análisis documentados; reutilización sin confirmar | API pública, revisión de condiciones y cinco CPU reales evaluadas. `fuente-web-evaluacion.md` separa acceso técnico de permiso; no hay sincronización comercial. |
-| Preparación Python | Primera etapa implementada | Normalización CPU, deduplicación, origen/fechas, hash y métricas. No equivale a un catálogo actualizado. |
-| Recuperación automatizada | Implementada en piloto bajo demanda | Botón admin → NestJS → recuperación FastAPI de 1–5 CPU. Una página, sin agenda ni imágenes; cooldown de 60 s y exclusión concurrente. Uso recurrente por confirmar. |
+| Base EP1 y mejoras del cotizador | Implementado y CI aprobado | Commit `68a0b0d`, CI EP2 #7: frontend/backend/Python y Docker aprobados junto a los controles. No acredita staging. |
+| Fuente SoloTodo | Piloto ampliado a cinco categorías; reutilización sin confirmar | Se conserva la muestra histórica A10 y se añaden búsquedas dirigidas de CPU, GPU, placas, RAM y HDD/SSD, con fechas y límites en `fuente-web-componentes.md`. Sin sincronización comercial. |
+| Preparación Python | Cinco categorías implementadas y verificadas localmente | Contratos separados, VRAM, núcleos híbridos, slots/puertos, módulos/kits, unidades de discos, pertinencia, deduplicación, fechas/hash y métricas. No equivale a catálogo actualizado. |
+| Recuperación automatizada | Piloto bajo demanda; dos circuitos separados | Referencias técnicas: hasta 5 candidatas. Importador del armador: 25 candidatas CPU o 10 de otra categoría y hasta 5 consultas de ofertas, con foto identificada. Sin agenda; espera y bloqueo global compartidos. Uso recurrente por confirmar. |
 | NestJS + persistencia externa | Implementado para piloto privado | Adquisición API con procedencia registrada y alternativa JSON declarada; validación, transacción, referencias únicas e historial. |
-| Consulta y visualización externa | Implementado para administrador | `/admin/fuentes`, búsqueda/paginación, fechas, datos técnicos y calidad. No reemplaza el catálogo manual. |
+| Consulta y visualización externa | Panel privado y vínculo local al armador | `/admin/fuentes` separa referencias técnicas de importación confirmada. El armador muestra modelos importados con foto y oferta apta; conserva IDs manuales históricos/presets sin modificar cotizaciones. Campos de montaje ausentes quedan por confirmar. |
+| Precios de nuevas cotizaciones | Piloto local ampliado | Oferta normal CLP, tienda, fechas y caducidad para modelos importados; ocho mapeos anteriores conservados. Sin oferta vigente el importado no se cotiza; fallo de red conserva la versión anterior. No garantiza stock/mínimo global. Ver `catalogo-solotodo.md` y `precios-cotizador.md`. |
 | Evaluación de datos reales | Evaluación acotada aplicada a cinco CPU | 5/5 válidas, 0 duplicadas, 0/5 Part Numbers y antigüedad de origen 148 días. Persistencia/listado verificados; no representa modelos actuales ni exactitud independiente. Ver `fuente-web-evaluacion.md`. |
 | Diseño adaptativo preliminar | Especificado; motor futuro no implementado | Usuario, contexto, datos, decisión, reglas/orden, salida, control, riesgos y evaluación posterior en `diseno-adaptativo-ep2.md`; no afirma ranking ni IA completa. |
-| Seguridad, observabilidad y staging | Controles locales probados; corrección de CI preparada | Lector SARIF, URLs permitidas y secretos QA/históricos corregidos, sin desactivar controles. Falta validar el commit nuevo y staging real; sin histórico centralizado de métricas. Ver `seguridad-ep2.md` y `observabilidad-ep2.md`. |
-| Entrega evaluable | Tablero local actualizado; validación pendiente | `tablero-ep2.md`, arquitectura/ADR, evaluación de fuente y guion. Faltan run remoto final/ensayo, staging y release EP2; permisos del proveedor siguen sin resolución. |
+| Seguridad, observabilidad y staging | CI aprobado; staging pendiente | CI EP2 #7 aprueba ambos CodeQL, secretos, auditorías, Terraform y Docker. Conservar/revisar reportes; no hay staging ni histórico centralizado de métricas. |
+| Entrega evaluable | CI anterior verificado; ampliación local pendiente de publicar | Faltan condiciones del proveedor, nueva CI, staging, ensayo y release EP2. La cobertura útil es acotada, no completa ni certificada. Ver `tablero-ep2.md`. |
 
 Los cortes conservan evidencia histórica: sus cifras y pendientes corresponden al momento indicado. El estado más reciente se resume arriba y en [tablero local](tablero-ep2.md), [evaluación de fuente](fuente-web-evaluacion.md), [cierre EP2](cierre-ep2.md), [seguridad](seguridad-ep2.md) y [observabilidad](observabilidad-ep2.md).
+
+## Validación remota aprobada y siguiente sesión
+
+Verificado en GitHub el 2026-10-17: [CI EP2 #7](https://github.com/RodriguezPavezBenjamin/JembaTech/actions/runs/39012531921), commit `68a0b0d7b91463bfeb9e8057e88166e5fc9c6ab1`, resultado `success`; los nueve jobs aprobaron. GitHub Pages también aprobó para ese commit, pero sigue sin sustituir staging del sistema completo. El primer run fallido permanece como evidencia histórica, no como estado actual.
+
+Para retomar mañana se agrega al [tablero](tablero-ep2.md) convertir Fuentes y calidad en un apoyo real del cotizador: modelos actuales/de uso común, categorías principales, contratos por categoría, mapeo revisado, procedencia/antigüedad y datos efectivamente utilizables. No basta con recuperar otra vez las mismas fichas antiguas. Precios/stock y frecuencia recurrente requieren datos/acceso/condiciones confirmados; no hay activación automática ni cambio del catálogo por este cierre documental.
 
 ## Último cierre técnico: fuente y seguimiento
 
@@ -124,7 +137,7 @@ Las pruebas de preparación y transporte usan **fixtures sintéticas y red simul
 7. Completar seguridad/observabilidad/staging de la pauta: SAST, auditoría Python e imágenes, correlación/logs, integración, despliegue automatizado, health posdespliegue y evidencia.
 8. Consolidar documentación, tablero, demo y release EP2. Confirmar fecha de entrega: los documentos del curso muestran fechas diferentes.
 
-El rediseño visual ya aprobado se conserva. El cambio local de Gradle/Android se deja fuera de este trabajo.
+El rediseño visual ya aprobado se conserva. Android se revisó después por petición explícita: [wrapper y diagnóstico corregidos](android-validacion.md), con preparación Capacitor, APK debug, prueba unitaria y lint nativo aprobados localmente usando JDK 21 y SDK en D:. Portada confirmada en emulador y flujos manuales confirmados por el usuario tanto en web como en Android. Quedan pendientes el test instrumentado automatizado y la conexión con el futuro staging.
 
 ## Cuarto corte documental: diseño y preparación del cierre
 

@@ -71,6 +71,11 @@ def analyze(build: BuildInput) -> BuildAnalysis:
     def issue(category: str, message: str, severity: Literal['block', 'warning'] = 'block'):
         issues.append(Issue(category=category, severity=severity, message=message))
 
+    partial = any(c.specs.get('unverified') for c in build.components)
+    for c in build.components:
+        if c.specs.get('unverified'):
+            issue(c.category, f'{c.name}: por confirmar: {"; ".join(c.specs["unverified"])}. No se certifica esa parte del montaje.', 'warning')
+
     if cpu and gpu and gpu.specs.get('integrated') and not cpu.specs.get('integrated'):
         issue('gpu', 'Este procesador no tiene gráficos integrados. Elige una tarjeta dedicada.')
     if cpu and board:
@@ -83,12 +88,12 @@ def analyze(build: BuildInput) -> BuildAnalysis:
     if board and memories:
         if any(ram.specs['ram'] != board.specs['ram'] for ram in memories):
             issue('ram', 'La memoria debe ser del mismo tipo DDR que admite la placa.')
-        if ram_gb > board.specs['maxRam']:
+        if board.specs.get('maxRam') is not None and ram_gb > board.specs['maxRam']:
             issue('ram', 'La capacidad de RAM supera el límite del perfil de placa.')
         if ram_modules > board.specs['ramSlots']:
             issue('ram', 'La cantidad total de módulos RAM supera las ranuras de la placa.')
     if len(memories) > 1 or any(ram.quantity > 1 for ram in memories):
-        issue('ram', 'Módulos o kits comprados por separado no garantizan el mismo perfil XMP/EXPO. Preferimos un kit probado de fábrica; confirma SKU, revisión y QVL.', 'warning')
+        issue('ram', 'Para varios módulos confirma SKU, revisión, QVL y perfil XMP/EXPO: comprados por separado no garantizan el mismo ajuste conjunto.', 'warning')
 
     nvme = sum(c.quantity for c in drives if c.specs['kind'] == 'NVMe')
     sata = sum(c.quantity for c in drives if c.specs['kind'] != 'NVMe')
@@ -112,7 +117,7 @@ def analyze(build: BuildInput) -> BuildAnalysis:
         if gpu and gpu.specs['lengthMm'] > specs['gpuClearanceMm']:
             issue('case', 'La gráfica supera el espacio del gabinete en este perfil.')
         radiator = cooler.specs['radiatorMm'] if cooler else 0
-        if cooler and radiator and radiator not in specs['radiators']:
+        if cooler and radiator and 'radiators' in specs and radiator not in specs['radiators']:
             issue('case', 'El gabinete no admite el radiador seleccionado.')
         if cooler and not radiator and cooler.specs['heightMm'] > specs['coolerClearanceMm']:
             issue('case', 'La torre del cooler es demasiado alta para el gabinete.')
@@ -122,23 +127,24 @@ def analyze(build: BuildInput) -> BuildAnalysis:
             issue('case', 'Faltan bahías de 3,5 pulgadas para los HDD elegidos.')
         if ssd > specs['bays25']:
             issue('case', 'Faltan bahías de 2,5 pulgadas para los SSD SATA elegidos.')
-        count120 = sum(c.quantity for c in fans if c.specs['sizeMm'] == 120) + specs['included120']
-        count140 = sum(c.quantity for c in fans if c.specs['sizeMm'] == 140) + specs['included140']
+        count120 = sum(c.quantity for c in fans if c.specs['sizeMm'] == 120) + specs.get('included120', 0)
+        count140 = sum(c.quantity for c in fans if c.specs['sizeMm'] == 140) + specs.get('included140', 0)
         if radiator:
             if radiator in {280, 420}:
                 count140 += radiator // 140
             else:
                 count120 += radiator // 120
-        if (count120 > specs['fan120'] or count140 > specs['fan140']
-                or count120 + count140 > max(specs['fan120'], specs['fan140'])):
+        if ('fan120' in specs and 'fan140' in specs and
+                (count120 > specs['fan120'] or count140 > specs['fan140']
+                 or count120 + count140 > max(specs['fan120'], specs['fan140']))):
             issue('case', 'Los ventiladores incluidos, adicionales y del radiador exceden el montaje de referencia. Reduce extras o cambia gabinete.')
-        if psu and psu.specs['form'] not in specs['psuForms']:
+        if psu and 'psuForms' in specs and psu.specs['form'] not in specs['psuForms']:
             issue('psu', 'El formato físico de la fuente no es compatible con el gabinete.')
 
     consumption = sum(int(c.specs.get('power', 45 if c.category == 'board' else 0)) * c.quantity
                       for c in build.components)
     if case:
-        consumption += (case.specs['included120'] + case.specs['included140']) * 3
+        consumption += (case.specs.get('included120', 0) + case.specs.get('included140', 0)) * 3
     watts = max(recommended_watts(consumption), int(gpu.specs.get('minPsu', 0)) if gpu else 0)
     if psu:
         if psu.specs['watts'] < watts:
@@ -160,7 +166,7 @@ def analyze(build: BuildInput) -> BuildAnalysis:
         issue('storage', 'Considera al menos 500 GB para sistema y aplicaciones.', 'warning')
     blocked = [item for item in issues if item.severity == 'block']
     warnings = [item.message for item in issues]
-    recommendations = ['Confirma modelo exacto, BIOS, dimensiones, conectores y montaje antes de comprar. Los perfiles y precios son de referencia manual.']
+    recommendations = ['Confirma modelo exacto, BIOS, dimensiones, conectores y montaje antes de comprar. Revisa en cada ficha si el precio es consultado o estimado; el consumo es de planificación.']
     score = max(0, 100 - len(blocked) * 25 - sum(i.severity == 'warning' for i in issues) * 10)
     return BuildAnalysis(
         total_price=total, ram_gb=ram_gb, storage_gb=capacity,
@@ -168,7 +174,7 @@ def analyze(build: BuildInput) -> BuildAnalysis:
         estimated_consumption_watts=consumption, recommended_watts=watts,
         remaining_budget=build.budget - total, missing=missing, issues=issues,
         can_save=not missing and not blocked, score=score,
-        level='Revisión preliminar' if missing else 'Requiere ajustes' if blocked else 'Compatible con el perfil',
+        level='Revisión preliminar' if missing else 'Requiere ajustes' if blocked else 'Revisión parcial · confirmar montaje' if partial else 'Compatible con el perfil',
         warnings=warnings, recommendations=recommendations,
         explanation='Revisión de presupuesto, conexiones, espacio y potencia sobre perfiles de referencia. El consumo es una estimación; no certifica compatibilidad del modelo final.',
     )

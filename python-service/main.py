@@ -10,11 +10,94 @@ from pydantic import BaseModel, Field
 
 from builds import BuildAnalysis, BuildInput, analyze, recommended_watts
 from observability import HTTPObservability, emit_event
-from probe_solotodo import ProbeError, fetch_cpu_batch
+from probe_solotodo import (
+    COMPONENT_TARGETS,
+    ProbeError,
+    fetch_component_batch,
+    fetch_cpu_batch,
+    target_category_id,
+    target_terms,
+)
 from solotodo import CpuBatch, CpuBatchResult, normalize_cpu_batch
+from solotodo_catalog import TARGETS as CATALOG_TARGETS
+from solotodo_catalog import recover_catalog
+from solotodo_components import ComponentBatch, normalize_component_batch
+from solotodo_prices import PRICE_TARGETS, recover_prices
 
 app = FastAPI(title='JembaTech Evaluator', version='0.1.0')
 app.add_middleware(HTTPObservability)
+
+
+class ComponentRecoveryRequest(BaseModel):
+    target: str = Field(min_length=1, max_length=40)
+    request_id: UUID
+
+
+@app.post('/sources/solotodo/catalog/recover', tags=['sources'])
+def recover_solotodo_catalog(request: ComponentRecoveryRequest, x_source_token: str = Header(default='')):
+    token = os.environ.get('SOURCE_INTERNAL_TOKEN', '')
+    if os.environ.get('SOLOTODO_MANUAL_PROBE_ENABLED') != 'true' or not re.fullmatch(r'[a-f0-9]{64}', token):
+        raise HTTPException(status_code=503, detail={'code': 'MANUAL_PROBE_DISABLED'})
+    if not secrets.compare_digest(x_source_token.encode(), token.encode()):
+        raise HTTPException(status_code=401, detail={'code': 'INTERNAL_AUTH_REQUIRED'})
+    if request.target not in CATALOG_TARGETS:
+        raise HTTPException(status_code=422, detail={'code': 'INVALID_TARGET'})
+    try:
+        result = recover_catalog(request.target)
+    except ProbeError as error:
+        safe = {'source_unavailable', 'source_rate_limited', 'source_access_denied', 'source_http_error', 'invalid_source_contract', 'response_too_large'}
+        raise HTTPException(status_code=502, detail={'code': str(error).upper() if str(error) in safe else 'SOURCE_FAILED'}) from error
+    return {**result, 'requestId': str(request.request_id)}
+
+
+@app.post('/sources/solotodo/prices/recover', tags=['sources'])
+def recover_solotodo_prices(request: ComponentRecoveryRequest, x_source_token: str = Header(default='')):
+    token = os.environ.get('SOURCE_INTERNAL_TOKEN', '')
+    if os.environ.get('SOLOTODO_MANUAL_PROBE_ENABLED') != 'true' or not re.fullmatch(r'[a-f0-9]{64}', token):
+        raise HTTPException(status_code=503, detail={'code': 'MANUAL_PROBE_DISABLED'})
+    if not secrets.compare_digest(x_source_token.encode(), token.encode()):
+        raise HTTPException(status_code=401, detail={'code': 'INTERNAL_AUTH_REQUIRED'})
+    if request.target not in PRICE_TARGETS:
+        raise HTTPException(status_code=422, detail={'code': 'INVALID_TARGET'})
+    try:
+        result = recover_prices(request.target)
+    except ProbeError as error:
+        safe = {'source_unavailable', 'source_rate_limited', 'source_access_denied', 'source_http_error', 'invalid_source_contract', 'response_too_large'}
+        code = str(error).upper() if str(error) in safe else 'SOURCE_FAILED'
+        raise HTTPException(status_code=502, detail={'code': code}) from error
+    return {**result, 'requestId': str(request.request_id)}
+
+
+@app.post('/sources/solotodo/components/normalize', tags=['sources'])
+def normalize_solotodo_components(batch: ComponentBatch):
+    return normalize_component_batch(batch)
+
+
+@app.post('/sources/solotodo/components/recover', tags=['sources'])
+def recover_solotodo_components(request: ComponentRecoveryRequest, x_source_token: str = Header(default='')):
+    token = os.environ.get('SOURCE_INTERNAL_TOKEN', '')
+    if os.environ.get('SOLOTODO_MANUAL_PROBE_ENABLED') != 'true' or not re.fullmatch(r'[a-f0-9]{64}', token):
+        raise HTTPException(status_code=503, detail={'code': 'MANUAL_PROBE_DISABLED'})
+    if not secrets.compare_digest(x_source_token.encode(), token.encode()):
+        raise HTTPException(status_code=401, detail={'code': 'INTERNAL_AUTH_REQUIRED'})
+    if request.target not in COMPONENT_TARGETS:
+        raise HTTPException(status_code=422, detail={'code': 'INVALID_TARGET'})
+    started = perf_counter()
+    try:
+        batch = fetch_component_batch(request.target)
+    except ProbeError as error:
+        safe_codes = {'source_unavailable', 'source_rate_limited', 'source_access_denied', 'source_http_error',
+                      'invalid_source_contract', 'unexpected_content_type', 'response_too_large'}
+        code = str(error).upper() if str(error) in safe_codes else 'SOURCE_FAILED'
+        emit_event('source_request', runId=str(request.request_id), source='solotodo', code=code)
+        raise HTTPException(status_code=502, detail={'code': code}) from error
+    retrieval_ms = round((perf_counter() - started) * 1000, 3)
+    result = normalize_component_batch(batch, target_terms(request.target), target_category_id(request.target))
+    emit_event('source_request', runId=str(request.request_id), source='solotodo', category=batch.category,
+               received=result['metrics']['received'], accepted=result['metrics']['accepted'], durationMs=retrieval_ms)
+    return {**result, 'retrieved_at': batch.retrieved_at, 'request_id': request.request_id,
+            'target': request.target, 'source_request_url': COMPONENT_TARGETS[request.target][1],
+            'retrieval_ms': retrieval_ms}
 
 
 class CpuRecoveryRequest(BaseModel):

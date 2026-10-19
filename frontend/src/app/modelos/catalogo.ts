@@ -16,12 +16,19 @@ export interface Producto {
   name: string;
   description: string;
   price: number;
+  priceInfo?: { kind: 'estimated' | 'included' | 'unavailable' } | PrecioConsultado;
   icon: string;
   image?: string;
   imageSource?: string;
   imageLabel?: string;
   imageLicense?: string;
   specs: Record<string, string | number | boolean | string[] | number[]>;
+}
+
+export interface PrecioConsultado {
+  kind: 'observed'; source: 'SoloTodo'; currency: 'CLP'; externalId: string; partNumber: string | null;
+  storeHost: string; offerUrl: string; sourceUrl: string; observedAt: string; offerUpdatedAt: string;
+  expiresAt: string; normalPriceClp: number; offerPriceClp: number; scope: 'first-page';
 }
 
 export interface Catalogo {

@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from "@angular/core";
 import { Producto } from "../../modelos/catalogo";
 
 @Component({
@@ -9,7 +9,7 @@ import { Producto } from "../../modelos/catalogo";
   templateUrl: "./tarjeta-componente.component.html",
   styleUrl: "./tarjeta-componente.component.scss",
 })
-export class TarjetaComponenteComponent {
+export class TarjetaComponenteComponent implements OnChanges {
   @Input({ required: true }) producto!: Producto;
   @Input() seleccionado = false;
   @Input() motivo = "";
@@ -22,6 +22,11 @@ export class TarjetaComponenteComponent {
   @Output() elegir = new EventEmitter<Producto>();
   @Output() quitar = new EventEmitter<Producto>();
   @Output() cantidadCambio = new EventEmitter<number>();
+
+  ngOnChanges(changes: SimpleChanges) {
+    const change = changes['producto'];
+    if (change && (change.previousValue as Producto | undefined)?.image !== (change.currentValue as Producto).image) this.fotoFallida = false;
+  }
 
   get activa() {
     return this.multiple ? this.cantidad > 0 : this.seleccionado;
@@ -45,6 +50,11 @@ export class TarjetaComponenteComponent {
     }).format(valor);
   }
 
+  get precioPorActualizar() { const info = this.producto.priceInfo; return info?.kind === 'unavailable' || (info?.kind === 'observed' && !(Date.parse(info.expiresAt) > Date.now())); }
+  get precioConsultado() { const info = this.producto.priceInfo; return info?.kind === 'observed' && !this.precioPorActualizar ? info : null; }
+  get formatoOrientativo() { const fields = this.producto.specs['unverified']; return Array.isArray(fields) && fields.some(v => v === 'confirmar formatos de placa admitidos'); }
+  medida(key: string, unit: string, prefix = '') { const value = this.producto.specs[key]; return typeof value === 'number' ? `${prefix}${value} ${unit}` : 'Por confirmar'; }
+
   get integrada() {
     return (
       this.producto.category === "gpu" &&
@@ -57,12 +67,18 @@ export class TarjetaComponenteComponent {
     const list = (key: string) =>
       Array.isArray(s[key])
         ? (s[key] as Array<string | number>).join(" / ")
-        : String(s[key] ?? "—");
+        : String(s[key] ?? "Por confirmar");
     switch (this.producto.category) {
+      case "ram":
+        return [
+          { label: "POR MÓDULO", value: `${Number(s['capacityGb']) / Number(s['modules'])} GB` },
+          { label: "PRESENTACIÓN", value: s['modules'] === 1 ? '1 módulo · cantidad elegible' : `${s['modules']} módulos · selección anterior` },
+          { label: "VELOCIDAD", value: this.medida('speed', 'MT/s') },
+        ];
       case "board":
         return [
           { label: "MEMORIA", value: `${s["ramSlots"]} slots · ${s["ram"]}` },
-          { label: "CAPACIDAD RAM", value: `Hasta ${s["maxRam"]} GB` },
+          { label: "CAPACIDAD RAM", value: this.medida('maxRam', 'GB', 'Hasta ') },
           {
             label: "ALMACENAMIENTO",
             value: `${s["m2"]} M.2 · ${s["sata"]} SATA`,
@@ -71,7 +87,7 @@ export class TarjetaComponenteComponent {
           { label: "RED", value: String(s["lan"] ?? "Consultar ficha") },
           {
             label: "INALÁMBRICO",
-            value: String(s["wireless"] ?? (s["wifi"] ? "Wi-Fi" : "Sin Wi-Fi")),
+            value: String(s["wireless"] ?? (s["wifi"] === undefined ? 'Por confirmar' : s["wifi"] ? "Wi-Fi" : "Sin Wi-Fi")),
           },
         ];
       case "cooler":
@@ -107,7 +123,7 @@ export class TarjetaComponenteComponent {
           },
           {
             label: "VENTILADORES",
-            value: `${Number(s["included120"]) + Number(s["included140"])} incluidos`,
+            value: typeof s['included120'] === 'number' && typeof s['included140'] === 'number' ? `${Number(s["included120"]) + Number(s["included140"])} incluidos` : 'Por confirmar',
           },
           { label: "RADIADORES (MM)", value: list("radiators") },
           { label: "BAHÍAS", value: `${s["bays35"]} HDD · ${s["bays25"]} SSD` },

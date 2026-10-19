@@ -376,7 +376,7 @@ export class CotizadorComponent {
   usarPreset(preset: Preset, budget = preset.budget) {
     if (this.guardando || this.precioPreset(preset) === undefined) return;
     this.vistaPrevia = null;
-    const draft = draftFromPreset(preset, budget);
+    const draft = draftFromPreset(preset, budget, this.catalogo()?.products ?? []);
     this.borrador.set(draft);
     this.preferencias.setValue(
       { budget, intendedUse: preset.use },
@@ -599,6 +599,7 @@ export class CotizadorComponent {
           ? Math.min(11, Math.max(1, saved.step))
           : 1,
       );
+      this.mostrarIncompatibles = this.paso() === 9;
       this.maxPaso = Math.max(
         Math.min(10, this.paso()),
         Number.isInteger(saved.maxStep)
@@ -614,6 +615,7 @@ export class CotizadorComponent {
   }
 
   motivo(product: Producto): string {
+    if (product.priceInfo?.kind === 'unavailable' || (product.priceInfo?.kind === 'observed' && !(Date.parse(product.priceInfo.expiresAt) > Date.now()))) return 'Precio sin oferta vigente. Actualiza la fuente o elige otra pieza.';
     const draft = this.borrador();
     const cpu = this.producto(draft.cpu);
     const board = this.producto(draft.board);
@@ -640,7 +642,7 @@ export class CotizadorComponent {
       board &&
       (specs["ram"] !== board.specs["ram"] ||
         Number(specs["modules"]) > Number(board.specs["ramSlots"]) ||
-        Number(specs["capacityGb"]) > Number(board.specs["maxRam"]))
+        (board.specs["maxRam"] !== undefined && Number(specs["capacityGb"]) > Number(board.specs["maxRam"])))
     )
       return "Tipo, capacidad o cantidad de módulos no admitidos por la placa.";
     if (
@@ -664,7 +666,7 @@ export class CotizadorComponent {
       if (
         cooler &&
         Number(cooler.specs["radiatorMm"]) > 0 &&
-        !(specs["radiators"] as number[]).includes(
+        Array.isArray(specs["radiators"]) && !(specs["radiators"] as number[]).includes(
           Number(cooler.specs["radiatorMm"]),
         )
       )
@@ -681,6 +683,7 @@ export class CotizadorComponent {
         return "Potencia inferior a la recomendada.";
       if (
         caseProduct &&
+        Array.isArray(caseProduct.specs["psuForms"]) &&
         !(caseProduct.specs["psuForms"] as string[]).includes(
           String(specs["form"]),
         )
@@ -734,7 +737,7 @@ export class CotizadorComponent {
               Number(product.specs["capacityGb"]) !==
                 Number(this.ramCapacidad)) ||
             (this.ramRgb !== "Todas" &&
-              Boolean(product.specs["rgb"]) !== (this.ramRgb === "RGB")))
+              (typeof product.specs["rgb"] !== 'boolean' || product.specs["rgb"] !== (this.ramRgb === "RGB"))))
         )
           return false;
         if (
@@ -815,18 +818,13 @@ export class CotizadorComponent {
     )
       return;
     if (step === 9) {
-      const powers = (this.catalogo()?.products ?? [])
-        .filter(
-          (product) => product.category === "psu" && !this.motivo(product),
-        )
-        .map((product) => Number(product.specs["watts"]));
-      this.potenciaFiltro = powers.length ? Math.min(...powers) : 0;
+      this.potenciaFiltro = 0;
       this.modularidad = "Todas";
     }
     this.paso.set(Math.min(10, Math.max(1, step)));
     this.maxPaso = Math.max(this.maxPaso, this.paso());
     this.busqueda = "";
-    this.mostrarIncompatibles = false;
+    this.mostrarIncompatibles = step === 9;
     this.recalcular();
     this.enfocar();
   }

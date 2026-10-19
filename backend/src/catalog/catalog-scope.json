@@ -1,0 +1,282 @@
+[
+  {
+    "id": "cpu-intel-11",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Intel Core i9-11900",
+    "take": 3
+  },
+  {
+    "id": "cpu-intel-i3",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Intel Core i3-12100",
+    "take": 2
+  },
+  {
+    "id": "cpu-intel-12",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Intel Core i5-12400",
+    "take": 2
+  },
+  {
+    "id": "cpu-intel-13",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Intel Core i7-13700",
+    "take": 3
+  },
+  {
+    "id": "cpu-intel-14",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Intel Core i9-14900",
+    "take": 3
+  },
+  {
+    "id": "cpu-intel-ultra",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Intel Core Ultra 5 245K",
+    "take": 3
+  },
+  {
+    "id": "cpu-ryzen-5500",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Ryzen 5 5500",
+    "take": 2
+  },
+  {
+    "id": "cpu-ryzen-5600",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Ryzen 5 5600",
+    "take": 2
+  },
+  {
+    "id": "cpu-ryzen-5700",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Ryzen 7 5700",
+    "take": 3
+  },
+  {
+    "id": "cpu-ryzen-5900",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Ryzen 9 5900",
+    "take": 1
+  },
+  {
+    "id": "cpu-ryzen-5950",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Ryzen 9 5950",
+    "take": 1
+  },
+  {
+    "id": "cpu-ryzen-7600",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Ryzen 5 7600",
+    "take": 3
+  },
+  {
+    "id": "cpu-ryzen-7800",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Ryzen 7 7800X3D",
+    "take": 2
+  },
+  {
+    "id": "cpu-ryzen-9600",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Ryzen 5 9600",
+    "take": 2
+  },
+  {
+    "id": "cpu-ryzen-9700",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Ryzen 7 9700",
+    "take": 2
+  },
+  {
+    "id": "cpu-ryzen-9800",
+    "category": "cpu",
+    "categoryId": 3,
+    "query": "Ryzen 7 9800",
+    "take": 1
+  },
+  {
+    "id": "gpu-rtx-3060",
+    "category": "gpu",
+    "categoryId": 2,
+    "query": "RTX 3060",
+    "take": 3
+  },
+  {
+    "id": "gpu-rtx-3070",
+    "category": "gpu",
+    "categoryId": 2,
+    "query": "RTX 3070",
+    "take": 3
+  },
+  {
+    "id": "gpu-rtx-4060",
+    "category": "gpu",
+    "categoryId": 2,
+    "query": "RTX 4060",
+    "take": 3
+  },
+  {
+    "id": "gpu-rtx-4070",
+    "category": "gpu",
+    "categoryId": 2,
+    "query": "RTX 4070",
+    "take": 3
+  },
+  {
+    "id": "gpu-rtx-5060",
+    "category": "gpu",
+    "categoryId": 2,
+    "query": "RTX 5060",
+    "take": 3
+  },
+  {
+    "id": "gpu-rtx-5070",
+    "category": "gpu",
+    "categoryId": 2,
+    "query": "RTX 5070",
+    "take": 3
+  },
+  {
+    "id": "gpu-rtx-5080",
+    "category": "gpu",
+    "categoryId": 2,
+    "query": "RTX 5080",
+    "take": 3
+  },
+  {
+    "id": "gpu-rx-6600",
+    "category": "gpu",
+    "categoryId": 2,
+    "query": "RX 6600",
+    "take": 3
+  },
+  {
+    "id": "gpu-rx-7600",
+    "category": "gpu",
+    "categoryId": 2,
+    "query": "RX 7600",
+    "take": 3
+  },
+  {
+    "id": "gpu-rx-9060",
+    "category": "gpu",
+    "categoryId": 2,
+    "query": "RX 9060",
+    "take": 3
+  },
+  {
+    "id": "ram-kingston-ddr4",
+    "category": "ram",
+    "categoryId": 7,
+    "query": "Kingston FURY Beast DDR4",
+    "take": 5
+  },
+  {
+    "id": "ram-corsair-ddr4",
+    "category": "ram",
+    "categoryId": 7,
+    "query": "Corsair Vengeance DDR4",
+    "take": 5
+  },
+  {
+    "id": "ram-kingston-ddr5",
+    "category": "ram",
+    "categoryId": 7,
+    "query": "Kingston FURY Beast DDR5",
+    "take": 5
+  },
+  {
+    "id": "ram-corsair-ddr5",
+    "category": "ram",
+    "categoryId": 7,
+    "query": "Corsair Vengeance DDR5",
+    "take": 5
+  },
+  {
+    "id": "board-b560",
+    "category": "board",
+    "categoryId": 5,
+    "query": "B560",
+    "take": 4
+  },
+  {
+    "id": "board-b760",
+    "category": "board",
+    "categoryId": 5,
+    "query": "B760",
+    "take": 4
+  },
+  {
+    "id": "board-b860",
+    "category": "board",
+    "categoryId": 5,
+    "query": "B860",
+    "take": 4
+  },
+  {
+    "id": "board-b550",
+    "category": "board",
+    "categoryId": 5,
+    "query": "B550",
+    "take": 4
+  },
+  {
+    "id": "board-b650",
+    "category": "board",
+    "categoryId": 5,
+    "query": "B650",
+    "take": 4
+  },
+  {
+    "id": "case-corsair",
+    "category": "case",
+    "categoryId": 10,
+    "query": "Corsair 4000D",
+    "take": 3
+  },
+  {
+    "id": "case-nzxt",
+    "category": "case",
+    "categoryId": 10,
+    "query": "NZXT",
+    "take": 3
+  },
+  {
+    "id": "case-montech",
+    "category": "case",
+    "categoryId": 10,
+    "query": "Montech",
+    "take": 3
+  },
+  {
+    "id": "case-lian-li",
+    "category": "case",
+    "categoryId": 10,
+    "query": "Lian Li",
+    "take": 3
+  },
+  {
+    "id": "case-cooler-master",
+    "category": "case",
+    "categoryId": 10,
+    "query": "Cooler Master",
+    "take": 3
+  }
+]

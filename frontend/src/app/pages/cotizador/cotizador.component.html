@@ -3,6 +3,7 @@
     <header class="cabecera">
       <span class="eyebrow">TU PRÓXIMO EQUIPO EMPIEZA AQUÍ</span>
       <h2>ARMA TU PC</h2>
+      <div class="divider" aria-hidden="true"></div>
       <p>Un punto de partida listo o cada pieza elegida por ti.</p>
     </header>
     <p class="aviso" *ngIf="borradorRecuperado">
@@ -194,7 +195,7 @@
                   Ingresa un presupuesto entero entre $1 y $100.000.000.
                 </p>
                 <label for="uso">¿PARA QUÉ LO USARÁS?</label>
-                <select id="uso" formControlName="intendedUse">
+                <select id="uso" formControlName="intendedUse" aria-describedby="ayuda-uso">
                   <option value="oficina">Oficina</option>
                   <option value="estudio">Estudio</option>
                   <option value="gaming">Gaming</option>
@@ -203,6 +204,7 @@
                     Edición y creación de contenido
                   </option>
                 </select>
+                <p id="ayuda-uso">Orienta la revisión, no limita las piezas. En gaming, programación y edición avisamos si eliges menos de 16 GB de RAM.</p>
               </form>
             </ng-container>
           </ng-container>
@@ -317,9 +319,10 @@
                 *ngIf="paso() === 5 && producto(borrador().board) as placa"
               >
                 {{ placa.specs["ram"] }} · {{ placa.specs["ramSlots"] }} ranuras
-                · hasta {{ placa.specs["maxRam"] }} GB. Usa −/+ en cada tarjeta.
-                La cantidad cuenta módulos o kits completos, según la ficha.
+                <ng-container *ngIf="placa.specs['maxRam']"> · hasta {{ placa.specs["maxRam"] }} GB</ng-container>.
+                Cada ficha nueva es un módulo individual: usa −/+ para elegir cuántos.
               </p>
+              <p class="contexto" *ngIf="paso() === 5">8, 16, 32 o 64 GB por módulo. Por ejemplo, 2 × 16 GB = 32 GB en dos ranuras. Los 64 GB por módulo son DDR5; en DDR4 puedes combinar 2 × 32 GB. Los perfiles sin oferta se identifican como estimados.</p>
               <p
                 class="contexto"
                 *ngIf="paso() === 6 && producto(borrador().board) as placa"
@@ -392,7 +395,7 @@
                   </select></label
                 >
                 <label *ngIf="paso() === 5"
-                  >CAPACIDAD POR PRODUCTO<select [(ngModel)]="ramCapacidad">
+                  >CAPACIDAD POR MÓDULO<select [(ngModel)]="ramCapacidad">
                     <option [ngValue]="0">Todas</option>
                     <option *ngFor="let gb of [8, 16, 32, 64]" [ngValue]="gb">
                       {{ gb }} GB
@@ -448,7 +451,7 @@
                 >
                 <label *ngIf="paso() === 9"
                   >POTENCIA<select [(ngModel)]="potenciaFiltro">
-                    <option [ngValue]="0">Todas las adecuadas</option>
+                    <option [ngValue]="0">Todas las potencias</option>
                     <option
                       *ngFor="
                         let watts of [450, 550, 650, 750, 850, 1000, 1200]
@@ -764,7 +767,7 @@
           </ng-container>
           <div
             class="problemas"
-            *ngIf="paso() > 1 && analisis() as resultado"
+            *ngIf="paso() === 10 && analisis() as resultado"
             aria-live="polite"
           >
             <p

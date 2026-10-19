@@ -32,6 +32,9 @@ h2 {
 .cabecera p {
   color: var(--muted);
 }
+.cabecera .divider {
+  margin: 0.9rem auto 1.1rem;
+}
 .pasos {
   position: static;
   display: grid;
