@@ -1,0 +1,61 @@
+:host {
+  display: grid;
+  place-items: center;
+  min-height: calc(100dvh - 12rem);
+  padding-block: 1rem;
+}
+.acceso {
+  width: min(100%, 440px);
+  padding: 2rem;
+  border: 1px solid rgba(var(--accent-rgb), .15);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(var(--panel-start-rgb), .96), rgba(var(--page-end-rgb), .98));
+  box-shadow: 0 24px 90px #0008;
+  font: 400 .95rem/1.5 'Exo 2', sans-serif;
+}
+.cabecera-acceso { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.marca-acceso { display: inline-flex; align-items: center; gap: .65rem; color: var(--accent); text-decoration: none; font: 900 1.1rem 'Orbitron', sans-serif; letter-spacing: -.5px; }
+.marca-final { color: var(--text); }
+.marca-acceso img { display: block; }
+.cerrar { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 6px; color: var(--muted); }
+.cerrar:hover { color: var(--text); background: rgba(var(--accent-rgb), .08); }
+svg { width: 20px; height: 20px; }
+.cerrar svg, .ver-contrasena svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+h1 { font: 600 1.1rem/1.5 'Exo 2', sans-serif; color: var(--text); margin: 1.7rem 0 .2rem; }
+.introduccion { color: var(--muted); font-size: .85rem; }
+.modos { display: flex; gap: 1rem; border-bottom: 1px solid var(--border); margin: 1.4rem 0 1.6rem; }
+button { cursor: pointer; font: 600 .95rem/1.4 'Exo 2', sans-serif; transition: background .15s, border-color .15s; }
+.modos button { position: relative; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); padding: .65rem .25rem; margin-bottom: -1px; }
+.modos button.activo { border-bottom-color: var(--accent); color: var(--accent); }
+.modos button:hover { color: var(--text); }
+form { display: grid; gap: 1.1rem; }
+.campo { display: grid; gap: .4rem; min-width: 0; }
+label { color: var(--text); font-weight: 600; font-size: .9rem; }
+input { display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: 46px; border: 1px solid rgba(var(--accent-rgb), .28); border-radius: 5px; background: #0005; color: var(--text); padding: .7rem .8rem; font: 400 1rem/1.4 'Exo 2', sans-serif; }
+input::placeholder { color: var(--muted); opacity: .65; }
+input:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[aria-invalid='true'] { border-color: #ffcf5c; }
+.contrasena { position: relative; }
+.contrasena input { padding-right: 3.2rem; }
+.ver-contrasena { position: absolute; right: 2px; top: 2px; bottom: 2px; display: grid; place-items: center; width: 44px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); }
+.ver-contrasena:hover { color: var(--text); }
+.campo small { color: var(--muted); font-size: .78rem; }
+.boton-principal, .boton-google { display: flex; justify-content: center; align-items: center; gap: .7rem; width: 100%; min-height: 46px; padding: .75rem 1rem; border-radius: 5px; }
+.boton-principal { margin-top: .4rem; border: 1px solid var(--accent); color: var(--on-accent); background: var(--accent); font-weight: 700; }
+.boton-principal:hover:not(:disabled) { box-shadow: 0 0 18px rgba(var(--accent-rgb), .2); }
+.separador { display: flex; align-items: center; gap: .8rem; margin: 1.5rem 0 1rem; color: var(--muted); font-size: .8rem; }
+.separador::before, .separador::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.boton-google { background: rgba(var(--accent-rgb), .035); color: var(--text); border: 1px solid var(--border); }
+.boton-google:hover:not(:disabled) { border-color: var(--accent); background: rgba(var(--accent-rgb), .08); }
+.boton-google svg { flex-shrink: 0; }
+.nota-google { color: var(--muted); font-size: .76rem; line-height: 1.6; text-align: center; margin: .8rem 0 0; }
+.error { padding: .7rem .8rem; border-left: 2px solid #ffcf5c; background: #ffcf5c0c; color: #ffcf5c; font-size: .85rem; overflow-wrap: anywhere; }
+button:disabled { opacity: .5; cursor: wait; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media (max-width: 520px) {
+  :host { min-height: 0; padding-block: .5rem; }
+  .acceso { padding: 1.4rem; }
+  .marca-acceso { font-size: 1rem; gap: .5rem; }
+  .marca-acceso img { width: 32px; height: 32px; }
+}
+@media (prefers-reduced-motion: reduce) { button { transition: none; } }

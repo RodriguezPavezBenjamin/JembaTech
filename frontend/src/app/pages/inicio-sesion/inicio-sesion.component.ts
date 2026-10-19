@@ -1,15 +1,15 @@
 import { CommonModule } from "@angular/common";
 import { Component, inject, OnInit } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
-import { AuthService } from "../../servicios/autenticacion.service";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { AppUser, AuthService } from "../../servicios/autenticacion.service";
 import { googleErrorMessage } from '../../servicios/google-auth.service';
 @Component({
   selector: "app-inicio-sesion",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: "./inicio-sesion.component.html",
-  styleUrl: "../../estilos/paginas.scss",
+  styleUrl: "./inicio-sesion.component.scss",
 })
 export class InicioSesionComponent implements OnInit {
   private readonly autenticacion = inject(AuthService);
@@ -27,6 +27,7 @@ export class InicioSesionComponent implements OnInit {
   cargando = false;
   error = "";
   googleDisponible = false;
+  mostrarContrasena = false;
   readonly googleNativoPendiente = this.autenticacion.google.nativePlatform;
 
   ngOnInit() {
@@ -39,10 +40,7 @@ export class InicioSesionComponent implements OnInit {
     this.error = '';
     this.autenticacion.loginGoogle().subscribe({
       next: session => {
-        this.cargando = false;
-        window.dispatchEvent(new CustomEvent('jembatech-auth-change', { detail: session.user }));
-        const destino = this.ruta.snapshot.queryParamMap.get('returnUrl');
-        void this.router.navigateByUrl(destino && destino.startsWith('/') && !destino.startsWith('//') ? destino : '/perfil');
+        this.finalizarAcceso(session.user);
       },
       error: error => {
         this.cargando = false;
@@ -52,6 +50,7 @@ export class InicioSesionComponent implements OnInit {
   }
 
   enviar() {
+    if (this.cargando) return;
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
       this.error = "Completa los campos requeridos con datos válidos.";
@@ -75,14 +74,7 @@ export class InicioSesionComponent implements OnInit {
           });
     solicitud.subscribe({
       next: (sesion) => {
-        this.cargando = false;
-        window.dispatchEvent(
-          new CustomEvent("jembatech-auth-change", { detail: sesion.user }),
-        );
-        const destino = this.ruta.snapshot.queryParamMap.get("returnUrl");
-        this.router.navigateByUrl(
-          destino && destino.startsWith("/") && !destino.startsWith('//') ? destino : "/perfil",
-        );
+        this.finalizarAcceso(sesion.user);
       },
       error: (error) => {
         this.cargando = false;
@@ -92,9 +84,22 @@ export class InicioSesionComponent implements OnInit {
     });
   }
 
-  cambiarModo() {
-    this.modo = this.modo === "login" ? "registro" : "login";
+  private finalizarAcceso(usuario: AppUser) {
+    this.cargando = false;
+    window.dispatchEvent(new CustomEvent("jembatech-auth-change", { detail: usuario }));
+    const destino = this.ruta.snapshot.queryParamMap.get("returnUrl");
+    // El acceso normal vuelve a la portada; guardar un armado conserva su regreso.
+    void this.router.navigateByUrl(
+      destino && destino.startsWith("/") && !destino.startsWith("//") && !destino.includes("\\")
+        ? destino : "/",
+    );
+  }
+
+  cambiarModo(modo: "login" | "registro" = this.modo === "login" ? "registro" : "login") {
+    if (this.cargando || this.modo === modo) return;
+    this.modo = modo;
     this.error = "";
+    this.mostrarContrasena = false;
     const nombre = this.formulario.controls.nombre;
     const telefono = this.formulario.controls.telefono;
     const contrasena = this.formulario.controls.contrasena;

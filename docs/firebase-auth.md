@@ -8,8 +8,11 @@ PostgreSQL conserva el UUID de negocio, el rol CLIENT/ADMIN y las cotizaciones.
 No se trasladan cotizaciones a Firestore ni se eliminan cuentas con la migración.
 
 El usuario preparó Firebase: proyecto `jembatech`, app JembaTech Web, Google
-habilitado, dominio `jembatech.up.railway.app` autorizado y plan Spark. Aún falta
-publicar este cambio, configurar Railway y probar el selector Google real.
+habilitado, dominio `jembatech.up.railway.app` autorizado y plan Spark. El 2026-10-19
+el usuario confirmó el acceso Google en Railway, la asignación explícita de ADMIN
+a su cuenta de prueba y el recorrido CLIENT → solicitud → revisión/respuesta ADMIN
+→ seguimiento CLIENT. La captura del cliente muestra EN REVISIÓN y la respuesta.
+Esta evidencia manual no sustituye las pruebas del APK ni de recuperación de acceso.
 
 **No se migran las contraseñas locales a Firebase ni se añade recuperación local
 de contraseña**. El acceso previo se conserva. Para cuentas Google, la recuperación
@@ -70,7 +73,7 @@ Con backend y frontend Online, recargar `/login`: aparecerá CONTINUAR CON GOOGL
   actuar también sobre la cuenta de negocio PostgreSQL. No se promete revocación
   instantánea desde la consola Firebase.
 
-## Prueba manual pendiente en staging
+## Comprobaciones manuales en staging
 
 1. Entrar con Google como CLIENT. Si hay cuenta local con ese correo, comprobar
    el conflicto y usar vinculación con prueba de ambas identidades.
@@ -82,6 +85,23 @@ Con backend y frontend Online, recargar `/login`: aparecerá CONTINUAR CON GOOGL
 
 No publicar tokens, hashes, claves privadas ni contraseñas en capturas/logs.
 Las pruebas automáticas no crean usuarios Firebase reales ni borran los de Railway.
+
+## Interfaz de acceso, 2026-10-19
+
+Tarjeta compacta de JembaTech inspirada en la referencia del usuario, con pestañas
+Iniciar sesión/Registrarse, etiquetas persistentes, autocompletado, control para
+mostrar/ocultar la contraseña y Google cuando está habilitado. Mantiene los temas
+verde/celeste y un diseño adaptable; no ofrece Apple ni recuperación inexistente.
+La X vuelve al inicio. Los accesos locales, Google y el registro correctos regresan
+a `/` (menú principal), en lugar de enviar a Perfil. Se conserva un returnUrl interno
+cuando se venía de una tarea, especialmente `/#cotizador` para recuperar un armado;
+no se aceptan destinos externos. Se bloquean envíos duplicados mientras se espera.
+
+Este ajuste de interfaz no cambia cuentas, roles ni la comprobación de identidad.
+**Mejora pendiente solicitada por el usuario:** agilizar la recuperación y resolver
+los conflictos entre cuentas locales y Google sin tener que borrar cuentas, con
+prueba segura de identidad. No fusionar por correo ni otorgar ADMIN automáticamente.
+El nuevo diseño requiere commit/push, CI y despliegue antes de verlo en Railway.
 
 ## SDK y pruebas automáticas
 
@@ -130,8 +150,9 @@ fija solo en su test y se restaura; la caducidad de la aplicación se mantiene.
 - Redes, contenedores y volumen efímeros QA retirados; tres contenedores originales
   preservados. No se borraron cuentas ni se asignó ADMIN en Railway.
 
-Código aún sin commit/push en este corte; la nueva ejecución de Actions,
-activación en Railway y prueba humana de Google siguen pendientes.
+Estado histórico de ese corte (2026-10-18): código aún sin commit/push y prueba
+humana pendiente. El usuario confirmó posteriormente CI y el recorrido web
+descrito al comienzo; no se atribuye esa comprobación a las pruebas locales.
 
 Referencias: [Google web](https://firebase.google.com/docs/auth/web/google-signin),
 [validar ID tokens](https://firebase.google.com/docs/auth/admin/verify-id-tokens),
